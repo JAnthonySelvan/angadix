@@ -1,0 +1,108 @@
+### Angadix API Test Suite
+@baseUrl = http://localhost:5000/api/v1
+@contentType = application/json
+
+### 1. Healthcheck Endpoint
+GET http://localhost:5000/health
+
+### 2. Register New User (Step 1)
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "password": "Password123!"
+}
+
+### 3. Register Validation Error Test (Should return 422)
+POST {{baseUrl}}/auth/register
+Content-Type: {{contentType}}
+
+{
+  "name": "",
+  "email": "invalid-email",
+  "password": "123"
+}
+
+### 4. Verify Email Address (Step 2)
+# Replace {{token}} with the raw token printed in dev server logs or sent via email
+GET {{baseUrl}}/auth/verify-email/REPLACE_WITH_RAW_VERIFICATION_TOKEN
+
+### 5. Login User (Step 3)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "jane.doe@example.com",
+  "password": "Password123!"
+}
+
+### Store Token Variables (Paste token from login response below)
+@accessToken = REPLACE_WITH_ACCESS_TOKEN
+
+### 6. Get Current User Profile (/me)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### 7. Refresh Access Token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: {{contentType}}
+
+{}
+
+### 8. Forgot Password Request
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: {{contentType}}
+
+{
+  "email": "jane.doe@example.com"
+}
+
+### 9. Reset Password (Step 2)
+# Replace {{token}} with the raw reset token from dev server logs
+POST {{baseUrl}}/auth/reset-password/REPLACE_WITH_RAW_RESET_TOKEN
+Content-Type: {{contentType}}
+
+{
+  "password": "NewSecurePassword123!"
+}
+
+### 10. Login with New Password
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "jane.doe@example.com",
+  "password": "NewSecurePassword123!"
+}
+
+### 11. Get User Profile (/users/profile)
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{accessToken}}
+
+### 12. Update User Profile (/users/profile)
+PATCH {{baseUrl}}/users/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Jane Doe Updated",
+  "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+}
+
+### 13. Change Password
+PATCH {{baseUrl}}/users/change-password
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "currentPassword": "NewSecurePassword123!",
+  "newPassword": "AnotherPassword456!"
+}
+
+### 14. Logout User
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{accessToken}}

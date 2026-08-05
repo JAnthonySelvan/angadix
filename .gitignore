@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+package-lock.json.log
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# Build outputs & dist
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.cache/
+.parcel-cache/
+.vite/
+
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & Editor files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS / System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing / Coverage
+coverage/
+.nyc_output/
+.pytest_cache/

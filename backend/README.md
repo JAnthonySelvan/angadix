@@ -406,10 +406,110 @@ To configure Google OAuth 2.0 credentials for Angadix:
 
 ---
 
-## 🔮 Phase 2 Roadmap & Extension Notes
+### Category Endpoints (`/api/v1/categories`)
 
-When starting **Phase 2 (Product Management & Catalog)**:
-1. **Cloudinary Integration**: Complete `src/config/cloudinary.js` to handle image upload streams for product media and user avatars.
-2. **Product & Category Models**: Introduce `Product.js`, `Category.js`, `Brand.js` in `src/models/`.
-3. **Cart & Wishlist Services**: Extend `User` schema or build separate `Cart.js` domain models.
-4. **Order & Payment Module**: Integrate Stripe / Razorpay Webhooks and transaction handlers in `src/services/payment.service.js`.
+#### 1. Get All Categories
+- **Method**: `GET`
+- **Path**: `/api/v1/categories?isActive=true`
+- **Auth Required**: No
+
+#### 2. Get Category by Slug
+- **Method**: `GET`
+- **Path**: `/api/v1/categories/:slug`
+- **Auth Required**: No
+
+#### 3. Create Category
+- **Method**: `POST`
+- **Path**: `/api/v1/categories`
+- **Auth Required**: Yes (Role: `admin`)
+- **Content-Type**: `multipart/form-data` or `application/json`
+- **Request Body**: `name` (required), `description` (optional), `parentCategory` (optional ObjectId), `image` (file, optional)
+
+#### 4. Update Category
+- **Method**: `PATCH`
+- **Path**: `/api/v1/categories/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 5. Delete Category (Soft-delete)
+- **Method**: `DELETE`
+- **Path**: `/api/v1/categories/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+---
+
+### Brand Endpoints (`/api/v1/brands`)
+
+#### 1. Get All Brands
+- **Method**: `GET`
+- **Path**: `/api/v1/brands?isActive=true`
+- **Auth Required**: No
+
+#### 2. Get Brand by Slug
+- **Method**: `GET`
+- **Path**: `/api/v1/brands/:slug`
+- **Auth Required**: No
+
+#### 3. Create Brand
+- **Method**: `POST`
+- **Path**: `/api/v1/brands`
+- **Auth Required**: Yes (Role: `admin`)
+- **Request Body**: `name` (required), `description` (optional), `logo` (file, optional)
+
+#### 4. Update Brand
+- **Method**: `PATCH`
+- **Path**: `/api/v1/brands/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 5. Delete Brand (Soft-delete)
+- **Method**: `DELETE`
+- **Path**: `/api/v1/brands/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+---
+
+### Product & Homepage Endpoints (`/api/v1/products`)
+
+#### 1. Get Paginated & Filtered Products
+- **Method**: `GET`
+- **Path**: `/api/v1/products?page=1&limit=12&category=electronics&brand=apple&isFeatured=true&minPrice=10000&maxPrice=500000&sort=price_asc`
+- **Auth Required**: No
+
+#### 2. Get Product Details by Slug
+- **Method**: `GET`
+- **Path**: `/api/v1/products/:slug`
+- **Auth Required**: No
+
+#### 3. Create Product
+- **Method**: `POST`
+- **Path**: `/api/v1/products`
+- **Auth Required**: Yes (Role: `admin`)
+- **Content-Type**: `multipart/form-data`
+- **Fields**: `name`, `description`, `shortDescription`, `category`, `brand`, `price`, `discountPrice` (< price), `currency` (`INR`), `stock`, `sku`, `specifications`, `tags`, `isFeatured`, `isBestSeller`, `images` (max 8), `video` (max 1)
+
+#### 4. Update Product
+- **Method**: `PATCH`
+- **Path**: `/api/v1/products/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 5. Quick Stock Adjustment
+- **Method**: `PATCH`
+- **Path**: `/api/v1/products/:id/stock`
+- **Auth Required**: Yes (Role: `admin`)
+- **Request Body**:
+```json
+{
+  "stock": 25
+}
+```
+
+#### 6. Delete Product (Hard-delete & Cloudinary media cleanup)
+- **Method**: `DELETE`
+- **Path**: `/api/v1/products/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 7. Homepage Aggregated Product Sections
+- **Method**: `GET`
+- **Path**: `/api/v1/products/homepage`
+- **Auth Required**: No
+- **Returns**: Aggregated JSON containing `trending`, `flashSale`, `featured`, `bestSellers`, `topRated`, and `recentlyAdded` product arrays.
+

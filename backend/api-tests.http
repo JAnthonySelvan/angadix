@@ -106,3 +106,81 @@ Content-Type: {{contentType}}
 ### 14. Logout User
 POST {{baseUrl}}/auth/logout
 Authorization: Bearer {{accessToken}}
+
+### 15. Create Category (Admin Only)
+POST {{baseUrl}}/categories
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Electronics",
+  "description": "Gadgets, devices, and electronic accessories"
+}
+
+### 16. Get All Categories
+GET {{baseUrl}}/categories?isActive=true
+
+### 17. Get Category by Slug
+GET {{baseUrl}}/categories/electronics
+
+### 18. Create Brand (Admin Only)
+POST {{baseUrl}}/brands
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Apple",
+  "description": "Think Different - Premium Consumer Electronics"
+}
+
+### 19. Get All Brands
+GET {{baseUrl}}/brands?isActive=true
+
+### 20. Get Brand by Slug
+GET {{baseUrl}}/brands/apple
+
+### 21. Create Product (Admin Only)
+# Replace category ID with valid ObjectId from GET /categories
+POST {{baseUrl}}/products
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "MacBook Pro 16-inch M3 Max",
+  "description": "The ultimate pro laptop featuring the M3 Max chip with 16-core CPU and 40-core GPU.",
+  "shortDescription": "16-inch M3 Max MacBook Pro with 36GB RAM and 1TB SSD",
+  "category": "66b2a1234567890123456789",
+  "price": 349900,
+  "discountPrice": 329900,
+  "currency": "INR",
+  "stock": 15,
+  "sku": "MBP16-M3MAX-36GB-1TB",
+  "specifications": [
+    { "key": "Processor", "value": "Apple M3 Max" },
+    { "key": "RAM", "value": "36GB" },
+    { "key": "Storage", "value": "1TB SSD" }
+  ],
+  "tags": ["laptop", "apple", "macbook", "pro"],
+  "isFeatured": true,
+  "isBestSeller": true
+}
+
+### 22. Get All Products (Paginated & Filtered)
+GET {{baseUrl}}/products?page=1&limit=10&isFeatured=true&sort=newest
+
+### 23. Get Product by Slug
+GET {{baseUrl}}/products/macbook-pro-16-inch-m3-max
+
+### 24. Quick Product Stock Update (Admin Only)
+# Replace product ID with valid ObjectId
+PATCH {{baseUrl}}/products/66b2a1234567890123456789/stock
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "stock": 25
+}
+
+### 25. Homepage Aggregated Products Endpoint (Public)
+GET {{baseUrl}}/products/homepage
+

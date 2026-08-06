@@ -10,6 +10,10 @@ import userRoutes from './routes/user.routes.js';
 import categoryRoutes from './routes/category.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import productRoutes from './routes/product.routes.js';
+import cartRoutes from './routes/cart.routes.js';
+import wishlistRoutes from './routes/wishlist.routes.js';
+import savedForLaterRoutes from './routes/savedForLater.routes.js';
+import couponRoutes from './routes/coupon.routes.js';
 import { notFound } from './middlewares/notFound.middleware.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { ApiResponse } from './utils/ApiResponse.js';
@@ -67,6 +71,10 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/brands', brandRoutes);
 app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/cart', cartRoutes);
+app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/saved-for-later', savedForLaterRoutes);
+app.use('/api/v1/coupons', couponRoutes);
 
 // 9. 404 Route Handler for Unmapped Endpoints
 app.use(notFound);

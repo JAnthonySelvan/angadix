@@ -214,4 +214,136 @@ GET {{baseUrl}}/products/sony-wh-1000xm5-wireless-headphones/related
 ### 35. Standalone Similar Products Endpoint (Phase 3)
 GET {{baseUrl}}/products/sony-wh-1000xm5-wireless-headphones/similar
 
+### =======================================================
+### Phase 4: Cart, Wishlist, Saved for Later & Coupons
+### =======================================================
+
+### 36. Get Current User Cart (Phase 4)
+GET {{baseUrl}}/cart
+Authorization: Bearer {{accessToken}}
+
+### 37. Add Item to Cart (Phase 4)
+# Replace productId with valid Product ObjectId
+POST {{baseUrl}}/cart/items
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "productId": "66b2a1234567890123456789",
+  "quantity": 2
+}
+
+### 38. Update Cart Item Quantity (Phase 4)
+PATCH {{baseUrl}}/cart/items/66b2a1234567890123456789
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "quantity": 3
+}
+
+### 39. Apply Coupon to Cart (Phase 4)
+POST {{baseUrl}}/cart/apply-coupon
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "code": "WELCOME10"
+}
+
+### 40. Remove Coupon from Cart (Phase 4)
+DELETE {{baseUrl}}/cart/coupon
+Authorization: Bearer {{accessToken}}
+
+### 41. Merge Guest Cart on Login (Phase 4)
+POST {{baseUrl}}/cart/merge
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "items": [
+    { "productId": "66b2a1234567890123456789", "quantity": 1 }
+  ]
+}
+
+### 42. Remove Single Item from Cart (Phase 4)
+DELETE {{baseUrl}}/cart/items/66b2a1234567890123456789
+Authorization: Bearer {{accessToken}}
+
+### 43. Clear Entire Cart (Phase 4)
+DELETE {{baseUrl}}/cart
+Authorization: Bearer {{accessToken}}
+
+### 44. Get User Wishlist (Phase 4)
+GET {{baseUrl}}/wishlist
+Authorization: Bearer {{accessToken}}
+
+### 45. Add Product to Wishlist (Phase 4)
+POST {{baseUrl}}/wishlist/items
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "productId": "66b2a1234567890123456789"
+}
+
+### 46. Move Wishlist Item to Cart (Phase 4)
+POST {{baseUrl}}/wishlist/items/66b2a1234567890123456789/move-to-cart
+Authorization: Bearer {{accessToken}}
+
+### 47. Remove Item from Wishlist (Phase 4)
+DELETE {{baseUrl}}/wishlist/items/66b2a1234567890123456789
+Authorization: Bearer {{accessToken}}
+
+### 48. Get Saved for Later List (Phase 4)
+GET {{baseUrl}}/saved-for-later
+Authorization: Bearer {{accessToken}}
+
+### 49. Move Cart Item to Saved for Later (Phase 4)
+POST {{baseUrl}}/saved-for-later/items/66b2a1234567890123456789
+Authorization: Bearer {{accessToken}}
+
+### 50. Move Saved Item Back to Cart (Phase 4)
+POST {{baseUrl}}/saved-for-later/items/66b2a1234567890123456789/move-to-cart
+Authorization: Bearer {{accessToken}}
+
+### 51. Remove Item from Saved for Later (Phase 4)
+DELETE {{baseUrl}}/saved-for-later/items/66b2a1234567890123456789
+Authorization: Bearer {{accessToken}}
+
+### 52. Create Coupon (Admin Only - Phase 4)
+POST {{baseUrl}}/coupons
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "code": "WELCOME10",
+  "description": "10% off on minimum order of 1000",
+  "discountType": "percentage",
+  "discountValue": 10,
+  "maxDiscountAmount": 500,
+  "minOrderValue": 1000,
+  "validFrom": "2026-01-01T00:00:00.000Z",
+  "validUntil": "2026-12-31T23:59:59.000Z"
+}
+
+### 53. Validate Coupon Preview (User - Phase 4)
+POST {{baseUrl}}/coupons/validate
+Authorization: Bearer {{accessToken}}
+Content-Type: {{contentType}}
+
+{
+  "code": "WELCOME10",
+  "orderValue": 2500
+}
+
+### 54. List All Coupons (Admin Only - Phase 4)
+GET {{baseUrl}}/coupons?page=1&limit=10&isActive=true
+Authorization: Bearer {{accessToken}}
+
+### 55. Deactivate Coupon (Admin Only - Phase 4)
+DELETE {{baseUrl}}/coupons/REPLACE_WITH_COUPON_ID
+Authorization: Bearer {{accessToken}}
+
+
 

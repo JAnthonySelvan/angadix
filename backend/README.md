@@ -554,4 +554,145 @@ To configure Google OAuth 2.0 credentials for Angadix:
 - **Auth Required**: No
 - **Returns**: Aggregated JSON containing `trending`, `flashSale`, `featured`, `bestSellers`, `topRated`, and `recentlyAdded` product arrays.
 
+---
+
+### Cart Endpoints (`/api/v1/cart`) — Phase 4
+
+#### 1. Get Current User Cart
+- **Method**: `GET`
+- **Path**: `/api/v1/cart`
+- **Auth Required**: Yes
+- **Returns**: Formatted cart object `{ items: [...populated], subtotal, discountAmount, total, itemCount, appliedCoupon }`. Dynamic stock and price validation automatically applied.
+
+#### 2. Add Item to Cart
+- **Method**: `POST`
+- **Path**: `/api/v1/cart/items`
+- **Auth Required**: Yes
+- **Request Body**: `{ "productId": "...", "quantity": 1 }`
+- **Behavior**: Increments quantity if product is already in cart. Snapshots current product price as `priceAtAdd`. Validates against live `product.stock`.
+
+#### 3. Update Cart Item Quantity
+- **Method**: `PATCH`
+- **Path**: `/api/v1/cart/items/:productId`
+- **Auth Required**: Yes
+- **Request Body**: `{ "quantity": 3 }`
+
+#### 4. Remove Item from Cart
+- **Method**: `DELETE`
+- **Path**: `/api/v1/cart/items/:productId`
+- **Auth Required**: Yes
+
+#### 5. Clear Entire Cart
+- **Method**: `DELETE`
+- **Path**: `/api/v1/cart`
+- **Auth Required**: Yes
+
+#### 6. Apply Coupon to Cart
+- **Method**: `POST`
+- **Path**: `/api/v1/cart/apply-coupon`
+- **Auth Required**: Yes
+- **Request Body**: `{ "code": "WELCOME10" }`
+
+#### 7. Remove Coupon from Cart
+- **Method**: `DELETE`
+- **Path**: `/api/v1/cart/coupon`
+- **Auth Required**: Yes
+
+#### 8. Merge Local/Guest Cart on Login
+- **Method**: `POST`
+- **Path**: `/api/v1/cart/merge`
+- **Auth Required**: Yes
+- **Request Body**: `{ "items": [{ "productId": "...", "quantity": 2 }] }`
+
+---
+
+### Wishlist Endpoints (`/api/v1/wishlist`) — Phase 4
+
+#### 1. Get Wishlist
+- **Method**: `GET`
+- **Path**: `/api/v1/wishlist`
+- **Auth Required**: Yes
+
+#### 2. Add Item to Wishlist
+- **Method**: `POST`
+- **Path**: `/api/v1/wishlist/items`
+- **Auth Required**: Yes
+- **Request Body**: `{ "productId": "..." }`
+- **Behavior**: Idempotent. Returns current wishlist if product is already present.
+
+#### 3. Move Wishlist Item to Cart
+- **Method**: `POST`
+- **Path**: `/api/v1/wishlist/items/:productId/move-to-cart`
+- **Auth Required**: Yes
+- **Behavior**: Validates live product stock before moving. Adds item with quantity 1 to cart and removes from wishlist.
+
+#### 4. Remove Item from Wishlist
+- **Method**: `DELETE`
+- **Path**: `/api/v1/wishlist/items/:productId`
+- **Auth Required**: Yes
+
+---
+
+### Saved for Later Endpoints (`/api/v1/saved-for-later`) — Phase 4
+
+#### 1. Get Saved for Later List
+- **Method**: `GET`
+- **Path**: `/api/v1/saved-for-later`
+- **Auth Required**: Yes
+
+#### 2. Move Cart Item to Saved for Later
+- **Method**: `POST`
+- **Path**: `/api/v1/saved-for-later/items/:productId`
+- **Auth Required**: Yes
+- **Behavior**: Removes item from cart and stores it in saved list preserving item quantity.
+
+#### 3. Move Saved Item Back to Cart
+- **Method**: `POST`
+- **Path**: `/api/v1/saved-for-later/items/:productId/move-to-cart`
+- **Auth Required**: Yes
+- **Behavior**: Re-validates live stock, moves item back into cart with snapshot of current product price.
+
+#### 4. Remove Item from Saved for Later
+- **Method**: `DELETE`
+- **Path**: `/api/v1/saved-for-later/items/:productId`
+- **Auth Required**: Yes
+
+---
+
+### Coupon Endpoints (`/api/v1/coupons`) — Phase 4
+
+#### 1. Create Coupon (Admin Only)
+- **Method**: `POST`
+- **Path**: `/api/v1/coupons`
+- **Auth Required**: Yes (Role: `admin`)
+- **Request Body**: `{ "code": "WELCOME10", "discountType": "percentage", "discountValue": 10, "maxDiscountAmount": 500, "minOrderValue": 1000, "validFrom": "...", "validUntil": "..." }`
+
+#### 2. List All Coupons (Admin Only)
+- **Method**: `GET`
+- **Path**: `/api/v1/coupons?page=1&limit=10&isActive=true`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 3. Get Coupon Details (Admin Only)
+- **Method**: `GET`
+- **Path**: `/api/v1/coupons/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 4. Update Coupon (Admin Only)
+- **Method**: `PATCH`
+- **Path**: `/api/v1/coupons/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 5. Soft-Deactivate Coupon (Admin Only)
+- **Method**: `DELETE`
+- **Path**: `/api/v1/coupons/:id`
+- **Auth Required**: Yes (Role: `admin`)
+
+#### 6. Validate Coupon Preview (User Endpoint)
+- **Method**: `POST`
+- **Path**: `/api/v1/coupons/validate`
+- **Auth Required**: Yes
+- **Request Body**: `{ "code": "WELCOME10", "orderValue": 2500 }`
+- **Returns**: Preview calculations `{ valid: true, discountAmount, finalAmount }` without mutating cart state.
+
+
 

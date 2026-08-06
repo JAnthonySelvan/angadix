@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import mongoose from 'mongoose';
 
 export const createProductValidator = [
@@ -207,3 +207,81 @@ export const updateStockValidator = [
     .isInt({ min: 0 })
     .withMessage('Stock must be a non-negative integer'),
 ];
+
+export const searchProductsValidator = [
+  query('q')
+    .trim()
+    .notEmpty()
+    .withMessage('Search query (q) is required')
+    .isLength({ min: 2 })
+    .withMessage('Search query must be at least 2 characters long'),
+  query('minPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('minPrice must be a positive number'),
+  query('maxPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('maxPrice must be a positive number')
+    .custom((value, { req }) => {
+      if (value !== undefined && req.query.minPrice !== undefined) {
+        if (parseFloat(value) < parseFloat(req.query.minPrice)) {
+          throw new Error('maxPrice must be greater than or equal to minPrice');
+        }
+      }
+      return true;
+    }),
+  query('minRating')
+    .optional()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('minRating must be between 0 and 5'),
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50'),
+];
+
+export const searchSuggestionsValidator = [
+  query('q')
+    .trim()
+    .notEmpty()
+    .withMessage('Search query (q) is required')
+    .isLength({ min: 2 })
+    .withMessage('Search query must be at least 2 characters long'),
+];
+
+export const getProductsQueryValidator = [
+  query('minPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('minPrice must be a positive number'),
+  query('maxPrice')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('maxPrice must be a positive number')
+    .custom((value, { req }) => {
+      if (value !== undefined && req.query.minPrice !== undefined) {
+        if (parseFloat(value) < parseFloat(req.query.minPrice)) {
+          throw new Error('maxPrice must be greater than or equal to minPrice');
+        }
+      }
+      return true;
+    }),
+  query('minRating')
+    .optional()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('minRating must be between 0 and 5'),
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50'),
+];
+

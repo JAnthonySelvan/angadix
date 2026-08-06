@@ -5,6 +5,9 @@ import {
   fetchBrands,
   fetchProductsList,
   fetchProductBySlug,
+  searchProducts,
+  fetchSearchSuggestions,
+  fetchProductFacets,
 } from './productThunks';
 
 const initialState = {
@@ -41,8 +44,35 @@ const initialState = {
     loading: false,
     error: null,
   },
+  search: {
+    products: [],
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 12,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    },
+    loading: false,
+    error: null,
+  },
+  facets: {
+    data: {
+      categories: [],
+      brands: [],
+      priceRange: { min: 0, max: 0 },
+      ratings: [],
+      inStock: 0,
+      total: 0,
+    },
+    loading: false,
+    error: null,
+  },
   selectedProduct: {
     data: null,
+    relatedProducts: [],
+    similarProducts: [],
     loading: false,
     error: null,
   },
@@ -130,6 +160,37 @@ const productSlice = createSlice({
         state.catalog.error = action.payload;
       });
 
+    // Full-Text Search
+    builder
+      .addCase(searchProducts.pending, (state) => {
+        state.search.loading = true;
+        state.search.error = null;
+      })
+      .addCase(searchProducts.fulfilled, (state, action) => {
+        state.search.loading = false;
+        state.search.products = action.payload.products || [];
+        state.search.pagination = action.payload.pagination || state.search.pagination;
+      })
+      .addCase(searchProducts.rejected, (state, action) => {
+        state.search.loading = false;
+        state.search.error = action.payload;
+      });
+
+    // Faceted counts
+    builder
+      .addCase(fetchProductFacets.pending, (state) => {
+        state.facets.loading = true;
+        state.facets.error = null;
+      })
+      .addCase(fetchProductFacets.fulfilled, (state, action) => {
+        state.facets.loading = false;
+        state.facets.data = action.payload || state.facets.data;
+      })
+      .addCase(fetchProductFacets.rejected, (state, action) => {
+        state.facets.loading = false;
+        state.facets.error = action.payload;
+      });
+
     // Single Product Detail
     builder
       .addCase(fetchProductBySlug.pending, (state) => {
@@ -139,13 +200,18 @@ const productSlice = createSlice({
       .addCase(fetchProductBySlug.fulfilled, (state, action) => {
         state.selectedProduct.loading = false;
         state.selectedProduct.data = action.payload;
+        state.selectedProduct.relatedProducts = action.payload?.relatedProducts || [];
+        state.selectedProduct.similarProducts = action.payload?.similarProducts || [];
       })
       .addCase(fetchProductBySlug.rejected, (state, action) => {
         state.selectedProduct.loading = false;
         state.selectedProduct.error = action.payload;
+        state.selectedProduct.relatedProducts = [];
+        state.selectedProduct.similarProducts = [];
       });
   },
 });
 
 export const { setSearchQuery, clearSearch } = productSlice.actions;
 export default productSlice.reducer;
+

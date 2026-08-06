@@ -5,19 +5,27 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { fetchProductBySlug } from '../features/products/productThunks';
 import { addToCart } from '../features/cart/cartSlice';
 import { toggleWishlist, selectIsInWishlist } from '../features/wishlist/wishlistSlice';
+import { ProductCard } from '../components/common/ProductCard';
+import { QuickViewModal } from '../components/common/QuickViewModal';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
   const { slug } = useParams();
   const dispatch = useAppDispatch();
 
-  const { data: product, loading, error } = useAppSelector(
-    (state) => state.products.selectedProduct
-  );
+  const {
+    data: product,
+    relatedProducts = [],
+    similarProducts = [],
+    loading,
+    error,
+  } = useAppSelector((state) => state.products.selectedProduct);
+
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   useEffect(() => {
     if (slug) {
@@ -83,7 +91,7 @@ export const ProductDetail = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* Back Link */}
       <Link to="/shop" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary-600 transition-colors">
         <ArrowLeft size={16} />
@@ -253,6 +261,63 @@ export const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Recommendation Section 1: You May Also Like (Related Products) */}
+      {relatedProducts.length > 0 && (
+        <section className="space-y-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                You May Also Like
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                Top rated products from the same category
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((prod) => (
+              <ProductCard
+                key={prod._id}
+                product={prod}
+                onQuickView={(p) => setQuickViewProduct(p)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recommendation Section 2: Similar Products */}
+      {similarProducts.length > 0 && (
+        <section className="space-y-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/60">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                Similar Products
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                Recommended based on brand and matching features
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {similarProducts.map((prod) => (
+              <ProductCard
+                key={prod._id}
+                product={prod}
+                onQuickView={(p) => setQuickViewProduct(p)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={Boolean(quickViewProduct)}
+        onClose={() => setQuickViewProduct(null)}
+      />
     </div>
   );
 };
+

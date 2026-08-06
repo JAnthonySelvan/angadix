@@ -184,3 +184,34 @@ Content-Type: {{contentType}}
 ### 25. Homepage Aggregated Products Endpoint (Public)
 GET {{baseUrl}}/products/homepage
 
+### 26. Get Product by Slug with Bundled Recommendations (Phase 3)
+GET {{baseUrl}}/products/sony-wh-1000xm5-wireless-headphones
+
+### 27. Full-Text Search with Relevance Ranking (Phase 3)
+GET {{baseUrl}}/products/search?q=macbook&page=1&limit=10
+
+### 28. Full-Text Search with Filters and Override Sort (Phase 3)
+GET {{baseUrl}}/products/search?q=apple&minPrice=50000&maxPrice=400000&sort=price_desc
+
+### 29. Search Suggestions / Autocomplete (Phase 3)
+GET {{baseUrl}}/products/search/suggestions?q=so
+
+### 30. Search Short Query Validation Error (Should return 422)
+GET {{baseUrl}}/products/search?q=a
+
+### 31. Multi-Select Category & Brand Filtering (Phase 3)
+GET {{baseUrl}}/products?category=electronics,mobiles&brand=apple,sony&page=1&limit=10
+
+### 32. Advanced Rating, In-Stock, and Dynamic Specifications Filter (Phase 3)
+GET {{baseUrl}}/products?minRating=4&inStock=true&specs=Processor:Apple%20M3%20Max,RAM:36GB
+
+### 33. Faceted Counts Endpoint (Phase 3)
+GET {{baseUrl}}/products/facets?category=electronics,mobiles
+
+### 34. Standalone Related Products Endpoint (Phase 3)
+GET {{baseUrl}}/products/sony-wh-1000xm5-wireless-headphones/related
+
+### 35. Standalone Similar Products Endpoint (Phase 3)
+GET {{baseUrl}}/products/sony-wh-1000xm5-wireless-headphones/similar
+
+

@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logoutUser } from '../../features/auth/authThunks';
 import { toggleCartDrawer, selectCartTotalCount } from '../../features/cart/cartSlice';
 import { selectWishlistItems } from '../../features/wishlist/wishlistSlice';
-import { fetchCategories, fetchProductsList } from '../../features/products/productThunks';
+import { fetchCategories, fetchProductsList, fetchSearchSuggestions } from '../../features/products/productThunks';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { TopAlertBanner } from './TopAlertBanner';
 import toast from 'react-hot-toast';
@@ -64,7 +64,7 @@ export const Navbar = () => {
     setIsSearchFocused(false);
   }, [location.pathname]);
 
-  // Handle live search debouncing
+  // Handle live search debouncing using suggestions endpoint
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
       setIsSearching(true);
@@ -72,8 +72,8 @@ export const Navbar = () => {
 
       searchTimeoutRef.current = setTimeout(async () => {
         try {
-          const res = await dispatch(fetchProductsList({ search: searchQuery.trim(), limit: 5 })).unwrap();
-          setSearchResults(res.products || []);
+          const res = await dispatch(fetchSearchSuggestions(searchQuery.trim())).unwrap();
+          setSearchResults(res || []);
         } catch (err) {
           setSearchResults([]);
         } finally {
@@ -211,33 +211,26 @@ export const Navbar = () => {
                   ) : searchResults.length > 0 ? (
                     <div>
                       <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Products ({searchResults.length})
+                        Suggestions ({searchResults.length})
                       </p>
-                      {searchResults.map((prod) => (
+                      {searchResults.map((item, idx) => (
                         <Link
-                          key={prod._id}
-                          to={`/products/${prod.slug}`}
+                          key={item.slug || idx}
+                          to={`/products/${item.slug}`}
                           onClick={() => setIsSearchFocused(false)}
-                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
                         >
-                          <img
-                            src={prod.images?.[0]?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=200'}
-                            alt={prod.name}
-                            className="w-9 h-9 rounded-lg object-contain bg-slate-100 dark:bg-slate-800 p-1"
-                          />
+                          <Search size={14} className="text-primary-500 flex-shrink-0" />
                           <div className="flex-1 truncate">
                             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                              {prod.name}
-                            </p>
-                            <p className="text-[11px] font-bold text-primary-600 dark:text-primary-400">
-                              ₹{(prod.discountPrice || prod.price).toLocaleString('en-IN')}
+                              {item.name}
                             </p>
                           </div>
                         </Link>
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-xs text-slate-500 text-center">No products found</div>
+                    <div className="p-4 text-xs text-slate-500 text-center">No suggestions found</div>
                   )}
                 </div>
               )}

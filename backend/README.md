@@ -471,27 +471,68 @@ To configure Google OAuth 2.0 credentials for Angadix:
 
 #### 1. Get Paginated & Filtered Products
 - **Method**: `GET`
-- **Path**: `/api/v1/products?page=1&limit=12&category=electronics&brand=apple&isFeatured=true&minPrice=10000&maxPrice=500000&sort=price_asc`
+- **Path**: `/api/v1/products`
+- **Query Parameters**:
+  - `page`: Page number (default: `1`)
+  - `limit`: Items per page (default: `12`, max: `50`)
+  - `category`: Comma-separated category IDs or slugs (e.g. `category=electronics,mobiles`)
+  - `brand`: Comma-separated brand IDs or slugs (e.g. `brand=apple,sony`)
+  - `minPrice` / `maxPrice`: Numeric price range
+  - `minRating`: Minimum rating average (0–5, e.g. `minRating=4`)
+  - `inStock`: `true` to filter items with `stock > 0`
+  - `isFeatured` / `isBestSeller`: `true` / `false`
+  - `specs`: Dynamic specification filters formatted as `Key:Value,Key2:Value2` (e.g. `?specs=RAM:16GB,Storage:512GB`)
+  - `sort`: `newest`, `price_asc`, `price_desc`, `rating`
 - **Auth Required**: No
 
-#### 2. Get Product Details by Slug
+#### 2. Get Product Details by Slug (with Bundled Recommendations)
 - **Method**: `GET`
 - **Path**: `/api/v1/products/:slug`
 - **Auth Required**: No
+- **Returns**: Full product detail document along with bundled lightweight `relatedProducts` (4–8 items from same category sorted by `isFeatured` then `ratingsAverage`) and `similarProducts` (4–8 items matching tags/brand with no duplicates).
 
-#### 3. Create Product
+#### 3. Full-Text Search API (Phase 3)
+- **Method**: `GET`
+- **Path**: `/api/v1/products/search?q=<query>`
+- **Query Parameters**: `q` (required, min 2 chars), plus all standard filter params (`category`, `brand`, `minPrice`, `maxPrice`, `minRating`, `inStock`, `specs`, `sort`, `page`, `limit`).
+- **Auth Required**: No
+- **Sorting**: Defaults to MongoDB `textScore` relevance ranking.
+
+#### 4. Search Suggestions / Autocomplete (Phase 3)
+- **Method**: `GET`
+- **Path**: `/api/v1/products/search/suggestions?q=<partial>`
+- **Auth Required**: No
+- **Returns**: Fast lightweight array of `{ name, slug }` matches (max 8) for dropdown autocomplete.
+
+#### 5. Faceted Filter Counts (Phase 3)
+- **Method**: `GET`
+- **Path**: `/api/v1/products/facets`
+- **Auth Required**: No
+- **Returns**: Faceted count aggregation matching current filter context: `{ categories: [...], brands: [...], priceRange: { min, max }, inStock, total }`.
+
+#### 6. Standalone Related Products (Phase 3)
+- **Method**: `GET`
+- **Path**: `/api/v1/products/:id/related`
+- **Auth Required**: No
+
+#### 7. Standalone Similar Products (Phase 3)
+- **Method**: `GET`
+- **Path**: `/api/v1/products/:id/similar`
+- **Auth Required**: No
+
+#### 8. Create Product (Admin Only)
 - **Method**: `POST`
 - **Path**: `/api/v1/products`
 - **Auth Required**: Yes (Role: `admin`)
 - **Content-Type**: `multipart/form-data`
 - **Fields**: `name`, `description`, `shortDescription`, `category`, `brand`, `price`, `discountPrice` (< price), `currency` (`INR`), `stock`, `sku`, `specifications`, `tags`, `isFeatured`, `isBestSeller`, `images` (max 8), `video` (max 1)
 
-#### 4. Update Product
+#### 9. Update Product (Admin Only)
 - **Method**: `PATCH`
 - **Path**: `/api/v1/products/:id`
 - **Auth Required**: Yes (Role: `admin`)
 
-#### 5. Quick Stock Adjustment
+#### 10. Quick Stock Adjustment (Admin Only)
 - **Method**: `PATCH`
 - **Path**: `/api/v1/products/:id/stock`
 - **Auth Required**: Yes (Role: `admin`)
@@ -502,14 +543,15 @@ To configure Google OAuth 2.0 credentials for Angadix:
 }
 ```
 
-#### 6. Delete Product (Hard-delete & Cloudinary media cleanup)
+#### 11. Delete Product (Hard-delete & Cloudinary media cleanup)
 - **Method**: `DELETE`
 - **Path**: `/api/v1/products/:id`
 - **Auth Required**: Yes (Role: `admin`)
 
-#### 7. Homepage Aggregated Product Sections
+#### 12. Homepage Aggregated Product Sections
 - **Method**: `GET`
 - **Path**: `/api/v1/products/homepage`
 - **Auth Required**: No
 - **Returns**: Aggregated JSON containing `trending`, `flashSale`, `featured`, `bestSellers`, `topRated`, and `recentlyAdded` product arrays.
+
 

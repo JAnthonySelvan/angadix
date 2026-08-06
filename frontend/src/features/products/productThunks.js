@@ -85,3 +85,55 @@ export const fetchProductBySlug = createAsyncThunk(
     }
   }
 );
+
+/**
+ * Full-Text Search Products (Relevance Ranked)
+ */
+export const searchProducts = createAsyncThunk(
+  'products/searchProducts',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/products/search', { params });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to search products'
+      );
+    }
+  }
+);
+
+/**
+ * Fetch Live Search Suggestions / Autocomplete
+ */
+export const fetchSearchSuggestions = createAsyncThunk(
+  'products/fetchSearchSuggestions',
+  async (q, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/products/search/suggestions', { params: { q } });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch search suggestions'
+      );
+    }
+  }
+);
+
+/**
+ * Fetch Faceted Counts For Active Filters
+ */
+export const fetchProductFacets = createAsyncThunk(
+  'products/fetchProductFacets',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/products/facets', { params });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch product facets'
+      );
+    }
+  }
+);
+

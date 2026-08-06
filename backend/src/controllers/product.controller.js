@@ -6,6 +6,64 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadService } from '../services/upload.service.js';
+import { buildProductFilterQuery } from '../utils/productQueryBuilder.js';
+
+const LIGHTWEIGHT_CARD_FIELDS =
+  'name slug price discountPrice currency stock images ratingsAverage ratingsCount isFeatured isBestSeller category brand';
+
+/**
+ * Helper to fetch related products lightweight documents
+ */
+const fetchRelatedProductsHelper = async (categoryId, currentProductId, limitCap = 6) => {
+  if (!categoryId) return [];
+  return await Product.find({
+    category: categoryId,
+    _id: { $ne: currentProductId },
+    isActive: true,
+  })
+    .select(LIGHTWEIGHT_CARD_FIELDS)
+    .populate('category', 'name slug')
+    .populate('brand', 'name slug logo')
+    .sort({ isFeatured: -1, ratingsAverage: -1 })
+    .limit(limitCap)
+    .lean();
+};
+
+/**
+ * Helper to fetch similar products lightweight documents
+ */
+const fetchSimilarProductsHelper = async (
+  tags = [],
+  brandId = null,
+  currentProductId,
+  excludeIds = [],
+  limitCap = 6
+) => {
+  const query = {
+    _id: { $ne: currentProductId, $nin: excludeIds },
+    isActive: true,
+  };
+
+  const conditions = [];
+  if (tags && tags.length > 0) {
+    conditions.push({ tags: { $in: tags } });
+  }
+  if (brandId) {
+    conditions.push({ brand: brandId });
+  }
+
+  if (conditions.length > 0) {
+    query.$or = conditions;
+  }
+
+  return await Product.find(query)
+    .select(LIGHTWEIGHT_CARD_FIELDS)
+    .populate('category', 'name slug')
+    .populate('brand', 'name slug logo')
+    .sort({ ratingsAverage: -1, createdAt: -1 })
+    .limit(limitCap)
+    .lean();
+};
 
 /**
  * Helper to safely parse specifications input (supports JSON string or array)
@@ -40,7 +98,7 @@ const parseTags = (tags) => {
 };
 
 /**
- * @desc    Get paginated products with filtering & sorting
+ * @desc    Get paginated products with advanced filtering & sorting
  * @route   GET /api/v1/products
  * @access  Public
  */
@@ -49,70 +107,19 @@ export const getProducts = asyncHandler(async (req, res) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '12', 10)));
   const skip = (page - 1) * limit;
 
-  const {
-    category,
-    brand,
-    isFeatured,
-    isBestSeller,
-    isActive,
-    minPrice,
-    maxPrice,
-    search,
-    sort,
-  } = req.query;
+  const query = await buildProductFilterQuery(req.query);
 
-  const query = {};
-
-  // Default to active products for public users
-  if (isActive !== undefined) {
-    query.isActive = isActive === 'true';
-  } else {
-    query.isActive = true;
-  }
-
-  // Filter by Category (by ID or slug)
-  if (category) {
-    if (mongoose.Types.ObjectId.isValid(category)) {
-      query.category = category;
-    } else {
-      const catDoc = await Category.findOne({ slug: category });
-      if (catDoc) query.category = catDoc._id;
-      else query.category = null; // No match found
-    }
-  }
-
-  // Filter by Brand (by ID or slug)
-  if (brand) {
-    if (mongoose.Types.ObjectId.isValid(brand)) {
-      query.brand = brand;
-    } else {
-      const brandDoc = await Brand.findOne({ slug: brand });
-      if (brandDoc) query.brand = brandDoc._id;
-      else query.brand = null;
-    }
-  }
-
-  // Flag filters
-  if (isFeatured !== undefined) query.isFeatured = isFeatured === 'true';
-  if (isBestSeller !== undefined) query.isBestSeller = isBestSeller === 'true';
-
-  // Price range filters
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    query.price = {};
-    if (minPrice !== undefined) query.price.$gte = parseFloat(minPrice);
-    if (maxPrice !== undefined) query.price.$lte = parseFloat(maxPrice);
-  }
-
-  // Text search filter
-  if (search) {
+  // Text search filter fallback for main list endpoint
+  if (req.query.search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { tags: { $regex: search, $options: 'i' } },
-      { shortDescription: { $regex: search, $options: 'i' } },
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { tags: { $regex: req.query.search, $options: 'i' } },
+      { shortDescription: { $regex: req.query.search, $options: 'i' } },
     ];
   }
 
   // Sort options mapping
+  const { sort } = req.query;
   let sortOption = { createdAt: -1 };
   if (sort === 'price_asc') sortOption = { price: 1 };
   else if (sort === 'price_desc') sortOption = { price: -1 };
@@ -152,7 +159,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get single product by slug
+ * @desc    Get single product by slug (with bundled related & similar products)
  * @route   GET /api/v1/products/:slug
  * @access  Public
  */
@@ -169,10 +176,278 @@ export const getProductBySlug = asyncHandler(async (req, res) => {
     throw new ApiError(404, `Product with slug '${slug}' not found.`);
   }
 
+  const categoryId = product.category?._id || product.category;
+  const brandId = product.brand?._id || product.brand;
+
+  const relatedProducts = await fetchRelatedProductsHelper(categoryId, product._id, 6);
+  const relatedIds = relatedProducts.map((p) => p._id);
+  const similarProducts = await fetchSimilarProductsHelper(
+    product.tags,
+    brandId,
+    product._id,
+    relatedIds,
+    6
+  );
+
+  const payload = {
+    ...product,
+    relatedProducts,
+    similarProducts,
+  };
+
   return res.status(200).json(
-    new ApiResponse(200, product, 'Product details retrieved successfully.')
+    new ApiResponse(200, payload, 'Product details retrieved successfully.')
   );
 });
+
+/**
+ * @desc    Full-text search endpoint with relevance ranking and filters
+ * @route   GET /api/v1/products/search?q=<query>
+ * @access  Public
+ */
+export const searchProducts = asyncHandler(async (req, res) => {
+  const q = req.query.q ? req.query.q.trim() : '';
+  if (!q || q.length < 2) {
+    throw new ApiError(422, 'Search query (q) must be at least 2 characters long.');
+  }
+
+  const page = Math.max(1, parseInt(req.query.page || '1', 10));
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '12', 10)));
+  const skip = (page - 1) * limit;
+
+  const filterQuery = await buildProductFilterQuery(req.query);
+  const query = {
+    $text: { $search: q },
+    ...filterQuery,
+  };
+
+  const { sort } = req.query;
+  let sortOption = { score: { $meta: 'textScore' } };
+  if (sort === 'price_asc') sortOption = { price: 1 };
+  else if (sort === 'price_desc') sortOption = { price: -1 };
+  else if (sort === 'newest') sortOption = { createdAt: -1 };
+  else if (sort === 'rating') sortOption = { ratingsAverage: -1 };
+
+  const [products, total] = await Promise.all([
+    Product.find(query, { score: { $meta: 'textScore' } })
+      .populate('category', 'name slug')
+      .populate('brand', 'name slug logo')
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Product.countDocuments(query),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        products,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+      'Search results retrieved successfully.'
+    )
+  );
+});
+
+/**
+ * @desc    Search autocomplete / suggestions (lightweight)
+ * @route   GET /api/v1/products/search/suggestions?q=<partial>
+ * @access  Public
+ */
+export const getSearchSuggestions = asyncHandler(async (req, res) => {
+  const q = req.query.q ? req.query.q.trim() : '';
+  if (!q || q.length < 2) {
+    throw new ApiError(422, 'Search query (q) must be at least 2 characters long.');
+  }
+
+  const suggestions = await Product.find({
+    name: { $regex: q, $options: 'i' },
+    isActive: true,
+  })
+    .select('name slug')
+    .limit(8)
+    .lean();
+
+  return res.status(200).json(
+    new ApiResponse(200, suggestions, 'Search suggestions retrieved successfully.')
+  );
+});
+
+/**
+ * @desc    Get faceted counts for currently applied filter context
+ * @route   GET /api/v1/products/facets
+ * @access  Public
+ */
+export const getProductFacets = asyncHandler(async (req, res) => {
+  const filterQuery = await buildProductFilterQuery(req.query);
+
+  const facetResults = await Product.aggregate([
+    { $match: filterQuery },
+    {
+      $facet: {
+        categories: [
+          { $group: { _id: '$category', count: { $sum: 1 } } },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'categoryDoc',
+            },
+          },
+          { $unwind: { path: '$categoryDoc', preserveNullAndEmptyArrays: true } },
+          {
+            $project: {
+              _id: 1,
+              name: '$categoryDoc.name',
+              slug: '$categoryDoc.slug',
+              count: 1,
+            },
+          },
+          { $sort: { count: -1 } },
+        ],
+        brands: [
+          { $group: { _id: '$brand', count: { $sum: 1 } } },
+          {
+            $lookup: {
+              from: 'brands',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'brandDoc',
+            },
+          },
+          { $unwind: { path: '$brandDoc', preserveNullAndEmptyArrays: true } },
+          {
+            $project: {
+              _id: 1,
+              name: '$brandDoc.name',
+              slug: '$brandDoc.slug',
+              logo: '$brandDoc.logo',
+              count: 1,
+            },
+          },
+          { $sort: { count: -1 } },
+        ],
+        priceRange: [
+          {
+            $group: {
+              _id: null,
+              minPrice: { $min: '$price' },
+              maxPrice: { $max: '$price' },
+            },
+          },
+        ],
+        ratings: [
+          {
+            $bucket: {
+              groupBy: '$ratingsAverage',
+              boundaries: [0, 1, 2, 3, 4, 5.01],
+              default: 'Other',
+              output: { count: { $sum: 1 } },
+            },
+          },
+        ],
+        inStockCount: [{ $match: { stock: { $gt: 0 } } }, { $count: 'count' }],
+        total: [{ $count: 'total' }],
+      },
+    },
+  ]);
+
+  const facets = facetResults[0] || {};
+  const priceRange =
+    facets.priceRange && facets.priceRange[0]
+      ? { min: facets.priceRange[0].minPrice || 0, max: facets.priceRange[0].maxPrice || 0 }
+      : { min: 0, max: 0 };
+  const total = facets.total && facets.total[0] ? facets.total[0].total : 0;
+  const inStock = facets.inStockCount && facets.inStockCount[0] ? facets.inStockCount[0].count : 0;
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        categories: facets.categories || [],
+        brands: (facets.brands || []).filter((b) => b._id !== null),
+        priceRange,
+        ratings: facets.ratings || [],
+        inStock,
+        total,
+      },
+      'Faceted counts retrieved successfully.'
+    )
+  );
+});
+
+/**
+ * @desc    Get related products (standalone endpoint)
+ * @route   GET /api/v1/products/:id/related
+ * @access  Public
+ */
+export const getRelatedProducts = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  let product;
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    product = await Product.findById(id).lean();
+  } else {
+    product = await Product.findOne({ slug: id }).lean();
+  }
+
+  if (!product) {
+    throw new ApiError(404, `Product '${id}' not found.`);
+  }
+
+  const categoryId = product.category?._id || product.category;
+  const relatedProducts = await fetchRelatedProductsHelper(categoryId, product._id, 8);
+
+  return res.status(200).json(
+    new ApiResponse(200, relatedProducts, 'Related products retrieved successfully.')
+  );
+});
+
+/**
+ * @desc    Get similar products (standalone endpoint)
+ * @route   GET /api/v1/products/:id/similar
+ * @access  Public
+ */
+export const getSimilarProducts = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  let product;
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    product = await Product.findById(id).lean();
+  } else {
+    product = await Product.findOne({ slug: id }).lean();
+  }
+
+  if (!product) {
+    throw new ApiError(404, `Product '${id}' not found.`);
+  }
+
+  const brandId = product.brand?._id || product.brand;
+  const similarProducts = await fetchSimilarProductsHelper(
+    product.tags,
+    brandId,
+    product._id,
+    [],
+    8
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, similarProducts, 'Similar products retrieved successfully.')
+  );
+});
+
 
 /**
  * @desc    Create new product with images/video upload (Admin only)

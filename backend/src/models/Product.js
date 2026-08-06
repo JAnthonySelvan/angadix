@@ -153,11 +153,33 @@ const productSchema = new mongoose.Schema(
 );
 
 // Compound indexes for optimized query paths
-productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ category: 1, isActive: 1, price: 1 });
 productSchema.index({ brand: 1, isActive: 1 });
-productSchema.index({ isFeatured: 1, isActive: 1 });
+productSchema.index({ isFeatured: 1, ratingsAverage: -1 });
 productSchema.index({ isBestSeller: 1, isActive: 1 });
 productSchema.index({ price: 1, isActive: 1 });
+productSchema.index({ isActive: 1, ratingsAverage: -1 });
+productSchema.index({ tags: 1, isActive: 1 });
+
+// Full-text search index with field weighting
+productSchema.index(
+  {
+    name: 'text',
+    tags: 'text',
+    shortDescription: 'text',
+    description: 'text',
+  },
+  {
+    weights: {
+      name: 10,
+      tags: 5,
+      shortDescription: 3,
+      description: 1,
+    },
+    name: 'ProductTextIndex',
+  }
+);
+
 
 // Helper to convert string to slug
 const slugify = (text) => {

@@ -2,6 +2,11 @@ import { Router } from 'express';
 import {
   getProducts,
   getProductBySlug,
+  searchProducts,
+  getSearchSuggestions,
+  getProductFacets,
+  getRelatedProducts,
+  getSimilarProducts,
   createProduct,
   updateProduct,
   updateProductStock,
@@ -16,13 +21,21 @@ import {
   createProductValidator,
   updateProductValidator,
   updateStockValidator,
+  searchProductsValidator,
+  searchSuggestionsValidator,
+  getProductsQueryValidator,
 } from '../validators/product.validator.js';
 
 const router = Router();
 
 // Public Routes
 router.get('/homepage', getHomepageProducts);
-router.get('/', getProducts);
+router.get('/search/suggestions', validate(searchSuggestionsValidator), getSearchSuggestions);
+router.get('/search', validate(searchProductsValidator), searchProducts);
+router.get('/facets', getProductFacets);
+router.get('/:id/related', getRelatedProducts);
+router.get('/:id/similar', getSimilarProducts);
+router.get('/', validate(getProductsQueryValidator), getProducts);
 router.get('/:slug', getProductBySlug);
 
 // Admin-only Routes
@@ -60,3 +73,4 @@ router.delete(
 );
 
 export default router;
+

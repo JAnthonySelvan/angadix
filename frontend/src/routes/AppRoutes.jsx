@@ -6,6 +6,8 @@ import { ProtectedRoute } from '../components/common/ProtectedRoute';
 import { GuestRoute } from '../components/common/GuestRoute';
 
 import { Home } from '../pages/Home';
+import { Shop } from '../pages/Shop';
+import { ProductDetail } from '../pages/ProductDetail';
 import { NotFound } from '../pages/NotFound';
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
@@ -34,15 +36,17 @@ export const AppRoutes = () => {
       {/* Main Application Routes Wrapped in MainLayout */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/products/:slug" element={<ProductDetail />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-        {/* Protected User Account Route Example */}
+        {/* Protected User Account Route */}
         <Route
           path="/me"
           element={
             <ProtectedRoute>
-              <Home />
+              <Shop />
             </ProtectedRoute>
           }
         />

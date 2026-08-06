@@ -4,7 +4,7 @@ node_modules/
 .yarn/
 package-lock.json.log
 
-# Environment variables & secrets
+# Environment variables, secrets & text files
 .env
 .env.local
 .env.*.local
@@ -12,6 +12,7 @@ package-lock.json.log
 .env.test.local
 .env.production.local
 *.pem
+*.txt
 
 # Build outputs & dist
 dist/

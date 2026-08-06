@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,7 +27,10 @@ const schema = z
   });
 
 export const ResetPassword = () => {
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const { token: pathToken } = useParams();
+  const rawToken = (searchParams.get('token') || pathToken || '').trim();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const dispatch = useAppDispatch();
@@ -43,7 +46,7 @@ export const ResetPassword = () => {
   });
 
   const onSubmit = async (data) => {
-    if (!token) {
+    if (!rawToken) {
       toast.error('Invalid or missing reset token.');
       return;
     }
@@ -53,7 +56,7 @@ export const ResetPassword = () => {
 
     try {
       const resultAction = await dispatch(
-        resetPassword({ token, password: data.password })
+        resetPassword({ token: rawToken, password: data.password })
       );
 
       if (resetPassword.fulfilled.match(resultAction)) {
@@ -85,7 +88,7 @@ export const ResetPassword = () => {
       </div>
 
       {isSuccess ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3 animate-fadeIn">
           <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
             <CheckCircle2 size={24} />
           </div>

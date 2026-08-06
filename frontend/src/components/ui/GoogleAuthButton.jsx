@@ -14,12 +14,10 @@ export const GoogleAuthButton = ({
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  // Custom Google Login Hook using authorization code or credential token
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Pass access_token / id_token to backend verification endpoint
         const idToken = tokenResponse.credential || tokenResponse.access_token;
         const resultAction = await dispatch(googleLogin(idToken));
 
@@ -29,7 +27,8 @@ export const GoogleAuthButton = ({
         } else {
           const errorMsg =
             resultAction.payload?.message ||
-            'Google login failed. Please try signing in with email.';
+            resultAction.error?.message ||
+            'Google authentication failed.';
           toast.error(errorMsg);
         }
       } catch (error) {
@@ -40,8 +39,11 @@ export const GoogleAuthButton = ({
     },
     onError: (errorResponse) => {
       setIsLoading(false);
-      // If user canceled popup, handle gracefully without error toast
-      if (errorResponse?.error === 'popup_closed_by_user') {
+      if (
+        errorResponse?.error === 'popup_closed_by_user' ||
+        errorResponse?.error === 'access_denied'
+      ) {
+        // Silently reset loading state when popup is closed by user
         return;
       }
       toast.error('Google authentication was not completed.');

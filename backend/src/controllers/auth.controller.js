@@ -7,6 +7,7 @@ import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email
 import { setTokenCookies, clearTokenCookies } from '../utils/generateTokens.js';
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '../config/env.js';
+import axios from 'axios';
 
 const googleClient = new OAuth2Client(env.google.clientId);
 
@@ -49,7 +50,7 @@ export const register = asyncHandler(async (req, res) => {
     emailVerificationExpiry: verificationExpiry,
   });
 
-  // Send Verification Email
+  // Send Verification Email via SMTP
   await sendVerificationEmail(user.email, user.name, rawToken);
 
   return res.status(201).json(
@@ -175,7 +176,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
 
 // 6. Verify Email Address
 export const verifyEmail = asyncHandler(async (req, res) => {
-  const { token } = req.params;
+  const token = (req.params.token || req.query.token || '').trim();
 
   if (!token) {
     throw new ApiError(400, 'Verification token is required.');
@@ -183,14 +184,21 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 
   const hashedToken = tokenService.hashToken(token);
 
-  // Find user matching token & check expiry
+  // Find user matching token
   const user = await User.findOne({
     emailVerificationToken: hashedToken,
-    emailVerificationExpiry: { $gt: Date.now() },
   }).select('+emailVerificationToken +emailVerificationExpiry');
 
   if (!user) {
     throw new ApiError(400, 'Invalid or expired email verification token.');
+  }
+
+  // Check token expiry
+  if (user.emailVerificationExpiry && user.emailVerificationExpiry < Date.now()) {
+    throw new ApiError(
+      400,
+      'Email verification link has expired. Please request a new verification email.'
+    );
   }
 
   user.isEmailVerified = true;
@@ -276,7 +284,50 @@ export const resetPassword = asyncHandler(async (req, res) => {
     );
 });
 
-// 9. Google OAuth 2.0 Login / Find-or-Create
+// 9. Resend Verification Email
+export const resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, 'Email address is required.');
+  }
+
+  const user = await User.findOne({ email });
+
+  const genericMsg =
+    'If an unverified account with that email exists, a new verification link has been sent.';
+
+  if (!user) {
+    return res.status(200).json(new ApiResponse(200, null, genericMsg));
+  }
+
+  if (user.isEmailVerified) {
+    throw new ApiError(
+      400,
+      'This email address is already verified. You can log in directly.'
+    );
+  }
+
+  // Generate new verification token
+  const { rawToken, hashedToken } = tokenService.generateRandomToken();
+  const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  user.emailVerificationToken = hashedToken;
+  user.emailVerificationExpiry = verificationExpiry;
+  await user.save({ validateBeforeSave: false });
+
+  await sendVerificationEmail(user.email, user.name, rawToken);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      null,
+      'Verification email sent successfully! Please check your inbox.'
+    )
+  );
+});
+
+// 10. Google OAuth 2.0 Login / Find-or-Create
 export const googleLogin = asyncHandler(async (req, res) => {
   const idToken = req.body.idToken || req.body.token || req.body.credential;
 
@@ -284,30 +335,54 @@ export const googleLogin = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Google authentication token is required.');
   }
 
-  let ticket;
-  try {
-    ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: env.google.clientId || undefined,
-    });
-  } catch (error) {
-    if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
-      throw new ApiError(
-        503,
-        'Google authentication service is currently unreachable. Please try again.'
-      );
+  let payload;
+
+  // Dual verification mode:
+  // 1. JWT ID Token (starts with 'ey') -> verified via OAuth2Client.verifyIdToken
+  // 2. OAuth2 Access Token (starts with 'ya29' or other) -> verified via Google UserInfo API
+  if (typeof idToken === 'string' && idToken.startsWith('ey')) {
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: env.google.clientId || undefined,
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+        throw new ApiError(
+          503,
+          'Google authentication service is currently unreachable. Please try again.'
+        );
+      }
+      throw new ApiError(401, 'Invalid or expired Google ID token.');
     }
-    throw new ApiError(401, 'Invalid or expired Google authentication token.');
+  } else {
+    try {
+      const response = await axios.get(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
+      payload = response.data;
+    } catch (error) {
+      if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+        throw new ApiError(
+          503,
+          'Google authentication service is currently unreachable. Please try again.'
+        );
+      }
+      throw new ApiError(401, 'Invalid or expired Google access token.');
+    }
   }
 
-  const payload = ticket.getPayload();
   if (!payload) {
     throw new ApiError(401, 'Invalid Google token payload.');
   }
 
   const { email, name, picture, sub: googleId, email_verified } = payload;
 
-  if (!email_verified) {
+  if (!email_verified && email_verified !== 'true') {
     throw new ApiError(
       400,
       'Your email address is unverified on Google. Please verify your email on Google before proceeding.'

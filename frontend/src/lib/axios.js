@@ -35,10 +35,12 @@ api.interceptors.response.use(
       'An unexpected network error occurred.';
     error.normalizedMessage = message;
 
-    // Skip retry logic for auth routes (login, register, forgot/reset password, refresh-token itself)
+    // Skip retry logic for auth routes (login, register, google, resend-verification, forgot/reset password, refresh-token itself)
     const isAuthRoute =
       originalRequest.url?.includes('/auth/login') ||
       originalRequest.url?.includes('/auth/register') ||
+      originalRequest.url?.includes('/auth/google') ||
+      originalRequest.url?.includes('/auth/resend-verification') ||
       originalRequest.url?.includes('/auth/refresh-token') ||
       originalRequest.url?.includes('/auth/forgot-password') ||
       originalRequest.url?.includes('/auth/reset-password');

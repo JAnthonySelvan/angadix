@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useParams, Link } from 'react-router-dom';
 import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { useAppDispatch } from '../../app/hooks';
@@ -9,11 +9,12 @@ import { Spinner } from '../../components/ui/Spinner';
 export const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const { token: pathToken } = useParams();
-  const rawToken = searchParams.get('token') || pathToken;
+  const rawToken = (searchParams.get('token') || pathToken || '').trim();
 
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('');
   const dispatch = useAppDispatch();
+  const hasFiredRef = useRef(false);
 
   useEffect(() => {
     if (!rawToken) {
@@ -21,6 +22,10 @@ export const VerifyEmail = () => {
       setMessage('Verification token is missing from the URL.');
       return;
     }
+
+    // Prevent React 18 Strict Mode double-invocation in development
+    if (hasFiredRef.current) return;
+    hasFiredRef.current = true;
 
     const doVerify = async () => {
       try {
@@ -62,7 +67,7 @@ export const VerifyEmail = () => {
       )}
 
       {status === 'success' && (
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 animate-fadeIn">
           <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
             <CheckCircle2 size={36} />
           </div>
@@ -82,7 +87,7 @@ export const VerifyEmail = () => {
       )}
 
       {status === 'error' && (
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 animate-fadeIn">
           <div className="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
             <XCircle size={36} />
           </div>

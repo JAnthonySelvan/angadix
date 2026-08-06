@@ -1,9 +1,18 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 
-// Create Nodemailer transport
-const createTransporter = () => {
-  if (env.smtp.host && env.smtp.user) {
+let etherealTransporter = null;
+
+/**
+ * Dynamically get or create Nodemailer transporter from env
+ */
+const getTransporter = () => {
+  if (
+    env.smtp.host &&
+    env.smtp.user &&
+    env.smtp.user !== 'dev_user' &&
+    env.smtp.user !== 'your_smtp_username'
+  ) {
     return nodemailer.createTransport({
       host: env.smtp.host,
       port: env.smtp.port,
@@ -17,40 +26,142 @@ const createTransporter = () => {
   return null;
 };
 
-const transporter = createTransporter();
+/**
+ * Fallback to an instant Ethereal SMTP test account for seamless dev email testing
+ */
+const getEtherealTransporter = async () => {
+  if (!etherealTransporter) {
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      etherealTransporter = nodemailer.createTransport({
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        secure: testAccount.smtp.secure,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+      console.log(
+        `\x1b[36m[Email Service] Created temporary Ethereal test inbox (${testAccount.user})\x1b[0m`
+      );
+    } catch (err) {
+      console.error(`\x1b[31m[Email Service] Failed to create Ethereal test account:\x1b[0m ${err.message}`);
+    }
+  }
+  return etherealTransporter;
+};
 
 /**
- * Send email using Nodemailer or log to console in dev mode fallback
+ * Send email using configured SMTP transporter with automatic Ethereal fallback in development
  * @param {Object} options - { to, subject, html }
  */
 export const sendEmail = async ({ to, subject, html }) => {
   const mailOptions = {
-    from: env.smtp.from,
+    from: env.smtp.from || 'Angadix Store <noreply@angadix.com>',
     to,
     subject,
     html,
   };
 
-  if (transporter) {
+  const configuredTransporter = getTransporter();
+
+  if (configuredTransporter) {
     try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`\x1b[32m[Email Service] Email sent to ${to}: ${info.messageId}\x1b[0m`);
+      const info = await configuredTransporter.sendMail(mailOptions);
+      console.log(`\x1b[32m[Email Service] Real email sent to ${to}: ${info.messageId}\x1b[0m`);
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        console.log(`\x1b[36m[Email Service] Email Preview URL:\x1b[0m ${previewUrl}`);
+      }
       return info;
     } catch (error) {
-      console.error(`\x1b[31m[Email Service] SMTP Error:\x1b[0m ${error.message}`);
+      console.error(`\x1b[31m[Email Service] Configured SMTP Error (${env.smtp.host}):\x1b[0m ${error.message}`);
+
+      if (error.message.includes('535') || error.message.includes('Authentication failed')) {
+        console.warn(
+          `\x1b[33m[Email Service Warning] Brevo/SMTP Authentication Failed. Check SMTP_USER and SMTP_PASS in backend/.env.\x1b[0m`
+        );
+      }
+
       if (env.isDev) {
-        console.log(`\x1b[33m[Email Service Fallback - HTML Content for ${to}]:\x1b[0m\n${html}`);
+        console.log(`\x1b[33m[Email Service Dev Fallback] Attempting delivery via Ethereal Email test inbox...\x1b[0m`);
+        try {
+          const fallbackTransporter = await getEtherealTransporter();
+          if (fallbackTransporter) {
+            const fallbackInfo = await fallbackTransporter.sendMail(mailOptions);
+            const previewUrl = nodemailer.getTestMessageUrl(fallbackInfo);
+            console.log(
+              `\x1b[32m[Email Service Dev Fallback] Email delivered to test inbox!\x1b[0m`
+            );
+            console.log(
+              `\x1b[36m👉 [CLICK HERE TO OPEN YOUR EMAIL]:\x1b[0m \x1b[4m${previewUrl}\x1b[0m`
+            );
+            return fallbackInfo;
+          }
+        } catch (fallbackErr) {
+          console.error(`\x1b[31m[Email Service Fallback Error]:\x1b[0m ${fallbackErr.message}`);
+        }
       } else {
         throw error;
       }
     }
-  } else {
+  } else if (env.isDev) {
     // Development fallback when no SMTP configured
-    console.log(`\x1b[33m[Email Service - Dev Mode (No SMTP configured)]\x1b[0m`);
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Body Snippet:\n${html}`);
+    console.log(`\x1b[33m[Email Service Dev Fallback] Sending via Ethereal Email test inbox...\x1b[0m`);
+    try {
+      const fallbackTransporter = await getEtherealTransporter();
+      if (fallbackTransporter) {
+        const fallbackInfo = await fallbackTransporter.sendMail(mailOptions);
+        const previewUrl = nodemailer.getTestMessageUrl(fallbackInfo);
+        console.log(`\x1b[32m[Email Service Dev Fallback] Email delivered to test inbox!\x1b[0m`);
+        console.log(
+          `\x1b[36m👉 [CLICK HERE TO OPEN YOUR EMAIL]:\x1b[0m \x1b[4m${previewUrl}\x1b[0m`
+        );
+        return fallbackInfo;
+      }
+    } catch (fallbackErr) {
+      console.error(`\x1b[31m[Email Service Fallback Error]:\x1b[0m ${fallbackErr.message}`);
+    }
   }
+};
+
+/**
+ * Send Email Verification link
+ */
+export const sendVerificationEmail = async (email, name, rawToken) => {
+  const verificationUrl = `${env.clientUrl}/verify-email?token=${rawToken}`;
+  const html = renderEmailTemplate({
+    title: 'Verify Your Email Address',
+    bodyHtml: `<p>Hello <strong>${name}</strong>,</p><p>Welcome to Angadix! Please click the button below to verify your email address and activate your account.</p>`,
+    actionUrl: verificationUrl,
+    actionText: 'Verify Email Address',
+  });
+
+  await sendEmail({
+    to: email,
+    subject: 'Angadix - Verify Your Email Address',
+    html,
+  });
+};
+
+/**
+ * Send Password Reset Link
+ */
+export const sendPasswordResetEmail = async (email, name, rawToken) => {
+  const resetUrl = `${env.clientUrl}/reset-password?token=${rawToken}`;
+  const html = renderEmailTemplate({
+    title: 'Password Reset Request',
+    bodyHtml: `<p>Hello <strong>${name}</strong>,</p><p>We received a request to reset your password for your Angadix account. Click the button below to set a new password. This link will expire in 15 minutes.</p>`,
+    actionUrl: resetUrl,
+    actionText: 'Reset Password',
+  });
+
+  await sendEmail({
+    to: email,
+    subject: 'Angadix - Password Reset Request',
+    html,
+  });
 };
 
 /**
@@ -170,42 +281,4 @@ const renderEmailTemplate = ({ title, bodyHtml, actionUrl, actionText }) => {
 </body>
 </html>
   `;
-};
-
-/**
- * Send Email Verification link
- */
-export const sendVerificationEmail = async (email, name, rawToken) => {
-  const verificationUrl = `${env.clientUrl}/verify-email?token=${rawToken}`;
-  const html = renderEmailTemplate({
-    title: 'Verify Your Email Address',
-    bodyHtml: `<p>Hello <strong>${name}</strong>,</p><p>Welcome to Angadix! Please click the button below to verify your email address and activate your account.</p>`,
-    actionUrl: verificationUrl,
-    actionText: 'Verify Email Address',
-  });
-
-  await sendEmail({
-    to: email,
-    subject: 'Angadix - Verify Your Email Address',
-    html,
-  });
-};
-
-/**
- * Send Password Reset Link
- */
-export const sendPasswordResetEmail = async (email, name, rawToken) => {
-  const resetUrl = `${env.clientUrl}/reset-password?token=${rawToken}`;
-  const html = renderEmailTemplate({
-    title: 'Password Reset Request',
-    bodyHtml: `<p>Hello <strong>${name}</strong>,</p><p>We received a request to reset your password for your Angadix account. Click the button below to set a new password. This link will expire in 15 minutes.</p>`,
-    actionUrl: resetUrl,
-    actionText: 'Reset Password',
-  });
-
-  await sendEmail({
-    to: email,
-    subject: 'Angadix - Password Reset Request',
-    html,
-  });
 };

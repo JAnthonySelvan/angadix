@@ -46,7 +46,22 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
-// 4. Logout User
+// 4. Resend Verification Email
+export const resendVerification = createAsyncThunk(
+  'auth/resendVerification',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await api.post('/auth/resend-verification', { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: error.normalizedMessage }
+      );
+    }
+  }
+);
+
+// 5. Logout User
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -61,7 +76,7 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-// 5. Fetch Current Authenticated User (Session Hydration)
+// 6. Fetch Current Authenticated User (Session Hydration)
 export const fetchCurrentUser = createAsyncThunk(
   'auth/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
@@ -76,7 +91,7 @@ export const fetchCurrentUser = createAsyncThunk(
   }
 );
 
-// 6. Forgot Password Request
+// 7. Forgot Password Request
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (data, { rejectWithValue }) => {
@@ -91,7 +106,7 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
-// 7. Reset Password Submission
+// 8. Reset Password Submission
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
   async ({ token, password }, { rejectWithValue }) => {
@@ -108,7 +123,7 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
-// 8. Verify Email Token
+// 9. Verify Email Token
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async (token, { rejectWithValue }) => {
@@ -123,7 +138,7 @@ export const verifyEmail = createAsyncThunk(
   }
 );
 
-// 9. Update Profile
+// 10. Update Profile
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
   async (profileData, { rejectWithValue }) => {
@@ -138,7 +153,7 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
-// 10. Change Password
+// 11. Change Password
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (passwords, { rejectWithValue }) => {

@@ -3,9 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAppDispatch } from '../../app/hooks';
-import { loginUser } from '../../features/auth/authThunks';
+import { loginUser, resendVerification } from '../../features/auth/authThunks';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { GoogleAuthButton } from '../../components/ui/GoogleAuthButton';
@@ -21,6 +21,10 @@ const loginSchema = z.object({
 
 export const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendSuccessMsg, setResendSuccessMsg] = useState('');
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +34,7 @@ export const Login = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
@@ -39,9 +44,13 @@ export const Login = () => {
     },
   });
 
+  const watchEmail = watch('email');
+
   const onSubmit = async (data) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setUnverifiedEmail('');
+    setResendSuccessMsg('');
 
     try {
       const resultAction = await dispatch(loginUser(data));
@@ -49,13 +58,40 @@ export const Login = () => {
         toast.success(resultAction.payload?.message || 'Welcome back to Angadix!');
         navigate(from, { replace: true });
       } else {
-        const errorMsg = resultAction.payload?.message || 'Invalid email or password.';
-        toast.error(errorMsg);
+        const payload = resultAction.payload;
+        const statusCode = payload?.statusCode;
+        const errorMsg = payload?.message || 'Invalid email or password.';
+
+        // Explicit 403 check for unverified email address
+        if (statusCode === 403 || errorMsg.toLowerCase().includes('not verified')) {
+          setUnverifiedEmail(data.email);
+        } else {
+          toast.error(errorMsg);
+        }
       }
     } catch (error) {
       toast.error(error?.message || 'An unexpected error occurred during sign in.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    const targetEmail = unverifiedEmail || watchEmail;
+    if (!targetEmail) {
+      toast.error('Please enter your email address to resend verification.');
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const result = await dispatch(resendVerification(targetEmail)).unwrap();
+      setResendSuccessMsg(result?.message || 'Verification email sent successfully! Please check your inbox.');
+      toast.success(result?.message || 'Verification email sent!');
+    } catch (err) {
+      toast.error(err?.message || 'Failed to resend verification email.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -70,6 +106,42 @@ export const Login = () => {
           Welcome back! Enter your details below to continue.
         </p>
       </div>
+
+      {/* Dedicated Unverified Email Alert Banner */}
+      {unverifiedEmail && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/90 flex flex-col gap-3.5 animate-fadeIn shadow-sm">
+          <div className="flex items-start gap-3 text-amber-900">
+            <AlertCircle size={22} className="text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1 text-xs leading-relaxed">
+              <p className="font-bold text-sm text-amber-950">Email Verification Required</p>
+              <p className="mt-0.5 text-amber-800">
+                An account with <strong>{unverifiedEmail}</strong> exists, but the email address has not been verified yet. Please check your email inbox.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-amber-200/60">
+            <span className="text-[11px] text-amber-700 font-semibold">Didn't receive an email?</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              isLoading={isResending}
+              isDisabled={isResending}
+              onClick={handleResend}
+              className="bg-white border border-amber-300 text-amber-900 hover:bg-amber-100"
+            >
+              <RefreshCw size={14} className="mr-1.5" />
+              <span>Resend Verification Email</span>
+            </Button>
+          </div>
+
+          {resendSuccessMsg && (
+            <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+              ✓ {resendSuccessMsg}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Google OAuth Login Button */}
       <GoogleAuthButton text="Continue with Google" redirectTo={from} />

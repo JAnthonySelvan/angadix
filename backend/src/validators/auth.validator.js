@@ -49,6 +49,16 @@ export const forgotPasswordValidator = [
     .normalizeEmail(),
 ];
 
+export const resendVerificationValidator = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email address is required')
+    .isEmail()
+    .withMessage('Please enter a valid email address')
+    .normalizeEmail(),
+];
+
 export const resetPasswordValidator = [
   body('password')
     .notEmpty()

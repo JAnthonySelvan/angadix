@@ -9,6 +9,7 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  resendVerification,
   googleLogin,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
@@ -17,6 +18,7 @@ import {
   registerValidator,
   loginValidator,
   forgotPasswordValidator,
+  resendVerificationValidator,
   resetPasswordValidator,
 } from '../validators/auth.validator.js';
 
@@ -54,13 +56,21 @@ router.post('/refresh-token', refreshToken);
 // 6. Verify Email Token Route
 router.get('/verify-email/:token', verifyEmail);
 
-// 7. Forgot Password Route
+// 7. Resend Email Verification Route
+router.post(
+  '/resend-verification',
+  authLimiter,
+  validate(resendVerificationValidator),
+  resendVerification
+);
+
+// 8. Forgot Password Route
 router.post('/forgot-password', authLimiter, validate(forgotPasswordValidator), forgotPassword);
 
-// 8. Reset Password Route
+// 9. Reset Password Route
 router.post('/reset-password/:token', validate(resetPasswordValidator), resetPassword);
 
-// 9. Google OAuth 2.0 Route
+// 10. Google OAuth 2.0 Route
 router.post('/google', authLimiter, googleLogin);
 
 export default router;

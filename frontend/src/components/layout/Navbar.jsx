@@ -244,7 +244,7 @@ export const Navbar = () => {
 
             {/* Wishlist Icon */}
             <Link
-              to="/shop?wishlist=true"
+              to="/wishlist"
               className="relative p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               title="Wishlist"
               aria-label="View wishlist"

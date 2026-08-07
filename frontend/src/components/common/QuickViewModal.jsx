@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { addToCart } from '../../features/cart/cartSlice';
-import { toggleWishlist, selectIsInWishlist } from '../../features/wishlist/wishlistSlice';
+import { addItemToCart } from '../../features/cart/cartThunks';
+import { addWishlistItem, removeWishlistItem } from '../../features/wishlist/wishlistThunks';
+import { selectIsInWishlist } from '../../features/wishlist/wishlistSlice';
+import { useRequireAuth } from '../../utils/useRequireAuth';
 import toast from 'react-hot-toast';
 
 export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
@@ -11,6 +13,7 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
   const [quantity, setQuantity] = useState(1);
   const dispatch = useAppDispatch();
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
+  const { requireAuth } = useRequireAuth();
 
   if (!isOpen || !product) return null;
 
@@ -39,14 +42,33 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop'];
 
   const handleAddToCart = () => {
-    dispatch(addToCart({ product, quantity }));
-    toast.success(`Added ${quantity} x "${name}" to Cart!`);
-    onClose();
+    if (!requireAuth(null, 'Please sign in to add items to your cart')) {
+      return;
+    }
+    dispatch(addItemToCart({ productId: product._id, quantity }))
+      .unwrap()
+      .then(() => {
+        toast.success(`Added ${quantity} x "${name}" to Cart!`);
+        onClose();
+      })
+      .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
   const handleWishlist = () => {
-    dispatch(toggleWishlist(product));
-    toast.success(isInWishlist ? 'Removed from Wishlist' : 'Saved to Wishlist!');
+    if (!requireAuth(null, 'Please sign in to save items to your wishlist')) {
+      return;
+    }
+    if (isInWishlist) {
+      dispatch(removeWishlistItem(product._id))
+        .unwrap()
+        .then(() => toast.success('Removed from Wishlist'))
+        .catch((err) => toast.error(err));
+    } else {
+      dispatch(addWishlistItem(product._id))
+        .unwrap()
+        .then(() => toast.success('Saved to Wishlist!'))
+        .catch((err) => toast.error(err));
+    }
   };
 
   return (

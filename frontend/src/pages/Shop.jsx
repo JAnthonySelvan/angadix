@@ -223,15 +223,15 @@ export const Shop = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="neu-card bg-gradient-to-r from-primary-900 via-primary-800 to-indigo-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl">
-        <h1 className="text-2xl sm:text-4xl font-black mb-2">
+      <div className="rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-r from-[#0266C8] via-[#0054A6] to-[#0a2540] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
+        <h1 className="text-2xl sm:text-4xl font-extrabold font-heading mb-2 tracking-tight">
           {isWishlistOnly
             ? 'My Wishlist Collection'
             : isOnlySearchActive
             ? `Search Results for "${searchQuery}"`
             : 'Shop Product Catalog'}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-200 font-medium max-w-xl">
+        <p className="text-xs sm:text-sm text-sky-100 dark:text-slate-300 font-body max-w-xl leading-relaxed">
           {isWishlistOnly
             ? 'Your saved items for future purchases'
             : 'Browse top-quality electronics, smartphones, laptops, and lifestyle items with authentic warranty.'}
@@ -241,15 +241,15 @@ export const Shop = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Sidebar Filters */}
         <aside className="space-y-6 lg:col-span-1">
-          <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2 font-black text-sm text-slate-900 dark:text-white">
-                <SlidersHorizontal size={18} className="text-primary-600" />
+          <div className="p-6 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
+              <div className="flex items-center gap-2 font-extrabold font-heading text-sm text-[#0a2540] dark:text-white">
+                <SlidersHorizontal size={18} className="text-[#0266C8] dark:text-sky-400" />
                 <span>Filter Products</span>
               </div>
               <button
                 onClick={handleResetFilters}
-                className="text-xs font-bold text-slate-400 hover:text-primary-600 flex items-center gap-1 transition-colors"
+                className="text-xs font-bold text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-400 flex items-center gap-1 transition-colors"
               >
                 <RefreshCcw size={12} />
                 <span>Reset</span>
@@ -257,9 +257,9 @@ export const Shop = () => {
             </div>
 
             {/* In-Stock Filter Toggle */}
-            <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
               <label className="flex items-center justify-between cursor-pointer group">
-                <span className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+                <span className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider">
                   In-Stock Only
                   {facets.data?.inStock !== undefined && (
                     <span className="text-[10px] font-normal text-slate-400 ml-1">
@@ -274,14 +274,14 @@ export const Shop = () => {
                     setInStockOnly(e.target.checked);
                     updateUrlParams({ inStock: e.target.checked ? 'true' : null });
                   }}
-                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-primary-600 focus:ring-primary-500 transition-colors"
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] transition-colors"
                 />
               </label>
             </div>
 
             {/* Categories (Multi-Select) */}
             <div className="space-y-2">
-              <h4 className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
                 Categories
               </h4>
               <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
@@ -293,8 +293,8 @@ export const Shop = () => {
                       key={cat._id}
                       className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                         isChecked
-                          ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-600 font-bold'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ export const Shop = () => {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleCategoryToggle(cat.slug)}
-                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-primary-600 focus:ring-primary-500"
+                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
                         />
                         <span>{cat.name}</span>
                       </div>
@@ -316,8 +316,8 @@ export const Shop = () => {
             </div>
 
             {/* Brands (Multi-Select) */}
-            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+            <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
                 Brands
               </h4>
               <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
@@ -329,8 +329,8 @@ export const Shop = () => {
                       key={b._id}
                       className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                         isChecked
-                          ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-600 font-bold'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export const Shop = () => {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleBrandToggle(b.slug)}
-                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-primary-600 focus:ring-primary-500"
+                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
                         />
                         <span>{b.name}</span>
                       </div>
@@ -352,8 +352,8 @@ export const Shop = () => {
             </div>
 
             {/* Customer Rating Filter */}
-            <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+            <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
                 Minimum Rating
               </h4>
               <div className="space-y-1">
@@ -367,8 +367,8 @@ export const Shop = () => {
                     key={ratingOption.value}
                     className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                       minRating === ratingOption.value
-                        ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-600 font-bold'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -380,7 +380,7 @@ export const Shop = () => {
                           setMinRating(ratingOption.value);
                           updateUrlParams({ minRating: ratingOption.value || null });
                         }}
-                        className="w-3.5 h-3.5 text-primary-600 focus:ring-primary-500"
+                        className="w-3.5 h-3.5 text-[#0266C8] focus:ring-[#0266C8]"
                       />
                       <span>{ratingOption.label}</span>
                     </div>
@@ -390,8 +390,8 @@ export const Shop = () => {
             </div>
 
             {/* Price Range */}
-            <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-slate-900 dark:text-white uppercase tracking-wider">
+            <div className="space-y-3 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
                 Price Range (₹)
               </h4>
               <div className="grid grid-cols-2 gap-2">
@@ -403,7 +403,7 @@ export const Shop = () => {
                     setMinPrice(e.target.value);
                     updateUrlParams({ minPrice: e.target.value || null });
                   }}
-                  className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-1.5 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-lg text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
                 />
                 <input
                   type="number"
@@ -413,7 +413,7 @@ export const Shop = () => {
                     setMaxPrice(e.target.value);
                     updateUrlParams({ maxPrice: e.target.value || null });
                   }}
-                  className="w-full px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-1.5 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-lg text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
                 />
               </div>
             </div>
@@ -423,9 +423,9 @@ export const Shop = () => {
         {/* Right Main Grid */}
         <main className="space-y-6 lg:col-span-3">
           {/* Top Sort & Search Toolbar */}
-          <div className="neu-card p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Showing <span className="text-slate-900 dark:text-white">{displayedProducts.length}</span> items
+              Showing <span className="text-[#0a2540] dark:text-white font-extrabold">{displayedProducts.length}</span> items
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -436,7 +436,7 @@ export const Shop = () => {
                   setSortOption(e.target.value);
                   updateUrlParams({ sort: e.target.value });
                 }}
-                className="px-3 py-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none"
+                className="px-3.5 py-2 text-xs font-bold bg-[#F0F8FF] dark:bg-slate-800 text-[#0a2540] dark:text-slate-100 rounded-xl border border-[#BAE6FD] dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
               >
                 <option value="newest">Newest Arrivals</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -475,7 +475,7 @@ export const Shop = () => {
                   setCurrentPage(prevPage);
                   updateUrlParams({ page: prevPage > 1 ? prevPage : null });
                 }}
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 disabled:opacity-40"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-[#BAE6FD] dark:border-slate-800 rounded-xl text-xs font-bold text-[#0a2540] dark:text-slate-300 hover:bg-[#E1F5FE] dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
               >
                 Previous
               </button>
@@ -491,7 +491,7 @@ export const Shop = () => {
                   setCurrentPage(nextPage);
                   updateUrlParams({ page: nextPage });
                 }}
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 disabled:opacity-40"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-[#BAE6FD] dark:border-slate-800 rounded-xl text-xs font-bold text-[#0a2540] dark:text-slate-300 hover:bg-[#E1F5FE] dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
               >
                 Next
               </button>

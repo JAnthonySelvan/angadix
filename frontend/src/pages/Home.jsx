@@ -12,11 +12,12 @@ import {
   Eye, TrendingUp, Cpu, Shield, Zap, Sparkle, CheckCircle2
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { fetchHomepageProducts, fetchCategories, fetchBrands } from '../features/products/productThunks';
+import { fetchHomepageProducts, fetchCategories, fetchBrands, fetchRecommendedForYou } from '../features/products/productThunks';
 import { ProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { CountdownTimer } from '../components/common/CountdownTimer';
 import { QuickViewModal } from '../components/common/QuickViewModal';
+import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import toast from 'react-hot-toast';
 
 // ── Static Helper Components matching Figma App.tsx ──────────────────────────
@@ -59,7 +60,8 @@ function TimeDig({ val, label }) {
 
 export const Home = () => {
   const dispatch = useAppDispatch();
-  const { homepage, categories, brands, loading } = useAppSelector((state) => state.products);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { homepage, categories, brands, recommendations, loading } = useAppSelector((state) => state.products);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -68,7 +70,10 @@ export const Home = () => {
     dispatch(fetchHomepageProducts());
     dispatch(fetchCategories());
     dispatch(fetchBrands());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchRecommendedForYou());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // Hero carousel auto advance
   useEffect(() => {
@@ -195,9 +200,20 @@ export const Home = () => {
                   alt="Hero product"
                   className="relative rounded-2xl shadow-2xl w-full object-cover h-64 md:h-80 transition-all duration-500"
                 />
-                <div className="absolute -bottom-4 -right-4 bg-card/95 backdrop-blur-sm border border-border rounded-xl px-4 py-3 shadow-lg">
-                  <p className="text-xs text-muted-foreground font-body">Starting from</p>
-                  <p className="font-heading font-bold text-primary text-lg">₹2,999</p>
+                <div className="absolute -bottom-4 -right-2 sm:-right-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-[#0266C8]/30 dark:border-sky-500/40 rounded-2xl px-5 py-3 shadow-2xl transition-transform hover:scale-105">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-[#0266C8]/10 text-[#0266C8] dark:bg-sky-500/20 dark:text-sky-400">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-[#0a2540] dark:text-slate-200 font-heading">
+                        Starting from
+                      </p>
+                      <p className="font-heading font-extrabold text-[#0266C8] dark:text-sky-400 text-lg sm:text-xl leading-none mt-0.5">
+                        ₹2,999
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -256,23 +272,22 @@ export const Home = () => {
 
       {/* ── 4. Flash Sale Section with Live Countdown ────────────────── */}
       <section className="py-8 max-w-7xl mx-auto px-4">
-        <div
-          className="rounded-2xl overflow-hidden shadow-lg border border-sky-200/80 dark:border-slate-800"
-          style={{ background: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #F0F9FF 100%)' }}
-        >
-          <div className="p-6 md:p-8 text-slate-900 dark:text-white">
+        <div className="rounded-3xl overflow-hidden shadow-xl border border-sky-200/80 dark:border-slate-800/80 bg-gradient-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#F0F9FF] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
+          <div className="p-6 md:p-10 text-slate-900 dark:text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
               <div>
-                <Chip variant="primary">Promotions Promo</Chip>
-                <h2 className="font-heading text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
-                  Flash Sale Countdown Timer
+                <Chip variant="primary">
+                  <Flame size={12} className="inline mr-1" /> Limited Time Deals
+                </Chip>
+                <h2 className="font-heading text-2xl md:text-3xl font-extrabold text-[#0a2540] dark:text-white mt-2 tracking-tight">
+                  Flash Sale Countdown
                 </h2>
                 <p className="text-slate-700 dark:text-slate-300 text-sm mt-1 font-body">
                   Premium product deals, heavy discounts, and flash promotions.
                 </p>
                 <Link
                   to="/shop?sort=discount"
-                  className="mt-4 inline-block bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-bold font-body hover:bg-primary/90 transition-colors shadow-sm"
+                  className="mt-4 inline-block bg-[#0266C8] hover:bg-[#0054A6] text-white px-6 py-2.5 rounded-xl text-sm font-bold font-body transition-all shadow-md hover:shadow-lg"
                 >
                   Shop Flash Sale Now
                 </Link>
@@ -289,24 +304,24 @@ export const Home = () => {
               {(homepage?.flashSale?.length > 0 ? homepage.flashSale : homepage?.trending?.slice(0, 3) || []).map((item) => (
                 <div
                   key={item._id}
-                  className="rounded-xl p-4 flex gap-3 items-center bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-white border border-white/80 dark:border-slate-800 shadow-md hover:shadow-xl transition-all"
+                  className="rounded-2xl p-4 flex gap-3.5 items-center bg-white/95 dark:bg-slate-800/90 text-slate-900 dark:text-white border border-white/80 dark:border-slate-700/60 shadow-md hover:shadow-xl transition-all"
                 >
                   <img
                     src={item.images?.[0]?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400'}
                     alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg shrink-0 border border-slate-100 dark:border-slate-800"
+                    className="w-20 h-20 object-cover rounded-xl shrink-0 border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-500 text-white font-heading shadow-sm">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-rose-500 text-white font-heading shadow-xs">
                       HOT DEAL
                     </span>
-                    <p className="font-heading font-semibold text-slate-900 dark:text-white text-sm mt-1 truncate">{item.name}</p>
-                    <p className="font-heading font-extrabold text-primary text-base">
+                    <p className="font-heading font-bold text-slate-900 dark:text-white text-sm mt-1 truncate">{item.name}</p>
+                    <p className="font-heading font-extrabold text-[#0266C8] dark:text-sky-400 text-base">
                       ₹{(item.discountPrice || item.price || 19999).toLocaleString('en-IN')}
                     </p>
                     <button
                       onClick={() => setQuickViewProduct(item)}
-                      className="mt-2 w-full bg-primary text-primary-foreground rounded-lg py-1.5 text-xs font-bold font-body hover:bg-primary/90 transition-colors shadow-sm"
+                      className="mt-2 w-full bg-[#0266C8] hover:bg-[#0054A6] text-white rounded-lg py-1.5 text-xs font-bold font-body transition-colors shadow-xs"
                     >
                       Quick View
                     </button>
@@ -450,11 +465,23 @@ export const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {(homepage?.topRated?.length > 0 ? homepage.topRated : homepage?.trending?.slice(0, 4) || []).map((product) => (
+          {(
+            (isAuthenticated && recommendations?.recommendedForYou?.length > 0
+              ? recommendations.recommendedForYou
+              : homepage?.topRated?.length > 0
+              ? homepage.topRated
+              : homepage?.trending?.slice(0, 4) || []
+            )
+          ).map((product) => (
             <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
           ))}
         </div>
       </section>
+
+      {/* ── Recently Viewed Section ───────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4">
+        <RecentlyViewed onQuickView={setQuickViewProduct} />
+      </div>
 
       {/* ── 10. Featured Brands Grid ──────────────────────────────────── */}
       <section className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
@@ -508,28 +535,29 @@ export const Home = () => {
 
       {/* ── 12. Newsletter Section ────────────────────────────────────── */}
       <section className="py-8 max-w-7xl mx-auto px-4">
-        <div
-          className="rounded-2xl p-8 md:p-12 text-center text-primary-foreground shadow-xl"
-          style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #003399 100%)' }}
-        >
+        <div className="rounded-3xl p-8 md:p-12 text-center shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-br from-[#E1F5FE] via-[#E0F2FE]/70 to-[#F0F8FF] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
           <div className="max-w-xl mx-auto space-y-4">
-            <Chip variant="accent">Newsletter Section</Chip>
-            <h2 className="font-heading text-2xl md:text-4xl font-extrabold">Stay Updated with Exclusive Deals</h2>
-            <p className="text-primary-foreground/80 text-sm font-body">
-              Subscribe to get notified about flash sales, new flagship arrivals, and discount coupons.
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold font-heading bg-[#0266C8]/10 text-[#0266C8] dark:bg-sky-500/20 dark:text-sky-300">
+              <Mail size={13} /> Exclusive Updates
+            </span>
+            <h2 className="font-heading text-2xl md:text-4xl font-extrabold text-[#0a2540] dark:text-white tracking-tight">
+              Stay Updated with Exclusive Deals
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 text-sm font-body leading-relaxed">
+              Subscribe to get notified about flash sales, new flagship arrivals, and secret discount coupons directly in your inbox.
             </p>
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 pt-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 pt-3">
               <input
                 type="email"
                 placeholder="Enter your email address..."
                 value={newsletterEmail}
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 required
-                className="flex-1 px-4 py-3 rounded-lg bg-card text-foreground placeholder:text-muted-foreground font-body text-sm outline-none"
+                className="flex-1 px-4 py-3.5 rounded-xl bg-white dark:bg-slate-800 text-[#0a2540] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 font-body text-sm border border-[#BAE6FD] dark:border-slate-700 outline-none focus:ring-2 focus:ring-[#0266C8] dark:focus:ring-sky-500 shadow-xs transition-all"
               />
               <button
                 type="submit"
-                className="bg-accent text-accent-foreground px-6 py-3 rounded-lg font-bold font-body hover:bg-accent/90 transition-colors shadow-md flex items-center justify-center gap-2"
+                className="bg-[#0266C8] hover:bg-[#0054A6] text-white px-7 py-3.5 rounded-xl font-bold font-body transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm shrink-0"
               >
                 <Send size={16} />
                 <span>Subscribe</span>

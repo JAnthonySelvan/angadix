@@ -7,6 +7,8 @@ import {
   getProductFacets,
   getRelatedProducts,
   getSimilarProducts,
+  getFrequentlyBoughtTogether,
+  getRecommendedForYou,
   createProduct,
   updateProduct,
   updateProductStock,
@@ -28,11 +30,13 @@ import {
 
 const router = Router();
 
-// Public Routes
+// Public Routes & Auth Recommendations
 router.get('/homepage', getHomepageProducts);
+router.get('/recommendations', protect, getRecommendedForYou);
 router.get('/search/suggestions', validate(searchSuggestionsValidator), getSearchSuggestions);
 router.get('/search', validate(searchProductsValidator), searchProducts);
 router.get('/facets', getProductFacets);
+router.get('/:id/frequently-bought-together', getFrequentlyBoughtTogether);
 router.get('/:id/related', getRelatedProducts);
 router.get('/:id/similar', getSimilarProducts);
 router.get('/', validate(getProductsQueryValidator), getProducts);

@@ -3,6 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
 import { googleLogin } from '../../features/auth/authThunks';
+import { syncUserData } from '../../utils/syncUserData';
 import { Spinner } from './Spinner';
 import toast from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ export const GoogleAuthButton = ({
         const resultAction = await dispatch(googleLogin(idToken));
 
         if (googleLogin.fulfilled.match(resultAction)) {
+          await syncUserData(dispatch);
           toast.success(resultAction.payload?.message || 'Google login successful!');
           navigate(redirectTo, { replace: true });
         } else {

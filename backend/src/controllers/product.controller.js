@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { Product } from '../models/Product.js';
 import { Category } from '../models/Category.js';
 import { Brand } from '../models/Brand.js';
+import { Cart } from '../models/Cart.js';
+import { Wishlist } from '../models/Wishlist.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
@@ -802,3 +804,240 @@ export const getHomepageProducts = asyncHandler(async (req, res) => {
     )
   );
 });
+
+/**
+ * GET /api/v1/products/:id/frequently-bought-together
+ * Fetch rule-based frequently bought together recommendations
+ */
+export const getFrequentlyBoughtTogether = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const limitCap = parseInt(req.query.limit, 10) || 4;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, 'Invalid product ID.');
+  }
+
+  const sourceProduct = await Product.findById(id);
+  if (!sourceProduct || !sourceProduct.isActive) {
+    throw new ApiError(404, 'Product not found or unavailable.');
+  }
+
+  let recommendations = [];
+
+  // Guarded check: If Order model exists (Phase 5/6), query Order co-occurrences
+  if (mongoose.models && mongoose.models.Order) {
+    try {
+      const Order = mongoose.models.Order;
+      const ordersWithProduct = await Order.find({ 'items.product': id })
+        .select('items.product')
+        .lean();
+
+      if (ordersWithProduct && ordersWithProduct.length > 0) {
+        const coOccurrenceMap = {};
+        ordersWithProduct.forEach((order) => {
+          order.items?.forEach((item) => {
+            const pId = item.product?.toString();
+            if (pId && pId !== id) {
+              coOccurrenceMap[pId] = (coOccurrenceMap[pId] || 0) + 1;
+            }
+          });
+        });
+
+        const sortedProductIds = Object.keys(coOccurrenceMap).sort(
+          (a, b) => coOccurrenceMap[b] - coOccurrenceMap[a]
+        );
+
+        if (sortedProductIds.length > 0) {
+          recommendations = await Product.find({
+            _id: { $in: sortedProductIds.slice(0, limitCap) },
+            isActive: true,
+            stock: { $gt: 0 },
+          })
+            .select(LIGHTWEIGHT_CARD_FIELDS)
+            .populate('category', 'name slug')
+            .populate('brand', 'name slug logo')
+            .lean();
+        }
+      }
+    } catch (orderErr) {
+      console.warn('Order co-occurrence query skipped:', orderErr?.message);
+    }
+  }
+
+  // Temporary fallback rule-based matching (brand match > tag overlap > category match) until Order data exists in Phase 5/6
+  if (recommendations.length < limitCap) {
+    const existingIds = [id, ...recommendations.map((p) => p._id.toString())];
+    const tags = sourceProduct.tags || [];
+
+    const conditions = [];
+    if (sourceProduct.brand) conditions.push({ brand: sourceProduct.brand });
+    if (sourceProduct.category) conditions.push({ category: sourceProduct.category });
+    if (tags.length > 0) conditions.push({ tags: { $in: tags } });
+
+    if (conditions.length > 0) {
+      const fallbackCandidates = await Product.find({
+        _id: { $nin: existingIds },
+        isActive: true,
+        stock: { $gt: 0 },
+        $or: conditions,
+      })
+        .select(LIGHTWEIGHT_CARD_FIELDS)
+        .populate('category', 'name slug')
+        .populate('brand', 'name slug logo')
+        .sort({ isBestSeller: -1, ratingsAverage: -1 })
+        .limit(limitCap * 2)
+        .lean();
+
+      // Rank candidates by relevance score
+      const rankedCandidates = fallbackCandidates.map((prod) => {
+        let score = 0;
+        if (
+          prod.brand &&
+          sourceProduct.brand &&
+          prod.brand._id?.toString() === sourceProduct.brand.toString()
+        ) {
+          score += 3;
+        }
+        if (prod.tags && tags.length > 0) {
+          const matchingTags = prod.tags.filter((t) => tags.includes(t));
+          score += matchingTags.length * 2;
+        }
+        if (
+          prod.category &&
+          sourceProduct.category &&
+          prod.category._id?.toString() === sourceProduct.category.toString()
+        ) {
+          score += 1;
+        }
+        return { prod, score };
+      });
+
+      rankedCandidates.sort((a, b) => b.score - a.score);
+      const fallbackProds = rankedCandidates
+        .map((rc) => rc.prod)
+        .slice(0, limitCap - recommendations.length);
+      recommendations = [...recommendations, ...fallbackProds];
+    }
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        recommendations,
+        'Frequently bought together products fetched successfully.'
+      )
+    );
+});
+
+/**
+ * GET /api/v1/products/recommendations
+ * Fetch personalized "Recommended For You" products for authenticated user
+ */
+export const getRecommendedForYou = asyncHandler(async (req, res) => {
+  const limitCap = parseInt(req.query.limit, 10) || 8;
+  const userId = req.user._id;
+
+  // 1. Fetch user's Cart and Wishlist items to extract interest signals
+  const [cart, wishlist] = await Promise.all([
+    Cart.findOne({ user: userId }).populate('items.product', 'category brand tags').lean(),
+    Wishlist.findOne({ user: userId }).populate('items.product', 'category brand tags').lean(),
+  ]);
+
+  const userProductObjects = [];
+  const excludeIds = [];
+
+  if (cart && Array.isArray(cart.items)) {
+    cart.items.forEach((ci) => {
+      if (ci.product && typeof ci.product === 'object') {
+        userProductObjects.push(ci.product);
+        if (ci.product._id) excludeIds.push(ci.product._id.toString());
+      }
+    });
+  }
+
+  if (wishlist && Array.isArray(wishlist.items)) {
+    wishlist.items.forEach((wi) => {
+      if (wi.product && typeof wi.product === 'object') {
+        userProductObjects.push(wi.product);
+        if (wi.product._id) excludeIds.push(wi.product._id.toString());
+      }
+    });
+  }
+
+  let recommendations = [];
+
+  if (userProductObjects.length > 0) {
+    const categoryIds = [
+      ...new Set(
+        userProductObjects
+          .map((p) => p.category?.toString())
+          .filter(Boolean)
+      ),
+    ];
+    const brandIds = [
+      ...new Set(
+        userProductObjects
+          .map((p) => p.brand?.toString())
+          .filter(Boolean)
+      ),
+    ];
+    const tags = [
+      ...new Set(
+        userProductObjects
+          .flatMap((p) => p.tags || [])
+          .filter(Boolean)
+      ),
+    ];
+
+    const conditions = [];
+    if (categoryIds.length > 0) conditions.push({ category: { $in: categoryIds } });
+    if (brandIds.length > 0) conditions.push({ brand: { $in: brandIds } });
+    if (tags.length > 0) conditions.push({ tags: { $in: tags } });
+
+    if (conditions.length > 0) {
+      recommendations = await Product.find({
+        _id: { $nin: excludeIds },
+        isActive: true,
+        stock: { $gt: 0 },
+        $or: conditions,
+      })
+        .select(LIGHTWEIGHT_CARD_FIELDS)
+        .populate('category', 'name slug')
+        .populate('brand', 'name slug logo')
+        .sort({ isFeatured: -1, ratingsAverage: -1, createdAt: -1 })
+        .limit(limitCap)
+        .lean();
+    }
+  }
+
+  // Cold-start fallback: Top rated / featured products if user has no cart/wishlist history or results < limitCap
+  if (recommendations.length < limitCap) {
+    const existingIds = [...excludeIds, ...recommendations.map((p) => p._id.toString())];
+    const fallbackItems = await Product.find({
+      _id: { $nin: existingIds },
+      isActive: true,
+      stock: { $gt: 0 },
+    })
+      .select(LIGHTWEIGHT_CARD_FIELDS)
+      .populate('category', 'name slug')
+      .populate('brand', 'name slug logo')
+      .sort({ isFeatured: -1, ratingsAverage: -1 })
+      .limit(limitCap - recommendations.length)
+      .lean();
+
+    recommendations = [...recommendations, ...fallbackItems];
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        recommendations,
+        'Recommended for you products fetched successfully.'
+      )
+    );
+});
+

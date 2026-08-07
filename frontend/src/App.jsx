@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useAppDispatch } from './app/hooks';
 import { fetchCurrentUser } from './features/auth/authThunks';
+import { syncUserData } from './utils/syncUserData';
 import { AppRoutes } from './routes/AppRoutes';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
@@ -13,9 +14,16 @@ const googleClientId =
 export default function App() {
   const dispatch = useAppDispatch();
 
-  // On initial app load, attempt session hydration from cookie
+  // On initial app load, attempt session hydration from cookie and sync user data
   useEffect(() => {
-    dispatch(fetchCurrentUser());
+    dispatch(fetchCurrentUser())
+      .unwrap()
+      .then(() => {
+        syncUserData(dispatch);
+      })
+      .catch(() => {
+        // Guest user browsing
+      });
   }, [dispatch]);
 
   return (

@@ -8,6 +8,8 @@ import { GuestRoute } from '../components/common/GuestRoute';
 import { Home } from '../pages/Home';
 import { Shop } from '../pages/Shop';
 import { ProductDetail } from '../pages/ProductDetail';
+import { Cart } from '../pages/Cart';
+import { Wishlist } from '../pages/Wishlist';
 import { NotFound } from '../pages/NotFound';
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
@@ -37,6 +39,8 @@ export const AppRoutes = () => {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/products/:slug" element={<ProductDetail />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />

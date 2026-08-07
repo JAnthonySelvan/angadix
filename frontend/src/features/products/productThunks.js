@@ -137,3 +137,37 @@ export const fetchProductFacets = createAsyncThunk(
   }
 );
 
+/**
+ * Fetch Frequently Bought Together Products
+ */
+export const fetchFrequentlyBoughtTogether = createAsyncThunk(
+  'products/fetchFrequentlyBoughtTogether',
+  async (productId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/products/${productId}/frequently-bought-together`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch frequently bought together products'
+      );
+    }
+  }
+);
+
+/**
+ * Fetch Personalized "Recommended For You" Products
+ */
+export const fetchRecommendedForYou = createAsyncThunk(
+  'products/fetchRecommendedForYou',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/products/recommendations');
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch recommendations'
+      );
+    }
+  }
+);
+

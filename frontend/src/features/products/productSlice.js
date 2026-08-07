@@ -8,6 +8,8 @@ import {
   searchProducts,
   fetchSearchSuggestions,
   fetchProductFacets,
+  fetchFrequentlyBoughtTogether,
+  fetchRecommendedForYou,
 } from './productThunks';
 
 const initialState = {
@@ -18,6 +20,12 @@ const initialState = {
     bestSellers: [],
     topRated: [],
     recentlyAdded: [],
+    loading: false,
+    error: null,
+  },
+  recommendations: {
+    frequentlyBoughtTogether: [],
+    recommendedForYou: [],
     loading: false,
     error: null,
   },
@@ -208,6 +216,34 @@ const productSlice = createSlice({
         state.selectedProduct.error = action.payload;
         state.selectedProduct.relatedProducts = [];
         state.selectedProduct.similarProducts = [];
+      });
+
+    // Frequently Bought Together
+    builder
+      .addCase(fetchFrequentlyBoughtTogether.pending, (state) => {
+        state.recommendations.loading = true;
+      })
+      .addCase(fetchFrequentlyBoughtTogether.fulfilled, (state, action) => {
+        state.recommendations.loading = false;
+        state.recommendations.frequentlyBoughtTogether = action.payload || [];
+      })
+      .addCase(fetchFrequentlyBoughtTogether.rejected, (state, action) => {
+        state.recommendations.loading = false;
+        state.recommendations.error = action.payload;
+      });
+
+    // Personalized Recommended For You
+    builder
+      .addCase(fetchRecommendedForYou.pending, (state) => {
+        state.recommendations.loading = true;
+      })
+      .addCase(fetchRecommendedForYou.fulfilled, (state, action) => {
+        state.recommendations.loading = false;
+        state.recommendations.recommendedForYou = action.payload || [];
+      })
+      .addCase(fetchRecommendedForYou.rejected, (state, action) => {
+        state.recommendations.loading = false;
+        state.recommendations.error = action.payload;
       });
   },
 });

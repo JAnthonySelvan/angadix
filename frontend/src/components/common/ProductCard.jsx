@@ -3,14 +3,22 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Star, Eye } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { addToCart } from '../../features/cart/cartSlice';
-import { toggleWishlist, selectIsInWishlist } from '../../features/wishlist/wishlistSlice';
+import { addItemToCart } from '../../features/cart/cartThunks';
+import { addWishlistItem, removeWishlistItem } from '../../features/wishlist/wishlistThunks';
+import {
+  selectIsInWishlist,
+  loadGuestWishlistFromStorage,
+  saveGuestWishlistToStorage,
+  setGuestWishlistItems,
+} from '../../features/wishlist/wishlistSlice';
+import { useRequireAuth } from '../../utils/useRequireAuth';
 import toast from 'react-hot-toast';
 
 export const ProductCard = ({ product, onQuickView }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
+  const { requireAuth, isAuthenticated } = useRequireAuth();
 
   const [isHovered, setIsHovered] = useState(false);
 
@@ -43,27 +51,64 @@ export const ProductCard = ({ product, onQuickView }) => {
   const finalPrice = hasDiscount ? discountPrice : price;
 
   // State check for cart
-  const isInCart = cartItems.some((item) => item.product._id === _id || item.product === _id);
+  const isInCart = cartItems.some(
+    (item) => item.product?._id === _id || item.product === _id
+  );
 
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!requireAuth(null, 'Please sign in to add items to your cart')) {
+      return;
+    }
+
     if (stock <= 0) {
       toast.error('Product is out of stock!');
       return;
     }
-    dispatch(addToCart({ product, quantity: 1 }));
-    toast.success(`${name} added to cart!`);
+    dispatch(addItemToCart({ productId: _id, quantity: 1 }))
+      .unwrap()
+      .then(() => toast.success(`${name} added to cart!`))
+      .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
   const handleToggleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dispatch(toggleWishlist(product));
+
+    if (!isAuthenticated) {
+      const currentGuestWishlist = loadGuestWishlistFromStorage();
+      const targetId = String(_id);
+      const existsIndex = currentGuestWishlist.findIndex((item) => {
+        const itemId = item._id || item.id || item.product?._id || item;
+        return String(itemId) === targetId;
+      });
+
+      let updated;
+      if (existsIndex > -1) {
+        updated = currentGuestWishlist.filter((_, idx) => idx !== existsIndex);
+        toast.success('Removed from wishlist');
+      } else {
+        updated = [...currentGuestWishlist, product];
+        toast.success('Saved to wishlist');
+      }
+
+      saveGuestWishlistToStorage(updated);
+      dispatch(setGuestWishlistItems(updated));
+      return;
+    }
+
     if (isInWishlist) {
-      toast.success('Removed from wishlist');
+      dispatch(removeWishlistItem(_id))
+        .unwrap()
+        .then(() => toast.success('Removed from wishlist'))
+        .catch((err) => toast.error(err || 'Failed to remove from wishlist'));
     } else {
-      toast.success('Added to wishlist');
+      dispatch(addWishlistItem(_id))
+        .unwrap()
+        .then(() => toast.success('Saved to wishlist'))
+        .catch((err) => toast.error(err || 'Failed to add to wishlist'));
     }
   };
 

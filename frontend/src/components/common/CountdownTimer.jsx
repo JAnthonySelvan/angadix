@@ -32,19 +32,19 @@ export const CountdownTimer = ({ targetHours = 24 }) => {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex flex-col items-center justify-center bg-black text-white rounded-xl px-3.5 py-2 min-w-[56px] border border-slate-800 shadow-md">
-        <span className="text-xl font-black font-mono leading-none tracking-tight">{padZero(timeLeft.hours)}</span>
-        <span className="text-[9px] font-bold tracking-widest uppercase opacity-80 mt-1">HRS</span>
+      <div className="flex flex-col items-center justify-center bg-[#0a2540] dark:bg-slate-950 text-white rounded-2xl px-4 py-2.5 min-w-[62px] border border-slate-800 dark:border-slate-700 shadow-md">
+        <span className="text-2xl font-black font-mono leading-none tracking-tight text-white dark:text-sky-400">{padZero(timeLeft.hours)}</span>
+        <span className="text-[9px] font-extrabold tracking-widest uppercase mt-1 text-slate-300 dark:text-slate-400">HRS</span>
       </div>
-      <span className="text-black font-black text-2xl dark:text-white">:</span>
-      <div className="flex flex-col items-center justify-center bg-black text-white rounded-xl px-3.5 py-2 min-w-[56px] border border-slate-800 shadow-md">
-        <span className="text-xl font-black font-mono leading-none tracking-tight">{padZero(timeLeft.minutes)}</span>
-        <span className="text-[9px] font-bold tracking-widest uppercase opacity-80 mt-1">MIN</span>
+      <span className="text-[#0a2540] dark:text-sky-400 font-black text-2xl">:</span>
+      <div className="flex flex-col items-center justify-center bg-[#0a2540] dark:bg-slate-950 text-white rounded-2xl px-4 py-2.5 min-w-[62px] border border-slate-800 dark:border-slate-700 shadow-md">
+        <span className="text-2xl font-black font-mono leading-none tracking-tight text-white dark:text-sky-400">{padZero(timeLeft.minutes)}</span>
+        <span className="text-[9px] font-extrabold tracking-widest uppercase mt-1 text-slate-300 dark:text-slate-400">MIN</span>
       </div>
-      <span className="text-black font-black text-2xl dark:text-white">:</span>
-      <div className="flex flex-col items-center justify-center bg-black text-white rounded-xl px-3.5 py-2 min-w-[56px] border border-slate-800 shadow-md">
-        <span className="text-xl font-black font-mono leading-none tracking-tight">{padZero(timeLeft.seconds)}</span>
-        <span className="text-[9px] font-bold tracking-widest uppercase opacity-80 mt-1">SEC</span>
+      <span className="text-[#0a2540] dark:text-sky-400 font-black text-2xl">:</span>
+      <div className="flex flex-col items-center justify-center bg-[#0a2540] dark:bg-slate-950 text-white rounded-2xl px-4 py-2.5 min-w-[62px] border border-slate-800 dark:border-slate-700 shadow-md">
+        <span className="text-2xl font-black font-mono leading-none tracking-tight text-white dark:text-sky-400">{padZero(timeLeft.seconds)}</span>
+        <span className="text-[9px] font-extrabold tracking-widest uppercase mt-1 text-slate-300 dark:text-slate-400">SEC</span>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Mail, Lock, ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAppDispatch } from '../../app/hooks';
 import { loginUser, resendVerification } from '../../features/auth/authThunks';
+import { syncUserData } from '../../utils/syncUserData';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { GoogleAuthButton } from '../../components/ui/GoogleAuthButton';
@@ -55,6 +56,7 @@ export const Login = () => {
     try {
       const resultAction = await dispatch(loginUser(data));
       if (loginUser.fulfilled.match(resultAction)) {
+        await syncUserData(dispatch);
         toast.success(resultAction.payload?.message || 'Welcome back to Angadix!');
         navigate(from, { replace: true });
       } else {

@@ -2,16 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { fetchProductBySlug } from '../features/products/productThunks';
-import { addToCart } from '../features/cart/cartSlice';
-import { toggleWishlist, selectIsInWishlist } from '../features/wishlist/wishlistSlice';
+import { fetchProductBySlug, fetchFrequentlyBoughtTogether } from '../features/products/productThunks';
+import { addItemToCart } from '../features/cart/cartThunks';
+import { addWishlistItem, removeWishlistItem } from '../features/wishlist/wishlistThunks';
+import {
+  selectIsInWishlist,
+  loadGuestWishlistFromStorage,
+  saveGuestWishlistToStorage,
+  setGuestWishlistItems,
+} from '../features/wishlist/wishlistSlice';
+import { trackProductView } from '../features/recentlyViewed/recentlyViewedSlice';
+import { useRequireAuth } from '../utils/useRequireAuth';
 import { ProductCard } from '../components/common/ProductCard';
 import { QuickViewModal } from '../components/common/QuickViewModal';
+import { RecentlyViewed } from '../components/common/RecentlyViewed';
+import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtTogether';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
   const { slug } = useParams();
   const dispatch = useAppDispatch();
+  const { requireAuth, isAuthenticated } = useRequireAuth();
 
   const {
     data: product,
@@ -20,6 +31,9 @@ export const ProductDetail = () => {
     loading,
     error,
   } = useAppSelector((state) => state.products.selectedProduct);
+  const frequentlyBoughtTogether = useAppSelector(
+    (state) => state.products.recommendations?.frequentlyBoughtTogether || []
+  );
 
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
 
@@ -32,6 +46,13 @@ export const ProductDetail = () => {
       dispatch(fetchProductBySlug(slug));
     }
   }, [slug, dispatch]);
+
+  useEffect(() => {
+    if (product && product._id) {
+      dispatch(trackProductView(product));
+      dispatch(fetchFrequentlyBoughtTogether(product._id));
+    }
+  }, [product, dispatch]);
 
   if (loading) {
     return (
@@ -81,13 +102,49 @@ export const ProductDetail = () => {
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800'];
 
   const handleAddToCart = () => {
-    dispatch(addToCart({ product, quantity }));
-    toast.success(`Added ${quantity} x "${name}" to Cart!`);
+    if (!requireAuth(null, 'Please sign in to add items to your cart')) {
+      return;
+    }
+    dispatch(addItemToCart({ productId: product._id, quantity }))
+      .unwrap()
+      .then(() => toast.success(`Added ${quantity} x "${name}" to Cart!`))
+      .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
   const handleWishlist = () => {
-    dispatch(toggleWishlist(product));
-    toast.success(isInWishlist ? 'Removed from Wishlist' : 'Saved to Wishlist!');
+    if (!isAuthenticated) {
+      const currentGuestWishlist = loadGuestWishlistFromStorage();
+      const targetId = String(product._id);
+      const existsIndex = currentGuestWishlist.findIndex((item) => {
+        const itemId = item._id || item.id || item.product?._id || item;
+        return String(itemId) === targetId;
+      });
+
+      let updated;
+      if (existsIndex > -1) {
+        updated = currentGuestWishlist.filter((_, idx) => idx !== existsIndex);
+        toast.success('Removed from Wishlist');
+      } else {
+        updated = [...currentGuestWishlist, product];
+        toast.success('Saved to Wishlist!');
+      }
+
+      saveGuestWishlistToStorage(updated);
+      dispatch(setGuestWishlistItems(updated));
+      return;
+    }
+
+    if (isInWishlist) {
+      dispatch(removeWishlistItem(product._id))
+        .unwrap()
+        .then(() => toast.success('Removed from Wishlist'))
+        .catch((err) => toast.error(err));
+    } else {
+      dispatch(addWishlistItem(product._id))
+        .unwrap()
+        .then(() => toast.success('Saved to Wishlist!'))
+        .catch((err) => toast.error(err));
+    }
   };
 
   return (
@@ -311,6 +368,12 @@ export const ProductDetail = () => {
           </div>
         </section>
       )}
+
+      {/* Recommendation Section 3: AI Frequently Bought Together */}
+      <FrequentlyBoughtTogether mainProduct={product} />
+
+      {/* Recommendation Section 4: Recently Viewed History */}
+      <RecentlyViewed currentProductId={product._id} onQuickView={(p) => setQuickViewProduct(p)} />
 
       <QuickViewModal
         product={quickViewProduct}

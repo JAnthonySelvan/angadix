@@ -9,8 +9,9 @@ import { Order } from '../models/Order.js';
 import { Address } from '../models/Address.js';
 import { Cart } from '../models/Cart.js';
 import { Product } from '../models/Product.js';
-import { Payment } from '../models/Payment.js';
 import { calculateAndFormatCart } from './cart.controller.js';
+import { ALLOWED_TRANSITIONS, canTransition } from '../utils/orderStatusMachine.js';
+import { sendOrderStatusEmail } from '../services/email.service.js';
 
 // 1. Create Order (Checkout Entrypoint)
 export const createOrder = asyncHandler(async (req, res) => {
@@ -500,7 +501,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 // 7. Update Order Status (Admin Only)
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { orderStatus, note = '' } = req.body;
+  const { orderStatus, note = '', carrier = '', trackingNumber = '' } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(404, 'Order not found.');
@@ -512,19 +513,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Order not found.');
   }
 
-  const allowedTransitions = {
-    pending: ['confirmed', 'cancelled'],
-    confirmed: ['packed', 'cancelled'],
-    packed: ['shipped', 'cancelled'],
-    shipped: ['delivered', 'cancelled'],
-    delivered: ['returned', 'refunded'],
-    cancelled: [],
-    returned: ['refunded'],
-    refunded: [],
-  };
-
-  const validNextStates = allowedTransitions[order.orderStatus] || [];
-  if (!validNextStates.includes(orderStatus) && order.orderStatus !== orderStatus) {
+  const validNextStates = ALLOWED_TRANSITIONS[order.orderStatus] || [];
+  if (!canTransition(order.orderStatus, orderStatus)) {
     throw new ApiError(
       400,
       `Cannot transition order status from '${order.orderStatus}' to '${orderStatus}'. Allowed transitions: [${validNextStates.join(
@@ -533,8 +523,24 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     );
   }
 
-  // If status is transitioning to cancelled, restore stock if order was confirmed
-  if (orderStatus === 'cancelled' && order.orderStatus !== 'cancelled') {
+  const previousStatus = order.orderStatus;
+
+  // Handle side-effects for specific status changes
+  if (orderStatus === 'shipped') {
+    order.shipment = {
+      carrier: carrier || order.shipment?.carrier || '',
+      trackingNumber: trackingNumber || order.shipment?.trackingNumber || '',
+      shippedAt: new Date(),
+    };
+  } else if (orderStatus === 'delivered') {
+    order.deliveredAt = new Date();
+  }
+
+  // Restore stock on cancelled or returned status transitions
+  if (
+    (orderStatus === 'cancelled' || orderStatus === 'returned') &&
+    !['cancelled', 'returned'].includes(previousStatus)
+  ) {
     await Promise.all(
       order.items.map((item) =>
         Product.findByIdAndUpdate(item.product, {
@@ -542,15 +548,68 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         })
       )
     );
-    order.cancelReason = note || 'Cancelled by admin';
+    if (orderStatus === 'cancelled') {
+      order.cancelReason = note || 'Cancelled by admin';
+    }
+  }
+
+  // Invalidate cached invoice on status changes that alter invoice content
+  if (['delivered', 'cancelled', 'returned', 'refunded'].includes(orderStatus)) {
+    order.invoice = { url: '', publicId: '', generatedAt: null };
   }
 
   order.addStatusEntry(orderStatus, note || `Status updated to ${orderStatus} by admin`);
   await order.save();
 
+  // Fire-and-forget order status update notification email
+  order.populate('user', 'name email').then((populatedOrder) => {
+    sendOrderStatusEmail(populatedOrder, previousStatus);
+  }).catch((err) => {
+    console.error(`[Email Service Error] Failed populating user for order ${order.orderNumber}:`, err.message);
+  });
+
   return res
     .status(200)
     .json(new ApiResponse(200, order, 'Order status updated successfully.'));
+});
+
+// 8. Get Order Timeline (Lightweight payload for tracking UI)
+export const getOrderTimeline = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(404, 'Order not found.');
+  }
+
+  const order = await Order.findById(id).select(
+    'orderNumber orderStatus statusHistory shipment deliveredAt user'
+  );
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found.');
+  }
+
+  // Non-admins can only view timeline of their own orders (throw 404 to avoid leaking existence)
+  if (
+    req.user.role !== 'admin' &&
+    order.user.toString() !== req.user._id.toString()
+  ) {
+    throw new ApiError(404, 'Order not found.');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        orderNumber: order.orderNumber,
+        orderStatus: order.orderStatus,
+        statusHistory: order.statusHistory,
+        shipment: order.shipment,
+        deliveredAt: order.deliveredAt,
+      },
+      'Order timeline retrieved successfully.'
+    )
+  );
 });
 
 // 8. Get All Orders (Admin Only)

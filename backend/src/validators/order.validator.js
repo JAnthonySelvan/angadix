@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import mongoose from 'mongoose';
 
 export const createOrderValidator = [
@@ -67,6 +67,25 @@ export const updateOrderStatusValidator = [
     .trim()
     .isLength({ max: 500 })
     .withMessage('Note cannot exceed 500 characters'),
+
+  body('carrier')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Carrier name cannot exceed 100 characters'),
+
+  body('trackingNumber')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Tracking number cannot exceed 100 characters')
+    .custom((value, { req }) => {
+      if (req.body.orderStatus === 'shipped') {
+        // carrier or trackingNumber can be provided when shipping
+        return true;
+      }
+      return true;
+    }),
 ];
 
 export const cancelOrderValidator = [
@@ -75,4 +94,16 @@ export const cancelOrderValidator = [
     .trim()
     .isLength({ max: 500 })
     .withMessage('Reason cannot exceed 500 characters'),
+];
+
+export const regenerateInvoiceValidator = [
+  param('id')
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .custom((value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('Invalid order ID format');
+      }
+      return true;
+    }),
 ];

@@ -694,5 +694,116 @@ To configure Google OAuth 2.0 credentials for Angadix:
 - **Request Body**: `{ "code": "WELCOME10", "orderValue": 2500 }`
 - **Returns**: Preview calculations `{ valid: true, discountAmount, finalAmount }` without mutating cart state.
 
+---
+
+### Order & Invoice Endpoints (`/api/v1/orders`) — Phase 5 & 6
+
+#### 1. Create Order (Checkout)
+- **Method**: `POST`
+- **Path**: `/api/v1/orders`
+- **Auth Required**: Yes
+- **Rate Limit**: 20 attempts / 15 min
+- **Request Body**: `{ "shippingAddressId": "...", "paymentMethod": "cod" | "razorpay" }`
+
+#### 2. Verify Razorpay Payment
+- **Method**: `POST`
+- **Path**: `/api/v1/orders/verify-payment`
+- **Auth Required**: Yes
+- **Request Body**: `{ "razorpay_order_id": "...", "razorpay_payment_id": "...", "razorpay_signature": "...", "orderId": "..." }`
+
+#### 3. Get User Orders
+- **Method**: `GET`
+- **Path**: `/api/v1/orders/my-orders?page=1&limit=10`
+- **Auth Required**: Yes
+
+#### 4. Get Order By ID
+- **Method**: `GET`
+- **Path**: `/api/v1/orders/:id`
+- **Auth Required**: Yes (Owner or Admin)
+
+#### 5. Cancel Order
+- **Method**: `PATCH`
+- **Path**: `/api/v1/orders/:id/cancel`
+- **Auth Required**: Yes (Owner or Admin)
+- **Request Body**: `{ "reason": "Optional cancellation reason" }`
+
+#### 6. Update Order Status (Admin Only) — Phase 6
+- **Method**: `PATCH`
+- **Path**: `/api/v1/orders/:id/status`
+- **Auth Required**: Yes (Role: `admin`)
+- **Request Body**:
+```json
+{
+  "orderStatus": "shipped",
+  "note": "Dispatched via express logistics",
+  "carrier": "BlueDart Express",
+  "trackingNumber": "BD123456789IN"
+}
+```
+- **State Machine Transitions**: `pending → confirmed → packed → shipped → delivered → returned / refunded`, plus `cancelled` branches.
+- **Side Effects**: Automatically sets `shipment` object on `shipped`, stamps `deliveredAt` on `delivered`, restores stock on `returned`/`cancelled`, and triggers fire-and-forget status update email.
+
+#### 7. Get Order Tracking Timeline — Phase 6
+- **Method**: `GET`
+- **Path**: `/api/v1/orders/:id/timeline`
+- **Auth Required**: Yes (Owner or Admin)
+- **Returns**: Lightweight tracking timeline payload:
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Order timeline retrieved successfully.",
+  "data": {
+    "orderNumber": "ANG-20260807-2BC89E",
+    "orderStatus": "shipped",
+    "statusHistory": [
+      { "status": "confirmed", "note": "Order placed", "changedAt": "2026-08-07T06:00:00.000Z" },
+      { "status": "shipped", "note": "Shipped via BlueDart", "changedAt": "2026-08-07T06:30:00.000Z" }
+    ],
+    "shipment": {
+      "carrier": "BlueDart Express",
+      "trackingNumber": "BD123456789IN",
+      "shippedAt": "2026-08-07T06:30:00.000Z"
+    },
+    "deliveredAt": null
+  }
+}
+```
+
+#### 8. Download / Stream PDF Invoice — Phase 6
+- **Method**: `GET`
+- **Path**: `/api/v1/orders/:id/invoice`
+- **Auth Required**: Yes (Owner or Admin)
+- **Rate Limit**: 30 requests / 15 min
+- **Behavior**:
+  - **First Request**: Generates PDF buffer, uploads to Cloudinary (`angadix/invoices/`), persists `url`/`publicId` on order, and streams PDF inline (`Content-Type: application/pdf`).
+  - **Subsequent Requests**: `307 Temporary Redirect` straight to the cached Cloudinary CDN URL.
+  - **Fallback**: If Cloudinary is unconfigured, degrades gracefully to inline in-memory streaming.
+- **Guard**: Only available when `paymentStatus === 'paid'` or `paymentMethod === 'cod'`. Unpaid Razorpay orders return HTTP 400.
+
+#### 9. Force Regenerate PDF Invoice (Admin Only) — Phase 6
+- **Method**: `POST`
+- **Path**: `/api/v1/orders/:id/invoice/regenerate`
+- **Auth Required**: Yes (Role: `admin`)
+- **Behavior**: Deletes existing Cloudinary asset (if present), generates fresh PDF, uploads & updates cached URL on order.
+- **Returns**:
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Invoice regenerated successfully.",
+  "data": {
+    "url": "https://res.cloudinary.com/wols4un8/raw/upload/v1786086105/angadix/invoices/invoice-ANG-20260807-BE29A9.pdf",
+    "invoice": {
+      "url": "https://res.cloudinary.com/wols4un8/raw/upload/v1786086105/angadix/invoices/invoice-ANG-20260807-BE29A9.pdf",
+      "publicId": "angadix/invoices/invoice-ANG-20260807-BE29A9",
+      "generatedAt": "2026-08-07T07:01:45.000Z"
+    }
+  }
+}
+```
+
+
+
 
 

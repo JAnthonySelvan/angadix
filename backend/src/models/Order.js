@@ -152,6 +152,19 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    shipment: {
+      carrier: { type: String, default: '' },
+      trackingNumber: { type: String, default: '' },
+      shippedAt: { type: Date },
+    },
+    deliveredAt: {
+      type: Date,
+    },
+    invoice: {
+      url: { type: String, default: '' },
+      publicId: { type: String, default: '' },
+      generatedAt: { type: Date, default: null },
+    },
   },
   {
     timestamps: true,

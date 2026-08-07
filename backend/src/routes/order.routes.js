@@ -18,6 +18,7 @@ import {
   cancelOrder,
   updateOrderStatus,
   getAllOrders,
+  getOrderTimeline,
 } from '../controllers/order.controller.js';
 
 const router = Router();
@@ -60,6 +61,8 @@ router.post(
 router.get('/my-orders', getMyOrders);
 
 router.get('/:id', getOrderById);
+
+router.get('/:id/timeline', getOrderTimeline);
 
 router.patch('/:id/cancel', validate(cancelOrderValidator), cancelOrder);
 

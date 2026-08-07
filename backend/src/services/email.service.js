@@ -165,6 +165,60 @@ export const sendPasswordResetEmail = async (email, name, rawToken) => {
 };
 
 /**
+ * Send Order Status Change Notification Email (fire-and-forget)
+ */
+export const sendOrderStatusEmail = async (order, previousStatus) => {
+  try {
+    const recipientEmail = order.user?.email || order.shippingAddress?.email;
+    if (!recipientEmail) {
+      console.warn(`[Email Service] Cannot send order status email: recipient email missing on order ${order.orderNumber}`);
+      return;
+    }
+
+    const recipientName = order.user?.name || order.shippingAddress?.fullName || 'Customer';
+    const statusUpper = order.orderStatus.toUpperCase();
+
+    let shipmentDetailsHtml = '';
+    if (order.orderStatus === 'shipped' && order.shipment) {
+      const { carrier, trackingNumber } = order.shipment;
+      if (carrier || trackingNumber) {
+        shipmentDetailsHtml = `
+          <div style="background: #F1F5F9; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p style="margin: 0 0 8px 0; font-weight: 600; color: #0266C8;">Shipment Details:</p>
+            ${carrier ? `<p style="margin: 4px 0;"><strong>Carrier:</strong> ${carrier}</p>` : ''}
+            ${trackingNumber ? `<p style="margin: 4px 0;"><strong>Tracking Number:</strong> ${trackingNumber}</p>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    const bodyHtml = `
+      <p>Hello <strong>${recipientName}</strong>,</p>
+      <p>Your order <strong>#${order.orderNumber}</strong> status has been updated to <span style="color: #0266C8; font-weight: 700;">${statusUpper}</span> (previously <em>${previousStatus}</em>).</p>
+      ${shipmentDetailsHtml}
+      <p>Total Amount: <strong>₹${order.totalAmount?.toFixed(2) || '0.00'}</strong></p>
+    `;
+
+    const trackUrl = `${env.clientUrl}/orders/${order._id}`;
+    const html = renderEmailTemplate({
+      title: `Order #${order.orderNumber} Status Updated`,
+      bodyHtml,
+      actionUrl: trackUrl,
+      actionText: 'View Order Status',
+    });
+
+    await sendEmail({
+      to: recipientEmail,
+      subject: `Angadix - Order #${order.orderNumber} Status Update: ${statusUpper}`,
+      html,
+    });
+  } catch (error) {
+    console.error(`[Email Service Error] Failed to send order status email for ${order?.orderNumber}:`, error.message);
+  }
+};
+
+
+/**
  * Branded HTML Template Wrapper for Angadix Emails
  */
 const renderEmailTemplate = ({ title, bodyHtml, actionUrl, actionText }) => {

@@ -16,6 +16,7 @@ import savedForLaterRoutes from './routes/savedForLater.routes.js';
 import couponRoutes from './routes/coupon.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import invoiceRoutes from './routes/invoice.routes.js';
 import { razorpayWebhook } from './controllers/order.controller.js';
 import { notFound } from './middlewares/notFound.middleware.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
@@ -89,6 +90,7 @@ app.use('/api/v1/saved-for-later', savedForLaterRoutes);
 app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/orders', invoiceRoutes);
 
 // 9. 404 Route Handler for Unmapped Endpoints
 app.use(notFound);

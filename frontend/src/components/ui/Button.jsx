@@ -13,6 +13,9 @@ export const Button = React.forwardRef(
       isDisabled = false,
       className = '',
       onClick,
+      onMouseEnter,
+      onMouseLeave,
+      onMouseMove,
       ...props
     },
     ref
@@ -41,15 +44,25 @@ export const Button = React.forwardRef(
 
     const isButtonDisabled = isDisabled || isLoading;
 
+    const handleClick = (e) => {
+      if (isButtonDisabled) return;
+      if (typeof onClick === 'function') {
+        onClick(e);
+      }
+    };
+
     return (
       <motion.button
         ref={ref}
         type={type}
         whileTap={!isButtonDisabled ? { scale: 0.97 } : undefined}
         disabled={isButtonDisabled}
-        onClick={onClick}
         className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseMove={onMouseMove}
         {...props}
+        onClick={handleClick}
       >
         {isLoading ? (
           <span className="inline-flex items-center gap-2">

@@ -177,8 +177,7 @@ export const CartDrawer = () => {
                   <button
                     onClick={() => {
                       handleClose();
-                      toast.success('Proceeding to Checkout...');
-                      navigate('/shop');
+                      navigate('/checkout');
                     }}
                     className="w-full py-3 px-5 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all"
                   >

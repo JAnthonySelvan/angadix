@@ -14,6 +14,9 @@ import cartRoutes from './routes/cart.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import savedForLaterRoutes from './routes/savedForLater.routes.js';
 import couponRoutes from './routes/coupon.routes.js';
+import addressRoutes from './routes/address.routes.js';
+import orderRoutes from './routes/order.routes.js';
+import { razorpayWebhook } from './controllers/order.controller.js';
 import { notFound } from './middlewares/notFound.middleware.js';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { ApiResponse } from './utils/ApiResponse.js';
@@ -31,6 +34,15 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
+);
+
+// IMPORTANT WEBHOOK MOUNT ORDERING REQUIREMENT:
+// The Razorpay webhook requires raw body access to verify the HMAC signature against the raw payload bytes.
+// Mounting this BEFORE express.json() ensures the request body stream is not pre-parsed into JSON.
+app.post(
+  '/api/v1/orders/webhook/razorpay',
+  express.raw({ type: 'application/json' }),
+  razorpayWebhook
 );
 
 // 3. Request Body Parsing
@@ -75,6 +87,8 @@ app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
 app.use('/api/v1/saved-for-later', savedForLaterRoutes);
 app.use('/api/v1/coupons', couponRoutes);
+app.use('/api/v1/addresses', addressRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // 9. 404 Route Handler for Unmapped Endpoints
 app.use(notFound);

@@ -197,8 +197,7 @@ export const Cart = () => {
               {/* Checkout Button */}
               <button
                 onClick={() => {
-                  toast.success('Proceeding to Checkout...');
-                  navigate('/shop');
+                  navigate('/checkout');
                 }}
                 className="w-full py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
               >

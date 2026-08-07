@@ -16,6 +16,10 @@ import { Register } from '../pages/auth/Register';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
 import { VerifyEmail } from '../pages/auth/VerifyEmail';
+import { Checkout } from '../pages/Checkout';
+import { OrderSuccess } from '../pages/OrderSuccess';
+import { OrderHistory } from '../pages/OrderHistory';
+import { OrderDetail } from '../pages/OrderDetail';
 
 export const AppRoutes = () => {
   return (
@@ -45,12 +49,44 @@ export const AppRoutes = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-        {/* Protected User Account Route */}
+        {/* Protected User Account & Checkout Routes */}
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <OrderHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/me"
           element={
             <ProtectedRoute>
-              <Shop />
+              <OrderHistory />
             </ProtectedRoute>
           }
         />

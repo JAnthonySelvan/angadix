@@ -31,7 +31,7 @@ export const Input = React.forwardRef(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center justify-between"
+            className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between"
           >
             <span>
               {label}
@@ -54,13 +54,13 @@ export const Input = React.forwardRef(
             type={computedType}
             disabled={disabled}
             placeholder={placeholder}
-            className={`w-full rounded-md border text-sm font-medium transition-all outline-none bg-white text-slate-900 placeholder:text-slate-400 py-2.5 px-3.5 ${
+            className={`w-full rounded-xl border text-sm font-medium transition-all outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 py-2.5 px-3.5 ${
               leftIcon ? 'pl-10' : ''
             } ${isPasswordType || rightIcon ? 'pr-10' : ''} ${
               error
                 ? 'border-semantic-error text-semantic-error focus:ring-2 focus:ring-semantic-error/30'
-                : 'border-slate-200 hover:border-slate-300 focus:border-primary-600 focus:ring-2 focus:ring-primary-500/20'
-            } ${disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : ''} ${className}`}
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 focus:border-primary-600 focus:ring-2 focus:ring-primary-500/20'
+            } ${disabled ? 'bg-slate-50 dark:bg-slate-900/60 text-slate-400 cursor-not-allowed' : ''} ${className}`}
             {...props}
           />
 

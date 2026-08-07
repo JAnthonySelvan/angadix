@@ -6,6 +6,8 @@ import cartReducer from '../features/cart/cartSlice';
 import wishlistReducer from '../features/wishlist/wishlistSlice';
 import savedForLaterReducer from '../features/savedForLater/savedForLaterSlice';
 import recentlyViewedReducer from '../features/recentlyViewed/recentlyViewedSlice';
+import addressReducer from '../features/checkout/addressSlice';
+import orderReducer from '../features/checkout/orderSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +18,8 @@ export const store = configureStore({
     wishlist: wishlistReducer,
     savedForLater: savedForLaterReducer,
     recentlyViewed: recentlyViewedReducer,
+    address: addressReducer,
+    order: orderReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

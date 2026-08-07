@@ -316,10 +316,13 @@ export const Navbar = () => {
                       </Link>
 
                       {user.role === 'admin' && (
-                        <div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-xl my-1">
+                        <Link
+                          to="/admin"
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-xl my-1 transition-colors"
+                        >
                           <Sparkles size={14} />
                           <span>Admin Control Active</span>
-                        </div>
+                        </Link>
                       )}
 
                       <button

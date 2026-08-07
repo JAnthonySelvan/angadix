@@ -8,6 +8,9 @@ import savedForLaterReducer from '../features/savedForLater/savedForLaterSlice';
 import recentlyViewedReducer from '../features/recentlyViewed/recentlyViewedSlice';
 import addressReducer from '../features/checkout/addressSlice';
 import orderReducer from '../features/checkout/orderSlice';
+import adminAnalyticsReducer from '../features/admin/analyticsSlice';
+import adminUsersReducer from '../features/admin/adminUsersSlice';
+import adminBannersReducer from '../features/admin/bannerSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +23,9 @@ export const store = configureStore({
     recentlyViewed: recentlyViewedReducer,
     address: addressReducer,
     order: orderReducer,
+    adminAnalytics: adminAnalyticsReducer,
+    adminUsers: adminUsersReducer,
+    adminBanners: adminBannersReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

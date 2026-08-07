@@ -37,11 +37,29 @@ const seedDatabase = async () => {
     await Brand.deleteMany({});
     await Product.deleteMany({});
 
-    // 2. Ensure Admin User Exists
-    let adminUser = await User.findOne({ email: 'admin@angadix.com' });
+    // 2. Ensure Admin Users Exist
+    let adminUser = await User.findOne({ email: 'admin@gmail.com' });
     if (!adminUser) {
-      console.log('\x1b[36mCreating Admin User (admin@angadix.com)...\x1b[0m');
+      console.log('\x1b[36mCreating Admin User (admin@gmail.com)...\x1b[0m');
       adminUser = await User.create({
+        name: 'Admin User',
+        email: 'admin@gmail.com',
+        password: 'Admin@123',
+        role: 'admin',
+        isEmailVerified: true,
+      });
+    } else {
+      console.log('\x1b[36mUpdating Admin User (admin@gmail.com)...\x1b[0m');
+      adminUser.role = 'admin';
+      adminUser.password = 'Admin@123';
+      adminUser.isEmailVerified = true;
+      adminUser.isBlocked = false;
+      await adminUser.save();
+    }
+
+    let defaultAdmin = await User.findOne({ email: 'admin@angadix.com' });
+    if (!defaultAdmin) {
+      await User.create({
         name: 'Angadix Admin',
         email: 'admin@angadix.com',
         password: 'AdminPassword123!',

@@ -21,9 +21,42 @@ import { OrderSuccess } from '../pages/OrderSuccess';
 import { OrderHistory } from '../pages/OrderHistory';
 import { OrderDetail } from '../pages/OrderDetail';
 
+import { AdminRoute } from '../components/common/AdminRoute';
+import { AdminLayout } from '../components/layout/AdminLayout';
+import { Dashboard } from '../pages/admin/Dashboard';
+import { ProductManagement } from '../pages/admin/ProductManagement';
+import { CategoryManagement } from '../pages/admin/CategoryManagement';
+import { BrandManagement } from '../pages/admin/BrandManagement';
+import { OrderManagement } from '../pages/admin/OrderManagement';
+import { CouponManagement } from '../pages/admin/CouponManagement';
+import { CustomerManagement } from '../pages/admin/CustomerManagement';
+import { BannerManagement } from '../pages/admin/BannerManagement';
+import { Reports } from '../pages/admin/Reports';
+
 export const AppRoutes = () => {
   return (
     <Routes>
+      {/* Protected Admin Control Center Routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="products" element={<ProductManagement />} />
+        <Route path="categories" element={<CategoryManagement />} />
+        <Route path="brands" element={<BrandManagement />} />
+        <Route path="orders" element={<OrderManagement />} />
+        <Route path="coupons" element={<CouponManagement />} />
+        <Route path="banners" element={<BannerManagement />} />
+        <Route path="customers" element={<CustomerManagement />} />
+        <Route path="inventory" element={<ProductManagement />} />
+        <Route path="reports" element={<Reports />} />
+      </Route>
+
       {/* Auth Routes Wrapped in AuthLayout and GuestRoute */}
       <Route
         element={

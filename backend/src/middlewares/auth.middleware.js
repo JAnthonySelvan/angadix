@@ -34,6 +34,13 @@ export const protect = asyncHandler(async (req, res, next) => {
     );
   }
 
+  if (user.isBlocked) {
+    throw new ApiError(
+      403,
+      'Your account has been suspended. Contact support.'
+    );
+  }
+
   // 5. Attach authenticated user to request context
   req.user = user;
   next();

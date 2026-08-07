@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ArrowLeft, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   selectWishlistItems,
@@ -11,6 +12,7 @@ import { fetchWishlist } from '../features/wishlist/wishlistThunks';
 import { ProductCard } from '../components/common/ProductCard';
 
 export const Wishlist = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const wishlistItems = useAppSelector(selectWishlistItems);
@@ -32,7 +34,7 @@ export const Wishlist = () => {
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Back to Catalog</span>
+          <span>{t('cart.startShopping', 'Back to Catalog')}</span>
         </Link>
       </div>
 
@@ -44,17 +46,17 @@ export const Wishlist = () => {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              My Saved Wishlist
+              {t('wishlist.title', 'My Saved Wishlist')}
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Keep track of your favorite products and move them to cart anytime
+              {t('wishlist.subtitle', 'Keep track of your favorite products and move them to cart anytime')}
             </p>
           </div>
         </div>
 
         <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 font-extrabold text-xs self-start sm:self-center">
           <Sparkles size={14} />
-          <span>{wishlistItems.length} Saved Favorites</span>
+          <span>{wishlistItems.length} {t('nav.wishlist', 'Favorites')}</span>
         </span>
       </div>
 
@@ -68,10 +70,10 @@ export const Wishlist = () => {
 
           <div className="space-y-1.5">
             <h2 className="text-xl font-black text-slate-900 dark:text-white">
-              Your Wishlist is Empty
+              {t('wishlist.emptyTitle', 'Your Wishlist is Empty')}
             </h2>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Save items you love by clicking the heart icon on product cards while browsing the store.
+              {t('wishlist.emptySub', 'Save items you love by clicking the heart icon on product cards while browsing the store.')}
             </p>
           </div>
 
@@ -79,7 +81,7 @@ export const Wishlist = () => {
             to="/shop"
             className="inline-flex items-center justify-center gap-2 py-3.5 px-6 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-primary-600/30 transition-all"
           >
-            <span>Explore Products</span>
+            <span>{t('wishlist.exploreProducts', 'Explore Products')}</span>
             <ArrowRight size={16} />
           </Link>
         </div>

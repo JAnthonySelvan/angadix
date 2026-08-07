@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Banknote, ShieldCheck, CheckCircle2, ArrowLeft, Lock, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { createOrder, verifyPayment } from '../../features/checkout/orderThunks';
 import { selectAddresses } from '../../features/checkout/addressSlice';
@@ -11,6 +12,7 @@ import { Badge } from '../ui/Badge';
 import toast from 'react-hot-toast';
 
 export const PaymentStep = ({ selectedAddressId, onBack }) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
@@ -19,7 +21,7 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
 
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [loadingText, setLoadingText] = useState('Processing your order...');
+  const [loadingText, setLoadingText] = useState(t('checkout.placingOrder', 'Processing your order...'));
 
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
@@ -28,7 +30,7 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
     }
 
     setIsPlacingOrder(true);
-    setLoadingText('Processing your order...');
+    setLoadingText(t('checkout.placingOrder', 'Processing your order...'));
 
     try {
       // 1. Dispatch createOrder thunk
@@ -43,14 +45,14 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
       if (paymentMethod === 'cod') {
         const order = response.order || response;
         dispatch(clearCartState());
-        toast.success('Order placed successfully with Cash on Delivery!');
+        toast.success(t('toasts.orderPlaced', 'Order placed successfully with Cash on Delivery!'));
         navigate(`/order-success/${order._id}`);
         return;
       }
 
       // 3. Handle Razorpay Path
       if (paymentMethod === 'razorpay') {
-        setLoadingText('Loading secure payment gateway...');
+        setLoadingText(t('checkout.placingOrder', 'Loading secure payment gateway...'));
         const isLoaded = await loadRazorpayScript();
 
         if (!isLoaded) {
@@ -61,20 +63,33 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
           return;
         }
 
-        const { order, razorpayOrder } = response;
-        const rzpKey =
-          razorpayOrder?.key || import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-        setLoadingText('Awaiting payment completion...');
-
         const options = {
-          key: rzpKey,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency || 'INR',
-          order_id: razorpayOrder.id,
-          name: 'Angadix',
-          description: `Order #${order.orderNumber}`,
-          image: '/favicon.svg',
+          key: response.razorpayKeyId,
+          amount: response.razorpayOrder.amount,
+          currency: response.razorpayOrder.currency,
+          name: 'Angadix Store',
+          description: `Order Payment #${response.order._id.substring(0, 8)}`,
+          order_id: response.razorpayOrder.id,
+          handler: async (razorpayRes) => {
+            try {
+              setLoadingText(t('checkout.placingOrder', 'Verifying payment...'));
+              await dispatch(
+                verifyPayment({
+                  orderId: response.order._id,
+                  razorpay_payment_id: razorpayRes.razorpay_payment_id,
+                  razorpay_order_id: razorpayRes.razorpay_order_id,
+                  razorpay_signature: razorpayRes.razorpay_signature,
+                })
+              ).unwrap();
+
+              dispatch(clearCartState());
+              toast.success(t('toasts.orderPlaced', 'Payment successful! Order confirmed.'));
+              navigate(`/order-success/${response.order._id}`);
+            } catch (verErr) {
+              toast.error(verErr || 'Payment verification failed.');
+              setIsPlacingOrder(false);
+            }
+          },
           prefill: {
             name: user?.name || address?.fullName || '',
             email: user?.email || '',
@@ -83,43 +98,19 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
           theme: {
             color: '#0266C8',
           },
-          handler: async (paymentResponse) => {
-            try {
-              setLoadingText('Verifying payment signature...');
-              const verifiedOrder = await dispatch(
-                verifyPayment({
-                  razorpay_order_id: paymentResponse.razorpay_order_id,
-                  razorpay_payment_id: paymentResponse.razorpay_payment_id,
-                  razorpay_signature: paymentResponse.razorpay_signature,
-                  orderId: order._id,
-                })
-              ).unwrap();
-
-              dispatch(clearCartState());
-              toast.success('Payment verified successfully!');
-              navigate(`/order-success/${verifiedOrder._id || order._id}`);
-            } catch (err) {
-              toast.error(
-                `Payment received but confirmation is taking longer than expected. Check Order History in a moment — if the order doesn't appear, contact support with reference ${order.orderNumber}.`
-              );
-              setIsPlacingOrder(false);
-            }
-          },
           modal: {
             ondismiss: () => {
-              toast.error(
-                'Payment cancelled. Your order is saved as pending — you can retry from Order History.'
-              );
+              toast.error('Payment cancelled by user.');
               setIsPlacingOrder(false);
             },
           },
         };
 
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+        const razorpayInstance = new window.Razorpay(options);
+        razorpayInstance.open();
       }
-    } catch (error) {
-      toast.error(error || 'Failed to place order. Please try again.');
+    } catch (err) {
+      toast.error(err || 'Failed to place order.');
       setIsPlacingOrder(false);
     }
   };
@@ -129,14 +120,14 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
       {/* Header */}
       <div>
         <h2 className="text-xl font-black text-slate-900 dark:text-white">
-          Payment Method
+          {t('checkout.stepPayment', 'Payment Method')}
         </h2>
         <p className="text-xs text-slate-500 font-semibold mt-0.5">
-          Select how you would like to complete your transaction
+          {t('checkout.paymentMethod', 'Select your preferred payment option')}
         </p>
       </div>
 
-      {/* Payment Options Grid */}
+      {/* Payment Options List */}
       <div className="space-y-3">
         {/* Razorpay Online Payment Card */}
         <div
@@ -156,29 +147,13 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-sm text-slate-900 dark:text-white">
-                    Pay Online (Razorpay)
+                    {t('checkout.onlinePayment', 'Online Payment / Card / UPI')}
                   </h3>
-                  <Badge variant="primary" size="sm">
-                    Instant Confirmation
-                  </Badge>
                 </div>
 
                 <p className="text-xs text-slate-500 font-medium">
-                  Credit / Debit Cards, UPI (GPay, PhonePe, Paytm), NetBanking, & Wallets
+                  {t('checkout.onlinePaymentDesc', 'Fast, secure payment via Razorpay / Credit / Debit / NetBanking')}
                 </p>
-
-                {/* Accepted Icons Row */}
-                <div className="flex items-center gap-2 pt-2 text-[10px] font-bold text-slate-400">
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    UPI
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    Cards
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    NetBanking
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -206,15 +181,12 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-sm text-slate-900 dark:text-white">
-                    Cash on Delivery (COD)
+                    {t('checkout.cod', 'Cash on Delivery (COD)')}
                   </h3>
-                  <Badge variant="success" size="sm">
-                    No Extra Fee
-                  </Badge>
                 </div>
 
                 <p className="text-xs text-slate-500 font-medium">
-                  Pay via cash or UPI directly to the courier executive upon delivery
+                  {t('checkout.codDesc', 'Pay cash when your order is delivered to your doorstep')}
                 </p>
               </div>
             </div>
@@ -230,7 +202,7 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
       <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
         <Lock size={18} className="text-primary-600 flex-shrink-0" />
         <span>
-          Your transaction details are encrypted with 256-Bit SSL security. Angadix never stores your card credentials.
+          {t('footer.securePayment', 'Your transaction details are encrypted with 256-Bit SSL security.')}
         </span>
       </div>
 
@@ -244,7 +216,7 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
           className="rounded-2xl font-bold flex items-center gap-1.5"
         >
           <ArrowLeft size={16} />
-          <span>Back to Delivery</span>
+          <span>{t('common.back', 'Back')}</span>
         </Button>
 
         <Button
@@ -256,7 +228,7 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
           onClick={handlePlaceOrder}
           className="rounded-2xl font-black px-8"
         >
-          <span>{isPlacingOrder ? loadingText : 'Place Order'}</span>
+          <span>{isPlacingOrder ? loadingText : t('checkout.placeOrder', 'Place Order')}</span>
         </Button>
       </div>
     </div>

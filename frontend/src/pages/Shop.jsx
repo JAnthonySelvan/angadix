@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal, RefreshCcw, Star, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   fetchProductsList,
@@ -19,6 +20,7 @@ const parseParamArray = (paramVal) => {
 };
 
 export const Shop = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useAppDispatch();
 
@@ -226,15 +228,15 @@ export const Shop = () => {
       <div className="rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-r from-[#0266C8] via-[#0054A6] to-[#0a2540] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
         <h1 className="text-2xl sm:text-4xl font-extrabold font-heading mb-2 tracking-tight">
           {isWishlistOnly
-            ? 'My Wishlist Collection'
+            ? t('wishlist.title', 'My Wishlist Collection')
             : isOnlySearchActive
-            ? `Search Results for "${searchQuery}"`
-            : 'Shop Product Catalog'}
+            ? `${t('common.suggestions', 'Search Results')} "${searchQuery}"`
+            : t('shop.title', 'Shop Product Catalog')}
         </h1>
         <p className="text-xs sm:text-sm text-sky-100 dark:text-slate-300 font-body max-w-xl leading-relaxed">
           {isWishlistOnly
-            ? 'Your saved items for future purchases'
-            : 'Browse top-quality electronics, smartphones, laptops, and lifestyle items with authentic warranty.'}
+            ? t('wishlist.subtitle', 'Your saved items for future purchases')
+            : t('shop.subtitle', 'Browse top-quality electronics, smartphones, laptops, and lifestyle items with authentic warranty.')}
         </p>
       </div>
 
@@ -245,14 +247,14 @@ export const Shop = () => {
             <div className="flex items-center justify-between pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
               <div className="flex items-center gap-2 font-extrabold font-heading text-sm text-[#0a2540] dark:text-white">
                 <SlidersHorizontal size={18} className="text-[#0266C8] dark:text-sky-400" />
-                <span>Filter Products</span>
+                <span>{t('shop.filterTitle', 'Filter Products')}</span>
               </div>
               <button
                 onClick={handleResetFilters}
                 className="text-xs font-bold text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-400 flex items-center gap-1 transition-colors"
               >
                 <RefreshCcw size={12} />
-                <span>Reset</span>
+                <span>{t('shop.clearFilters', 'Reset')}</span>
               </button>
             </div>
 
@@ -260,7 +262,7 @@ export const Shop = () => {
             <div className="pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
               <label className="flex items-center justify-between cursor-pointer group">
                 <span className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider">
-                  In-Stock Only
+                  {t('shop.inStockOnly', 'In-Stock Only')}
                   {facets.data?.inStock !== undefined && (
                     <span className="text-[10px] font-normal text-slate-400 ml-1">
                       ({facets.data.inStock})
@@ -282,7 +284,7 @@ export const Shop = () => {
             {/* Categories (Multi-Select) */}
             <div className="space-y-2">
               <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                Categories
+                {t('shop.categoryFilter', 'Categories')}
               </h4>
               <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                 {categories.items.map((cat) => {
@@ -318,7 +320,7 @@ export const Shop = () => {
             {/* Brands (Multi-Select) */}
             <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
               <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                Brands
+                {t('shop.brandFilter', 'Brands')}
               </h4>
               <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                 {brands.items.map((b) => {
@@ -354,7 +356,7 @@ export const Shop = () => {
             {/* Customer Rating Filter */}
             <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
               <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                Minimum Rating
+                {t('shop.ratingFilter', 'Minimum Rating')}
               </h4>
               <div className="space-y-1">
                 {[
@@ -392,12 +394,12 @@ export const Shop = () => {
             {/* Price Range */}
             <div className="space-y-3 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
               <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                Price Range (₹)
+                {t('shop.priceRange', 'Price Range')} (₹)
               </h4>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="number"
-                  placeholder="Min"
+                  placeholder={t('shop.minPrice', 'Min')}
                   value={minPrice}
                   onChange={(e) => {
                     setMinPrice(e.target.value);
@@ -407,7 +409,7 @@ export const Shop = () => {
                 />
                 <input
                   type="number"
-                  placeholder="Max"
+                  placeholder={t('shop.maxPrice', 'Max')}
                   value={maxPrice}
                   onChange={(e) => {
                     setMaxPrice(e.target.value);
@@ -425,11 +427,11 @@ export const Shop = () => {
           {/* Top Sort & Search Toolbar */}
           <div className="p-4 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Showing <span className="text-[#0a2540] dark:text-white font-extrabold">{displayedProducts.length}</span> items
+              {t('shop.showingResults', { count: displayedProducts.length })}
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Sort By:</span>
+              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">{t('shop.sortBy', 'Sort By:')}</span>
               <select
                 value={sortOption}
                 onChange={(e) => {
@@ -438,10 +440,10 @@ export const Shop = () => {
                 }}
                 className="px-3.5 py-2 text-xs font-bold bg-[#F0F8FF] dark:bg-slate-800 text-[#0a2540] dark:text-slate-100 rounded-xl border border-[#BAE6FD] dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
               >
-                <option value="newest">Newest Arrivals</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating">Top Customer Rating</option>
+                <option value="newest">{t('shop.sortNewest', 'Newest Arrivals')}</option>
+                <option value="price_asc">{t('shop.sortPriceLowHigh', 'Price: Low to High')}</option>
+                <option value="price_desc">{t('shop.sortPriceHighLow', 'Price: High to Low')}</option>
+                <option value="rating">{t('shop.sortRating', 'Top Customer Rating')}</option>
               </select>
             </div>
           </div>
@@ -460,7 +462,7 @@ export const Shop = () => {
               ))
             ) : (
               <div className="col-span-full py-16 text-center text-slate-500 text-sm">
-                No products found matching your active filters. Try clearing some criteria.
+                {t('shop.noProductsFound', 'No products found matching your active filters.')}
               </div>
             )}
           </div>

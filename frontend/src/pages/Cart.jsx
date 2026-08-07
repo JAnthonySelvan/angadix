@@ -11,6 +11,7 @@ import {
   Sparkles,
   Lock,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { clearCartRemote } from '../features/cart/cartThunks';
 import {
@@ -28,6 +29,7 @@ import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import toast from 'react-hot-toast';
 
 export const Cart = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -39,7 +41,7 @@ export const Cart = () => {
 
   const handleClearCart = () => {
     dispatch(clearCartRemote());
-    toast.success('Cart cleared.');
+    toast.success(t('toasts.cartCleared', 'Cart cleared.'));
   };
 
   return (
@@ -51,7 +53,7 @@ export const Cart = () => {
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Continue Shopping</span>
+          <span>{t('cart.startShopping', 'Continue Shopping')}</span>
         </Link>
 
         {items.length > 0 && (
@@ -60,7 +62,7 @@ export const Cart = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors"
           >
             <Trash2 size={14} />
-            <span>Clear Cart</span>
+            <span>{t('cart.clearCart', 'Clear Cart')}</span>
           </button>
         )}
       </div>
@@ -73,17 +75,17 @@ export const Cart = () => {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Shopping Cart Review
+              {t('cart.title', 'Shopping Cart')}
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Review your items, apply promotional discounts, and proceed to checkout
+              {t('cart.orderSummary', 'Review your items, apply promotional discounts, and proceed to checkout')}
             </p>
           </div>
         </div>
 
         <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 font-extrabold text-xs self-start sm:self-center">
           <Sparkles size={14} />
-          <span>{totalCount} {totalCount === 1 ? 'Item' : 'Items'} Selected</span>
+          <span>{t('cart.itemsCount', { count: totalCount })}</span>
         </span>
       </div>
 
@@ -97,10 +99,10 @@ export const Cart = () => {
 
           <div className="space-y-1.5">
             <h2 className="text-xl font-black text-slate-900 dark:text-white">
-              Your Shopping Cart is Empty
+              {t('cart.emptyTitle', 'Your Shopping Cart is Empty')}
             </h2>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Discover our curated catalog of premium gadgets, accessories, and best-selling electronics.
+              {t('cart.emptySub', "Looks like you haven't added any products to your cart yet.")}
             </p>
           </div>
 
@@ -108,7 +110,7 @@ export const Cart = () => {
             to="/shop"
             className="inline-flex items-center justify-center gap-2 py-3.5 px-6 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-primary-600/30 transition-all"
           >
-            <span>Explore Shop Catalog</span>
+            <span>{t('cart.startShopping', 'Explore Shop Catalog')}</span>
             <ArrowRight size={16} />
           </Link>
         </div>
@@ -138,9 +140,9 @@ export const Cart = () => {
           <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
             <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-6 shadow-xl shadow-slate-200/40 dark:shadow-none">
               <h2 className="text-lg font-black text-slate-900 dark:text-white pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span>Order Summary</span>
+                <span>{t('cart.orderSummary', 'Order Summary')}</span>
                 <span className="text-xs text-slate-400 font-normal">
-                  {totalCount} items
+                  {t('cart.itemsCount', { count: totalCount })}
                 </span>
               </h2>
 
@@ -150,7 +152,7 @@ export const Cart = () => {
               {/* Price Breakdown */}
               <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Cart Subtotal</span>
+                  <span>{t('cart.subtotal', 'Cart Subtotal')}</span>
                   <span className="font-extrabold text-slate-900 dark:text-white">
                     ₹{subtotal.toLocaleString('en-IN')}
                   </span>
@@ -158,7 +160,7 @@ export const Cart = () => {
 
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                    <span>Coupon Discount</span>
+                    <span>{t('cart.coupon.discount', 'Coupon Discount')}</span>
                     <span className="font-extrabold">
                       -₹{discountAmount.toLocaleString('en-IN')}
                     </span>
@@ -166,26 +168,23 @@ export const Cart = () => {
                 )}
 
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Express Shipping</span>
+                  <span>{t('cart.shipping', 'Express Shipping')}</span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
-                    FREE
+                    {t('cart.free', 'FREE')}
                   </span>
                 </div>
 
                 {/* Free Delivery Banner */}
                 <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center gap-2 text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
                   <Truck size={15} className="text-emerald-600 flex-shrink-0" />
-                  <span>Congrats! You qualify for FREE Express Shipping!</span>
+                  <span>{t('home.features.fastDelivery', 'Congrats! You qualify for FREE Express Shipping!')}</span>
                 </div>
 
                 {/* Total */}
                 <div className="flex justify-between items-baseline pt-4 border-t border-slate-200 dark:border-slate-700">
                   <div>
                     <span className="text-sm font-black text-slate-900 dark:text-white block">
-                      Total Amount
-                    </span>
-                    <span className="text-[10px] text-slate-400 block font-normal">
-                      Inclusive of all taxes
+                      {t('cart.total', 'Total Amount')}
                     </span>
                   </div>
                   <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
@@ -201,7 +200,7 @@ export const Cart = () => {
                 }}
                 className="w-full py-4 px-6 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
               >
-                <span>Proceed to Checkout</span>
+                <span>{t('cart.proceedToCheckout', 'Proceed to Checkout')}</span>
                 <ArrowRight size={18} />
               </button>
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { fetchProductBySlug, fetchFrequentlyBoughtTogether } from '../features/products/productThunks';
 import { addItemToCart } from '../features/cart/cartThunks';
@@ -21,6 +22,7 @@ import { getProductImageUrl } from '../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const dispatch = useAppDispatch();
   const { requireAuth, isAuthenticated } = useRequireAuth();
@@ -58,7 +60,7 @@ export const ProductDetail = () => {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 font-bold text-sm">
-        Loading product details...
+        {t('common.loading', 'Loading product details...')}
       </div>
     );
   }
@@ -67,11 +69,11 @@ export const ProductDetail = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
-          Product Not Found
+          {t('common.noResults', 'Product Not Found')}
         </h2>
         <p className="text-xs text-slate-500">{error || 'The requested product slug does not exist.'}</p>
         <Link to="/shop" className="inline-block px-4 py-2 bg-primary-600 text-white font-bold text-xs rounded-xl">
-          Return to Shop
+          {t('common.back', 'Return to Shop')}
         </Link>
       </div>
     );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShoppingBag, Heart, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addItemToCart } from '../../features/cart/cartThunks';
 import { addWishlistItem, removeWishlistItem } from '../../features/wishlist/wishlistThunks';
@@ -10,6 +11,7 @@ import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
+  const { t } = useTranslation();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const dispatch = useAppDispatch();
@@ -43,31 +45,31 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop'];
 
   const handleAddToCart = () => {
-    if (!requireAuth(null, 'Please sign in to add items to your cart')) {
+    if (!requireAuth(null, t('toasts.loginRequired', 'Please sign in to add items to your cart'))) {
       return;
     }
     dispatch(addItemToCart({ productId: product._id, quantity }))
       .unwrap()
       .then(() => {
-        toast.success(`Added ${quantity} x "${name}" to Cart!`);
+        toast.success(t('toasts.addedToCart', 'Added to Cart!'));
         onClose();
       })
       .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
   const handleWishlist = () => {
-    if (!requireAuth(null, 'Please sign in to save items to your wishlist')) {
+    if (!requireAuth(null, t('toasts.loginRequired', 'Please sign in to save items to your wishlist'))) {
       return;
     }
     if (isInWishlist) {
       dispatch(removeWishlistItem(product._id))
         .unwrap()
-        .then(() => toast.success('Removed from Wishlist'))
+        .then(() => toast.success(t('toasts.removedFromWishlist', 'Removed from Wishlist')))
         .catch((err) => toast.error(err));
     } else {
       dispatch(addWishlistItem(product._id))
         .unwrap()
-        .then(() => toast.success('Saved to Wishlist!'))
+        .then(() => toast.success(t('toasts.addedToWishlist', 'Saved to Wishlist!')))
         .catch((err) => toast.error(err));
     }
   };
@@ -224,7 +226,7 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
                     className="flex-1 py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all"
                   >
                     <ShoppingBag size={18} />
-                    <span>Add to Cart</span>
+                    <span>{t('common.addToCart', 'Add to Cart')}</span>
                   </button>
 
                   {/* Wishlist */}
@@ -244,15 +246,15 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
                 <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 text-center">
                   <div className="flex flex-col items-center gap-1">
                     <Truck size={16} className="text-primary-500" />
-                    <span>Free Express Delivery</span>
+                    <span>{t('home.features.fastDelivery', 'Express Delivery')}</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <ShieldCheck size={16} className="text-emerald-500" />
-                    <span>100% Authentic</span>
+                    <span>{t('home.features.authentic', '100% Authentic')}</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <RefreshCw size={16} className="text-indigo-500" />
-                    <span>30-Day Easy Return</span>
+                    <span>{t('footer.shippingReturns', '30-Day Easy Return')}</span>
                   </div>
                 </div>
               </div>

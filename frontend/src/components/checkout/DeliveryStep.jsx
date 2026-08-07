@@ -1,11 +1,13 @@
 import React from 'react';
 import { Truck, MapPin, Phone, CheckCircle2, Clock, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../app/hooks';
 import { selectAddresses } from '../../features/checkout/addressSlice';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 
 export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
+  const { t } = useTranslation();
   const addresses = useAppSelector(selectAddresses);
   const address = addresses.find((a) => a._id === selectedAddressId) || addresses[0];
 
@@ -14,10 +16,10 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
       {/* Header */}
       <div>
         <h2 className="text-xl font-black text-slate-900 dark:text-white">
-          Delivery Options
+          {t('checkout.stepDelivery', 'Delivery Options')}
         </h2>
         <p className="text-xs text-slate-500 font-semibold mt-0.5">
-          Select your preferred shipping method
+          {t('checkout.standardShippingDesc', 'Select your preferred shipping method')}
         </p>
       </div>
 
@@ -27,7 +29,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Delivering To:
+                {t('order.shippingAddress', 'Delivering To')}:
               </span>
               <Badge variant="slate" size="sm">
                 <span className="capitalize">{address.type}</span>
@@ -50,7 +52,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
             onClick={onBack}
             className="text-xs font-extrabold text-primary-600 dark:text-primary-400 hover:underline shrink-0"
           >
-            Change Address
+            {t('common.edit', 'Change Address')}
           </button>
         </div>
       )}
@@ -58,7 +60,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
       {/* Delivery Method Option Card */}
       <div className="space-y-3">
         <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-          Shipping Tier
+          {t('checkout.stepDelivery', 'Shipping Tier')}
         </label>
 
         <div className="p-5 rounded-2xl border-2 border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 flex items-center justify-between gap-4 shadow-lg shadow-primary-600/10">
@@ -70,21 +72,21 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-sm text-slate-900 dark:text-white">
-                  Angadix Standard Express Shipping
+                  {t('checkout.standardShipping', 'Angadix Standard Express Shipping')}
                 </h3>
                 <Badge variant="success" size="sm">
-                  FREE
+                  {t('cart.free', 'FREE')}
                 </Badge>
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
                 <Clock size={13} className="text-slate-400" />
-                <span>Estimated Delivery: 3 to 5 Business Days</span>
+                <span>{t('checkout.standardShippingDesc', 'Estimated Delivery: 3 to 5 Business Days')}</span>
               </p>
 
               <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 pt-1">
                 <ShieldCheck size={13} />
-                <span>Insured & Tracked Express Parcel</span>
+                <span>{t('home.features.authentic', 'Insured & Tracked Express Parcel')}</span>
               </p>
             </div>
           </div>
@@ -102,7 +104,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
           className="rounded-2xl font-bold flex items-center gap-1.5"
         >
           <ArrowLeft size={16} />
-          <span>Back to Address</span>
+          <span>{t('common.back', 'Back to Address')}</span>
         </Button>
 
         <Button
@@ -112,7 +114,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
           onClick={onNext}
           className="rounded-2xl font-black px-8"
         >
-          <span>Continue to Payment</span>
+          <span>{t('common.continue', 'Continue to Payment')}</span>
         </Button>
       </div>
     </div>

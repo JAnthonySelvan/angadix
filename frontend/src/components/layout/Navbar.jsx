@@ -21,10 +21,13 @@ import { toggleCartDrawer, selectCartTotalCount } from '../../features/cart/cart
 import { selectWishlistItems } from '../../features/wishlist/wishlistSlice';
 import { fetchCategories, fetchProductsList, fetchSearchSuggestions } from '../../features/products/productThunks';
 import { ThemeToggle } from '../common/ThemeToggle';
+import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { TopAlertBanner } from './TopAlertBanner';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export const Navbar = () => {
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -90,10 +93,10 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser()).unwrap();
-      toast.success('Logged out successfully');
+      toast.success(t('toasts.loggedOut', 'Logged out successfully'));
       navigate('/');
     } catch {
-      toast.error('Logout error');
+      toast.error(t('common.error', 'Logout error'));
     }
   };
 
@@ -106,14 +109,12 @@ export const Navbar = () => {
   };
 
   const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Shop', path: '/shop' },
-    { name: 'Categories', path: '/#categories' },
-    { name: 'Brands', path: '/#brands' },
-    { name: 'Best Sellers', path: '/#bestsellers' },
-    { name: 'Flash Sale', path: '/#flashsale' },
-    { name: 'About', path: '/#about' },
-    { name: 'Contact', path: '/#contact' },
+    { name: t('nav.home', 'Home'), path: '/' },
+    { name: t('nav.shop', 'Shop'), path: '/shop' },
+    { name: t('nav.categories', 'Categories'), path: '/#categories' },
+    { name: t('home.shopByBrand', 'Brands'), path: '/#brands' },
+    { name: t('home.bestSellers', 'Best Sellers'), path: '/#bestsellers' },
+    { name: t('home.flashSale', 'Flash Sale'), path: '/#flashsale' },
   ];
 
   return (
@@ -154,7 +155,7 @@ export const Navbar = () => {
                 className="flex items-center gap-2 px-3.5 py-2.5 rounded-l-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors border-r border-slate-200 dark:border-slate-700"
               >
                 <Grid size={15} className="text-primary-600 dark:text-primary-400" />
-                <span>Categories</span>
+                <span>{t('common.categories', 'Categories')}</span>
                 <ChevronDown size={14} />
               </button>
 
@@ -165,7 +166,7 @@ export const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 max-h-80 overflow-y-auto"
+                    className="absolute left-0 ltr:left-0 rtl:right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 max-h-80 overflow-y-auto"
                   >
                     {categories.length > 0 ? (
                       categories.map((cat) => (
@@ -180,7 +181,7 @@ export const Navbar = () => {
                         </Link>
                       ))
                     ) : (
-                      <div className="p-3 text-xs text-slate-400 text-center">Loading categories...</div>
+                      <div className="p-3 text-xs text-slate-400 text-center">{t('common.loading', 'Loading...')}</div>
                     )}
                   </motion.div>
                 )}
@@ -191,15 +192,15 @@ export const Navbar = () => {
             <form onSubmit={handleSearchSubmit} className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Search products, brands, categories..."
+                placeholder={t('common.searchPlaceholder', 'Search products, brands, categories...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-4 pr-10 py-2.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-r-xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-all"
+                className="w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-r-xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-all"
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600 transition-colors"
+                className="absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600 transition-colors"
               >
                 <Search size={16} />
               </button>
@@ -208,11 +209,11 @@ export const Navbar = () => {
               {isSearchFocused && searchQuery.trim().length >= 2 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-50 p-2">
                   {isSearching ? (
-                    <div className="p-4 text-xs text-slate-400 text-center">Searching...</div>
+                    <div className="p-4 text-xs text-slate-400 text-center">{t('common.searching', 'Searching...')}</div>
                   ) : searchResults.length > 0 ? (
                     <div>
                       <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Suggestions ({searchResults.length})
+                        {t('common.suggestions', 'Suggestions')} ({searchResults.length})
                       </p>
                       {searchResults.map((item, idx) => (
                         <Link
@@ -231,15 +232,18 @@ export const Navbar = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 text-xs text-slate-500 text-center">No suggestions found</div>
+                    <div className="p-4 text-xs text-slate-500 text-center">{t('common.noSuggestions', 'No suggestions found')}</div>
                   )}
                 </div>
               )}
             </form>
           </div>
 
-          {/* Right Action Icons (Wishlist, Cart, Theme Toggle, Profile) */}
+          {/* Right Action Icons (Wishlist, Cart, Theme Toggle, Language Switcher, Profile) */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Toggle Button */}
             <ThemeToggle />
 
@@ -247,7 +251,7 @@ export const Navbar = () => {
             <Link
               to="/wishlist"
               className="relative p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-              title="Wishlist"
+              title={t('nav.wishlist', 'Wishlist')}
               aria-label="View wishlist"
             >
               <Heart size={18} />
@@ -262,7 +266,7 @@ export const Navbar = () => {
             <button
               onClick={() => dispatch(toggleCartDrawer())}
               className="relative p-2.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30 transition-all focus:outline-none"
-              title="Cart"
+              title={t('nav.cart', 'Cart')}
               aria-label="Open shopping cart drawer"
             >
               <ShoppingBag size={18} />
@@ -278,7 +282,7 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 p-1.5 pl-3 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                  className="flex items-center gap-2 p-1.5 pl-3 rtl:pr-3 rtl:pl-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
                 >
                   <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -296,11 +300,11 @@ export const Navbar = () => {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 p-2 z-50 overflow-hidden"
+                      className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 p-2 z-50 overflow-hidden"
                     >
                       <div className="px-3 py-2.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 rounded-xl mb-1">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Signed in as
+                          {t('auth.loginSub', 'Signed in as')}
                         </p>
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5">
                           {user.email}
@@ -312,7 +316,7 @@ export const Navbar = () => {
                         className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                       >
                         <Package size={14} />
-                        <span>My Orders</span>
+                        <span>{t('nav.orders', 'My Orders')}</span>
                       </Link>
 
                       {user.role === 'admin' && (
@@ -321,16 +325,16 @@ export const Navbar = () => {
                           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-xl my-1 transition-colors"
                         >
                           <Sparkles size={14} />
-                          <span>Admin Control Active</span>
+                          <span>{t('nav.adminDashboard', 'Admin Dashboard')}</span>
                         </Link>
                       )}
 
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors text-left"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors text-left rtl:text-right"
                       >
                         <LogOut size={14} />
-                        <span>Sign Out</span>
+                        <span>{t('nav.logout', 'Sign Out')}</span>
                       </button>
                     </motion.div>
                   )}
@@ -342,13 +346,13 @@ export const Navbar = () => {
                   to="/login"
                   className="px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
-                  Sign In
+                  {t('nav.login', 'Sign In')}
                 </Link>
                 <Link
                   to="/register"
                   className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-extrabold rounded-full shadow-md shadow-primary-600/30 transition-all hidden sm:inline-block"
                 >
-                  Get Started
+                  {t('nav.register', 'Create Account')}
                 </Link>
               </div>
             )}
@@ -370,7 +374,7 @@ export const Navbar = () => {
           <nav className="flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
-                key={link.name}
+                key={link.path}
                 to={link.path}
                 className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors tracking-wide"
               >
@@ -381,7 +385,7 @@ export const Navbar = () => {
 
           <div className="text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1">
             <Sparkles size={13} />
-            <span>Extra 15% OFF on first order</span>
+            <span>{t('home.heroTag', 'Next-Gen Technology')}</span>
           </div>
         </div>
       </div>

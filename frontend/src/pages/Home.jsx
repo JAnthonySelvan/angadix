@@ -20,6 +20,7 @@ import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { getProductImageUrl } from '../utils/orderHelpers';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 // ── Static Helper Components matching Figma App.tsx ──────────────────────────
 function Chip({ children, variant = 'primary' }) {
@@ -60,6 +61,7 @@ function TimeDig({ val, label }) {
 }
 
 export const Home = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { homepage, categories, brands, recommendations, loading } = useAppSelector((state) => state.products);
@@ -76,46 +78,38 @@ export const Home = () => {
     }
   }, [dispatch, isAuthenticated]);
 
+  const HERO_SLIDES = [
+    {
+      tag: t('home.heroTag', 'Next-Gen Technology'),
+      title: `${t('home.heroTitle1', 'Ultimate Audio &')} ${t('home.heroTitle2', 'Smart Wearables')}`,
+      sub: t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
+      cta1: t('common.shopNow', 'Shop Now'),
+      cta2: t('home.exploreCatalog', 'Explore Catalog'),
+      img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500&fit=crop&auto=format',
+    },
+    {
+      tag: t('home.trendingNow', 'Trending Now'),
+      title: t('home.heroTitle1', 'Innovation at Your Fingertips'),
+      sub: t('home.browseCategoriesSub', 'Explore our curated collection of high-tech gear'),
+      cta1: t('common.shopNow', 'Shop Now'),
+      cta2: t('common.viewAll', 'View All'),
+      img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=700&h=500&fit=crop&auto=format',
+    },
+  ];
+
   // Hero carousel auto advance
   useEffect(() => {
     const id = setInterval(() => setHeroIdx((i) => (i + 1) % HERO_SLIDES.length), 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [HERO_SLIDES.length]);
 
   const handleSubscribe = (e) => {
     e.preventDefault();
     if (newsletterEmail) {
-      toast.success('Subscribed to ANGADIX newsletter!');
+      toast.success(t('footer.subscribedSuccess', 'Thank you for subscribing!'));
       setNewsletterEmail('');
     }
   };
-
-  const HERO_SLIDES = [
-    {
-      tag: 'Premium Collection',
-      title: 'High-Quality Product Render & Design',
-      sub: 'Explore a modern marketplace spanning all product categories.',
-      cta1: 'Shop Now',
-      cta2: 'Explore Collection',
-      img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500&fit=crop&auto=format',
-    },
-    {
-      tag: 'New Arrivals 2026',
-      title: 'Innovation at Your Fingertips',
-      sub: 'Latest flagship tech, wearables, and smart lifestyle gear delivered to your door.',
-      cta1: 'Discover More',
-      cta2: 'View Catalog',
-      img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=700&h=500&fit=crop&auto=format',
-    },
-    {
-      tag: 'Flash Deals Live',
-      title: 'Save Big Today on Premium Brands',
-      sub: 'Exclusive limited-time offers on Apple, Sony, Samsung & Bose.',
-      cta1: 'Grab Deals',
-      cta2: 'See All Offers',
-      img: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=700&h=500&fit=crop&auto=format',
-    },
-  ];
 
   const staticCategoryIcons = [
     { icon: Monitor, label: 'Electronics' },

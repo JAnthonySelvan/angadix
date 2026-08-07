@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart, Star, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addItemToCart } from '../../features/cart/cartThunks';
 import { addWishlistItem, removeWishlistItem } from '../../features/wishlist/wishlistThunks';
@@ -16,6 +17,7 @@ import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const ProductCard = ({ product, onQuickView }) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
@@ -57,17 +59,17 @@ export const ProductCard = ({ product, onQuickView }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!requireAuth(null, 'Please sign in to add items to your cart')) {
+    if (!requireAuth(null, t('toasts.loginRequired', 'Please sign in to add items to your cart'))) {
       return;
     }
 
     if (stock <= 0) {
-      toast.error('Product is out of stock!');
+      toast.error(t('common.outOfStock', 'Product is out of stock!'));
       return;
     }
     dispatch(addItemToCart({ productId: _id, quantity: 1 }))
       .unwrap()
-      .then(() => toast.success(`${name} added to cart!`))
+      .then(() => toast.success(t('toasts.addedToCart', 'Added to cart successfully!')))
       .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
@@ -86,10 +88,10 @@ export const ProductCard = ({ product, onQuickView }) => {
       let updated;
       if (existsIndex > -1) {
         updated = currentGuestWishlist.filter((_, idx) => idx !== existsIndex);
-        toast.success('Removed from wishlist');
+        toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist'));
       } else {
         updated = [...currentGuestWishlist, product];
-        toast.success('Saved to wishlist');
+        toast.success(t('toasts.addedToWishlist', 'Saved to wishlist'));
       }
 
       saveGuestWishlistToStorage(updated);
@@ -100,12 +102,12 @@ export const ProductCard = ({ product, onQuickView }) => {
     if (isInWishlist) {
       dispatch(removeWishlistItem(_id))
         .unwrap()
-        .then(() => toast.success('Removed from wishlist'))
+        .then(() => toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist')))
         .catch((err) => toast.error(err || 'Failed to remove from wishlist'));
     } else {
       dispatch(addWishlistItem(_id))
         .unwrap()
-        .then(() => toast.success('Saved to wishlist'))
+        .then(() => toast.success(t('toasts.addedToWishlist', 'Saved to wishlist')))
         .catch((err) => toast.error(err || 'Failed to add to wishlist'));
     }
   };
@@ -146,12 +148,12 @@ export const ProductCard = ({ product, onQuickView }) => {
         <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-10 pointer-events-none">
           {isBestSeller && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-[#0266C8] text-white font-heading shadow-sm">
-              Bestseller
+              {t('common.hot', 'Bestseller')}
             </span>
           )}
           {isFeatured && (
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-500 text-white font-heading shadow-sm">
-              Featured
+              {t('common.new', 'Featured')}
             </span>
           )}
           {hasDiscount && (
@@ -166,7 +168,7 @@ export const ProductCard = ({ product, onQuickView }) => {
           <button
             onClick={handleToggleWishlist}
             className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-            title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+            title={isInWishlist ? t('product.removeFromWishlist', 'Remove from Wishlist') : t('product.addToWishlist', 'Add to Wishlist')}
           >
             <Heart
               size={15}
@@ -177,7 +179,7 @@ export const ProductCard = ({ product, onQuickView }) => {
           <button
             onClick={handleQuickView}
             className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-            title="Quick View"
+            title={t('common.quickView', 'Quick View')}
           >
             <Eye size={15} className="text-slate-600 dark:text-slate-300 hover:text-slate-900" />
           </button>
@@ -237,7 +239,7 @@ export const ProductCard = ({ product, onQuickView }) => {
           }`}
         >
           <ShoppingCart size={14} />
-          <span>{isInCart ? 'In Cart' : stock <= 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+          <span>{isInCart ? t('common.inCart', 'In Cart') : stock <= 0 ? t('common.outOfStock', 'Out of Stock') : t('common.addToCart', 'Add to Cart')}</span>
         </button>
       </div>
     </motion.div>

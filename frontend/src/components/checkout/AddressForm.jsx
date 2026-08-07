@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Phone, MapPin, Building, Home, Briefcase, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 
@@ -32,6 +33,7 @@ export const AddressForm = ({
   onCancel,
   isSubmitting = false,
 }) => {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
@@ -59,7 +61,7 @@ export const AddressForm = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input
-        label="Full Name"
+        label={t('address.fullName', 'Full Name')}
         placeholder="e.g. John Doe"
         leftIcon={<User size={18} />}
         error={errors.fullName?.message}
@@ -68,7 +70,7 @@ export const AddressForm = ({
       />
 
       <Input
-        label="10-Digit Mobile Number"
+        label={t('address.phone', 'Phone Number')}
         placeholder="e.g. 9876543210"
         leftIcon={<Phone size={18} />}
         error={errors.phone?.message}
@@ -77,7 +79,7 @@ export const AddressForm = ({
       />
 
       <Input
-        label="Address Line 1 (House/Flat No, Building)"
+        label={t('address.street', 'Street Address / House No.')}
         placeholder="e.g. Flat 402, Royal Enclave"
         leftIcon={<MapPin size={18} />}
         error={errors.addressLine1?.message}
@@ -86,7 +88,7 @@ export const AddressForm = ({
       />
 
       <Input
-        label="Address Line 2 (Street, Area, Landmark)"
+        label={t('address.street', 'Address Line 2')}
         placeholder="e.g. Near Central Park, MG Road"
         leftIcon={<Building size={18} />}
         error={errors.addressLine2?.message}
@@ -95,7 +97,7 @@ export const AddressForm = ({
 
       <div className="grid grid-cols-2 gap-3">
         <Input
-          label="City / Town"
+          label={t('address.city', 'City')}
           placeholder="e.g. Bengaluru"
           error={errors.city?.message}
           required
@@ -103,7 +105,7 @@ export const AddressForm = ({
         />
 
         <Input
-          label="State"
+          label={t('address.state', 'State')}
           placeholder="e.g. Karnataka"
           error={errors.state?.message}
           required
@@ -113,7 +115,7 @@ export const AddressForm = ({
 
       <div className="grid grid-cols-2 gap-3">
         <Input
-          label="6-Digit Postal Code"
+          label={t('address.zipCode', 'PIN Code')}
           placeholder="e.g. 560001"
           error={errors.postalCode?.message}
           required
@@ -121,7 +123,7 @@ export const AddressForm = ({
         />
 
         <Input
-          label="Country"
+          label={t('address.country', 'Country')}
           placeholder="India"
           disabled
           {...register('country')}
@@ -165,7 +167,7 @@ export const AddressForm = ({
             {...register('isDefault')}
           />
           <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            Set as default shipping address
+            {t('address.isDefault', 'Set as Default Address')}
           </span>
         </label>
       </div>
@@ -179,7 +181,7 @@ export const AddressForm = ({
             onClick={onCancel}
             isDisabled={isSubmitting}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </Button>
         )}
         <Button
@@ -188,7 +190,7 @@ export const AddressForm = ({
           isLoading={isSubmitting}
           isDisabled={isSubmitting}
         >
-          {initialValues ? 'Save Changes' : 'Save Address'}
+          {t('address.saveAddress', 'Save Address')}
         </Button>
       </div>
     </form>

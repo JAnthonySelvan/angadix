@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   selectCartItems,
@@ -28,15 +29,16 @@ import { PaymentStep } from '../components/checkout/PaymentStep';
 import { Badge } from '../components/ui/Badge';
 import { getProductImageUrl } from '../utils/orderHelpers';
 
-const STEPS = [
-  { id: 'address', label: '1. Shipping Address', icon: MapPin },
-  { id: 'delivery', label: '2. Delivery Method', icon: Truck },
-  { id: 'payment', label: '3. Payment', icon: CreditCard },
-];
-
 export const Checkout = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const STEPS = [
+    { id: 'address', label: t('checkout.stepAddress', '1. Shipping Address'), icon: MapPin },
+    { id: 'delivery', label: t('checkout.stepDelivery', '2. Delivery Method'), icon: Truck },
+    { id: 'payment', label: t('checkout.stepPayment', '3. Payment'), icon: CreditCard },
+  ];
 
   const cartItems = useAppSelector(selectCartItems);
   const totalCount = useAppSelector(selectCartTotalCount);
@@ -153,9 +155,9 @@ export const Checkout = () => {
         <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
           <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-6 shadow-xl">
             <h2 className="text-lg font-black text-slate-900 dark:text-white pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <span>Order Summary</span>
+              <span>{t('cart.orderSummary', 'Order Summary')}</span>
               <span className="text-xs text-slate-400 font-normal">
-                {totalCount} {totalCount === 1 ? 'item' : 'items'}
+                {t('cart.itemsCount', { count: totalCount })}
               </span>
             </h2>
 
@@ -213,7 +215,7 @@ export const Checkout = () => {
             {/* Price Breakdown */}
             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-semibold">
               <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Subtotal</span>
+                <span>{t('cart.subtotal', 'Subtotal')}</span>
                 <span className="font-extrabold text-slate-900 dark:text-white">
                   ₹{subtotal.toLocaleString('en-IN')}
                 </span>
@@ -221,7 +223,7 @@ export const Checkout = () => {
 
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                  <span>Coupon Discount</span>
+                  <span>{t('cart.coupon.discount', 'Coupon Discount')}</span>
                   <span className="font-extrabold">
                     -₹{discountAmount.toLocaleString('en-IN')}
                   </span>
@@ -229,9 +231,9 @@ export const Checkout = () => {
               )}
 
               <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                <span>Express Shipping</span>
+                <span>{t('cart.shipping', 'Express Shipping')}</span>
                 <span className="text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
-                  FREE
+                  {t('cart.free', 'FREE')}
                 </span>
               </div>
 
@@ -239,10 +241,7 @@ export const Checkout = () => {
               <div className="flex justify-between items-baseline pt-4 border-t border-slate-200 dark:border-slate-700">
                 <div>
                   <span className="text-sm font-black text-slate-900 dark:text-white block">
-                    Total Payable
-                  </span>
-                  <span className="text-[10px] text-slate-400 block font-normal">
-                    Inclusive of all taxes
+                    {t('checkout.orderTotal', 'Total Payable')}
                   </span>
                 </div>
                 <span className="text-2xl font-black text-primary-600 dark:text-primary-400">

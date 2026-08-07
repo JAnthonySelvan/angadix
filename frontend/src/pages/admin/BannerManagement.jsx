@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Image as ImageIcon, Plus, Edit2, Trash2, X, Upload } from 'lucide-react';
+import {
+  Image as ImageIcon,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  Sparkles,
+  ArrowUpDown,
+  Check,
+} from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   fetchAdminBanners,
@@ -8,14 +17,26 @@ import {
   updateAdminBanner,
   deleteAdminBanner,
 } from '../../features/admin/bannerThunks';
+import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
+import { StatusBadge } from '../../components/admin/StatusBadge';
 import { Skeleton } from '../../components/ui/Skeleton';
+import api from '../../lib/axios';
 import toast from 'react-hot-toast';
+
+const PLACEMENT_TABS = [
+  { id: 'all', label: 'All Banners' },
+  { id: 'hero', label: 'Hero Carousel (16:9)' },
+  { id: 'promo', label: 'Promo Banner (1:1)' },
+  { id: 'category', label: 'Category Banner' },
+  { id: 'flash-sale', label: 'Flash Sale (Wide)' },
+];
 
 export const BannerManagement = () => {
   const dispatch = useAppDispatch();
   const { banners, loading } = useAppSelector((state) => state.adminBanners);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
 
   // Form state
@@ -27,14 +48,26 @@ export const BannerManagement = () => {
   const [sortOrder, setSortOrder] = useState('0');
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Confirm dialog state
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+  });
 
   useEffect(() => {
     dispatch(fetchAdminBanners());
   }, [dispatch]);
 
-  const handleOpenModal = (banner = null) => {
+  const filteredBanners = banners.filter(
+    (b) => activeTab === 'all' || b.placement === activeTab
+  );
+
+  const handleOpenSlideOver = (banner = null) => {
     if (banner) {
       setEditingBanner(banner);
       setTitle(banner.title || '');
@@ -44,20 +77,27 @@ export const BannerManagement = () => {
       setPlacement(banner.placement || 'hero');
       setSortOrder(String(banner.sortOrder ?? 0));
       setIsActive(banner.isActive !== undefined ? banner.isActive : true);
-      setImageUrl(banner.image?.url || '');
+      setPreviewUrl(banner.image?.url || '');
     } else {
       setEditingBanner(null);
       setTitle('');
       setSubtitle('');
       setCtaText('');
       setCtaLink('');
-      setPlacement('hero');
+      setPlacement(activeTab !== 'all' ? activeTab : 'hero');
       setSortOrder('0');
       setIsActive(true);
-      setImageUrl('');
+      setPreviewUrl('');
     }
     setImageFile(null);
-    setIsModalOpen(true);
+    setIsSlideOverOpen(true);
+  };
+
+  const handleImageChange = (file) => {
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -77,12 +117,7 @@ export const BannerManagement = () => {
       formData.append('placement', placement);
       formData.append('sortOrder', sortOrder);
       formData.append('isActive', isActive);
-
-      if (imageFile) {
-        formData.append('image', imageFile);
-      } else if (imageUrl) {
-        formData.append('imageUrl', imageUrl);
-      }
+      if (imageFile) formData.append('image', imageFile);
 
       if (editingBanner) {
         await dispatch(updateAdminBanner({ id: editingBanner._id, formData })).unwrap();
@@ -92,7 +127,8 @@ export const BannerManagement = () => {
         toast.success('Banner created successfully');
       }
 
-      setIsModalOpen(false);
+      setIsSlideOverOpen(false);
+      dispatch(fetchAdminBanners());
     } catch (err) {
       toast.error(err || 'Failed to save banner');
     } finally {
@@ -100,13 +136,33 @@ export const BannerManagement = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this banner?')) return;
+  const handleDeleteClick = (banner) => {
+    setConfirmState({
+      isOpen: true,
+      title: 'Delete Banner',
+      message: `Are you sure you want to delete banner '${banner.title}'?`,
+      action: async () => {
+        try {
+          await dispatch(deleteAdminBanner(banner._id)).unwrap();
+          toast.success('Banner deleted successfully');
+        } catch (err) {
+          toast.error(err || 'Failed to delete banner');
+        } finally {
+          setConfirmState((prev) => ({ ...prev, isOpen: false }));
+        }
+      },
+    });
+  };
+
+  const handleSortOrderChange = async (bannerId, newSortOrder) => {
     try {
-      await dispatch(deleteAdminBanner(id)).unwrap();
-      toast.success('Banner deleted successfully');
+      await api.patch('/banners/reorder', {
+        items: [{ id: bannerId, sortOrder: parseInt(newSortOrder, 10) }],
+      });
+      toast.success('Banner order updated');
+      dispatch(fetchAdminBanners());
     } catch (err) {
-      toast.error(err || 'Failed to delete banner');
+      toast.error('Failed to reorder banner');
     }
   };
 
@@ -116,86 +172,112 @@ export const BannerManagement = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white font-outfit">
-            Banner Management
+            Banner & Promotional Media
           </h1>
           <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-            Configure homepage hero carousels, promotional banners, and category hero images
+            Manage storefront hero carousels, promo cards, and placement order
           </p>
         </div>
         <button
-          onClick={() => handleOpenModal()}
+          onClick={() => handleOpenSlideOver()}
           className="px-4 py-2 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-extrabold shadow-md shadow-primary-600/30 transition-all flex items-center gap-2 self-start sm:self-auto"
         >
           <Plus size={16} />
-          <span>Add New Banner</span>
+          <span>Add Banner</span>
         </button>
       </div>
 
-      {/* Banner Grid */}
+      {/* Placement Filter Tabs */}
+      <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-wrap items-center gap-2">
+        {PLACEMENT_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === tab.id
+                ? 'bg-primary-600 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Responsive Visual Card Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Skeleton className="h-48 w-full rounded-3xl" />
-          <Skeleton className="h-48 w-full rounded-3xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-56 w-full rounded-3xl" />
+          <Skeleton className="h-56 w-full rounded-3xl" />
+          <Skeleton className="h-56 w-full rounded-3xl" />
         </div>
-      ) : banners && banners.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {banners.map((b) => (
-            <div
-              key={b._id}
+      ) : filteredBanners.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBanners.map((banner) => (
+            <motion.div
+              key={banner._id}
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col justify-between"
             >
-              <div className="relative h-40 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-3 border border-slate-200/60 dark:border-slate-700/60">
-                {b.image?.url ? (
-                  <img src={b.image.url} alt={b.title} className="w-full h-full object-cover" />
+              <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-3 border border-slate-200/60 dark:border-slate-700/60">
+                {banner.image?.url ? (
+                  <img
+                    src={banner.image.url}
+                    alt={banner.title}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-400">
-                    <ImageIcon size={32} />
+                    <ImageIcon size={36} />
                   </div>
                 )}
                 <div className="absolute top-2 left-2 flex gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-wider">
-                    {b.placement}
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-wider">
+                    {banner.placement}
                   </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                      b.isActive ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-                    }`}
-                  >
-                    {b.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                  <StatusBadge type="active" value={banner.isActive} />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white font-outfit truncate">
-                    {b.title}
+                    {banner.title}
                   </h3>
-                  <span className="text-[10px] font-extrabold text-slate-400">
-                    Sort: #{b.sortOrder}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-slate-400 font-bold">Sort:</span>
+                    <input
+                      type="number"
+                      defaultValue={banner.sortOrder}
+                      onBlur={(e) => handleSortOrderChange(banner._id, e.target.value)}
+                      className="w-12 px-1.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-center font-bold text-xs bg-slate-50 dark:bg-slate-800"
+                    />
+                  </div>
                 </div>
-                {b.subtitle && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                    {b.subtitle}
+                {banner.subtitle && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-1">
+                    {banner.subtitle}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
                 <span className="text-[10px] text-slate-400 font-semibold truncate max-w-[180px]">
-                  CTA: {b.ctaText || 'None'} ({b.ctaLink || 'No link'})
+                  CTA: {banner.ctaText || 'None'} ({banner.ctaLink || '#'})
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => handleOpenModal(b)}
+                    onClick={() => handleOpenSlideOver(banner)}
                     className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-primary-50 text-slate-700 dark:text-slate-200 hover:text-primary-600 transition-colors"
                     title="Edit"
                   >
                     <Edit2 size={14} />
                   </button>
                   <button
-                    onClick={() => handleDelete(b._id)}
+                    onClick={() => handleDeleteClick(banner)}
                     className="p-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 transition-colors"
                     title="Delete"
                   >
@@ -203,31 +285,41 @@ export const BannerManagement = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       ) : (
-        <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
-          <p className="text-xs text-slate-400">No banners created yet.</p>
+        <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 text-slate-400 text-xs font-semibold">
+          No banners found for selected placement filter.
         </div>
       )}
 
-      {/* Banner Modal */}
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmState.action}
+        title={confirmState.title}
+        message={confirmState.message}
+      />
+
+      {/* Slide-over Form Panel */}
       <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs">
+        {isSlideOverOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-end p-0 bg-slate-950/40 backdrop-blur-xs">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full border border-slate-100 dark:border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="bg-white dark:bg-slate-900 w-full max-w-md h-full border-l border-slate-100 dark:border-slate-800 shadow-2xl p-6 overflow-y-auto space-y-4"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white font-outfit">
                   {editingBanner ? 'Edit Banner' : 'Add New Banner'}
                 </h3>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => setIsSlideOverOpen(false)}
                   className="p-1 rounded-xl text-slate-400 hover:text-slate-600"
                 >
                   <X size={18} />
@@ -245,7 +337,7 @@ export const BannerManagement = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-transparent focus:border-primary-500 outline-none font-medium"
-                    placeholder="e.g. Grand Festive Sale — Up to 50% OFF"
+                    placeholder="e.g. Festival Special Sale"
                   />
                 </div>
 
@@ -258,7 +350,7 @@ export const BannerManagement = () => {
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-transparent focus:border-primary-500 outline-none font-medium"
-                    placeholder="e.g. Exclusive deals on premium electronics"
+                    placeholder="e.g. Up to 40% OFF on all electronics"
                   />
                 </div>
 
@@ -272,9 +364,10 @@ export const BannerManagement = () => {
                       onChange={(e) => setPlacement(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-transparent focus:border-primary-500 outline-none font-bold"
                     >
-                      <option value="hero">Hero Carousel</option>
-                      <option value="promo">Promo Section</option>
+                      <option value="hero">Hero Carousel (16:9)</option>
+                      <option value="promo">Promo Card (1:1)</option>
                       <option value="category">Category Banner</option>
+                      <option value="flash-sale">Flash Sale Wide</option>
                     </select>
                   </div>
                   <div>
@@ -293,7 +386,7 @@ export const BannerManagement = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      CTA Button Text
+                      CTA Button Label
                     </label>
                     <input
                       type="text"
@@ -312,27 +405,33 @@ export const BannerManagement = () => {
                       value={ctaLink}
                       onChange={(e) => setCtaLink(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-transparent focus:border-primary-500 outline-none font-medium"
-                      placeholder="e.g. /shop?category=electronics"
+                      placeholder="e.g. /shop?category=mobile"
                     />
                   </div>
                 </div>
 
+                {/* Aspect Ratio Guide Overlay Hint */}
                 <div>
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Upload Banner Image (or Image URL)
+                    Banner Image Image
                   </label>
+                  <p className="text-[10px] text-slate-400 font-semibold mb-1">
+                    {placement === 'hero'
+                      ? 'Recommended aspect ratio: 16:9 wide banner (e.g. 1920x1080px)'
+                      : placement === 'promo'
+                      ? 'Recommended aspect ratio: 1:1 square image (e.g. 800x800px)'
+                      : 'Recommended aspect ratio: 3:1 banner (e.g. 1200x400px)'}
+                  </p>
+                  {previewUrl && (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-2 border border-slate-200 dark:border-slate-700">
+                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    className="w-full text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-600 mb-2"
-                  />
-                  <input
-                    type="text"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-transparent focus:border-primary-500 outline-none font-medium"
-                    placeholder="Or paste external image URL..."
+                    onChange={(e) => handleImageChange(e.target.files[0])}
+                    className="w-full text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-600"
                   />
                 </div>
 
@@ -352,7 +451,7 @@ export const BannerManagement = () => {
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => setIsSlideOverOpen(false)}
                     className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
                   >
                     Cancel

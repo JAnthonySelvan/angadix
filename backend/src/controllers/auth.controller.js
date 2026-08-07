@@ -90,8 +90,9 @@ export const login = asyncHandler(async (req, res) => {
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
-  // Save refresh token to user document
+  // Save refresh token and update lastLoginAt
   user.refreshToken = refreshToken;
+  user.lastLoginAt = new Date();
   await user.save({ validateBeforeSave: false });
 
   // Set HTTP-only cookies

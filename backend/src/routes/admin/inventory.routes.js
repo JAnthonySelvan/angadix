@@ -2,13 +2,15 @@ import { Router } from 'express';
 import { validate } from '../../middlewares/validate.middleware.js';
 import { bulkUpdateStockValidator } from '../../validators/admin.validator.js';
 import {
+  getInventoryProducts,
   getLowStockAlerts,
   bulkUpdateStock,
 } from '../../controllers/admin/inventory.controller.js';
 
 const router = Router();
 
+router.get('/', getInventoryProducts);
 router.get('/low-stock-alerts', getLowStockAlerts);
-router.patch('/bulk-update', validate(bulkUpdateStockValidator), bulkUpdateStock);
+router.patch('/bulk-update', bulkUpdateStock);
 
 export default router;

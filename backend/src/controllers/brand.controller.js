@@ -146,28 +146,20 @@ export const deleteBrand = asyncHandler(async (req, res) => {
     throw new ApiError(404, `Brand with ID '${id}' not found.`);
   }
 
-  // Check if active products reference this brand
-  if (mongoose.models.Product) {
-    const activeProductsCount = await Product.countDocuments({
-      brand: id,
-      isActive: true,
-    });
-    if (activeProductsCount > 0) {
-      throw new ApiError(
-        400,
-        `Cannot delete brand. ${activeProductsCount} active products are currently referencing it.`
-      );
-    }
+  // Unassign this brand from any products currently referencing it
+  await Product.updateMany({ brand: id }, { $unset: { brand: 1 } });
+
+  if (brand.logo?.publicId && uploadService.isConfigured()) {
+    await uploadService.deleteAsset(brand.logo.publicId);
   }
 
-  brand.isActive = false;
-  await brand.save();
+  await brand.deleteOne();
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      { _id: brand._id, isActive: false },
-      'Brand soft-deleted successfully (set to inactive).'
+      { _id: id },
+      `Brand '${brand.name}' deleted successfully.`
     )
   );
 });

@@ -5,11 +5,13 @@ import {
   getAdminUsers,
   toggleUserBlock,
   updateUserRole,
+  getUserOrders,
 } from '../../controllers/admin/user.admin.controller.js';
 
 const router = Router();
 
 router.get('/', getAdminUsers);
+router.get('/:id/orders', validate(mongoIdParamValidator), getUserOrders);
 router.patch('/:id/block', validate(mongoIdParamValidator), toggleUserBlock);
 router.patch('/:id/role', validate(mongoIdParamValidator), updateUserRole);
 

@@ -155,3 +155,33 @@ export const deleteBanner = asyncHandler(async (req, res) => {
     new ApiResponse(200, { _id: id }, 'Banner deleted successfully.')
   );
 });
+
+/**
+ * @desc    Bulk reorder banners sortOrder
+ * @route   PATCH /api/v1/banners/reorder or /api/v1/admin/banners/reorder
+ * @access  Private/Admin
+ */
+export const reorderBanners = asyncHandler(async (req, res) => {
+  const { items } = req.body; // Expect array of { id, sortOrder }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new ApiError(400, 'Reorder payload must be a non-empty array of { id, sortOrder }.');
+  }
+
+  const bulkOps = items.map(({ id, sortOrder }) => ({
+    updateOne: {
+      filter: { _id: id },
+      update: { $set: { sortOrder: parseInt(sortOrder, 10) } },
+    },
+  }));
+
+  const result = await Banner.bulkWrite(bulkOps);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { modifiedCount: result.modifiedCount },
+      'Banners reordered successfully.'
+    )
+  );
+});

@@ -1,4 +1,5 @@
 import { User } from '../../models/User.js';
+import { Order } from '../../models/Order.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ApiError } from '../../utils/ApiError.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';
@@ -119,6 +120,45 @@ export const updateUserRole = asyncHandler(async (req, res) => {
       200,
       sanitizeUser(user),
       `User role updated to '${role}' successfully.`
+    )
+  );
+});
+
+/**
+ * @desc    Get paginated order history for a specific user
+ * @route   GET /api/v1/admin/users/:id/orders
+ * @access  Private/Admin
+ */
+export const getUserOrders = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page || '1', 10);
+  const limit = parseInt(req.query.limit || '10', 10);
+  const skip = (page - 1) * limit;
+
+  const targetUser = await User.findById(id);
+  if (!targetUser) {
+    throw new ApiError(404, `User with ID '${id}' not found.`);
+  }
+
+  const [orders, totalOrders] = await Promise.all([
+    Order.find({ user: id }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Order.countDocuments({ user: id }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: sanitizeUser(targetUser),
+        orders,
+        pagination: {
+          totalOrders,
+          currentPage: page,
+          totalPages: Math.ceil(totalOrders / limit),
+          limit,
+        },
+      },
+      `Order history for user '${targetUser.name}' fetched successfully.`
     )
   );
 });

@@ -237,30 +237,56 @@ export const getTopProducts = asyncHandler(async (req, res) => {
     },
     { $sort: { totalQuantity: -1 } },
     { $limit: limit },
-    {
-      $lookup: {
-        from: 'products',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'productDoc',
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        image: 1,
-        price: 1,
-        totalQuantity: 1,
-        totalRevenue: 1,
-        slug: { $arrayElemAt: ['$productDoc.slug', 0] },
-        stock: { $arrayElemAt: ['$productDoc.stock', 0] },
-      },
-    },
   ]);
 
+  const productIds = topProducts.map((p) => p._id).filter(Boolean);
+  const actualProducts = await Product.find({ _id: { $in: productIds } })
+    .select('name slug stock images price')
+    .lean();
+
+  const productMap = new Map(actualProducts.map((p) => [p._id.toString(), p]));
+
+  const extractImageUrl = (img) => {
+    if (!img) return '';
+    if (typeof img === 'string') {
+      if (img === '[object Object]' || img.trim() === '') return '';
+      return img;
+    }
+    if (typeof img === 'object' && img !== null) {
+      if (img.url && typeof img.url === 'string' && img.url !== '[object Object]') {
+        return img.url;
+      }
+      if (Array.isArray(img) && img.length > 0) {
+        return extractImageUrl(img[0]);
+      }
+    }
+    return '';
+  };
+
+  const formattedTopProducts = topProducts.map((p) => {
+    const prodDoc = productMap.get(p._id?.toString());
+    const primaryProductImage = prodDoc?.images?.find((image) => image?.isPrimary);
+    const imageUrl =
+      extractImageUrl(primaryProductImage) ||
+      extractImageUrl(prodDoc?.images) ||
+      extractImageUrl(p.image);
+
+    return {
+      _id: p._id,
+      name: p.name || prodDoc?.name || 'Product',
+      price: p.price || prodDoc?.price || 0,
+      totalQuantity: p.totalQuantity,
+      totalRevenue: p.totalRevenue,
+      slug: prodDoc?.slug || '',
+      stock: prodDoc?.stock ?? 0,
+      image:
+        imageUrl ||
+        'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80',
+    };
+  });
+
   return res.status(200).json(
-    new ApiResponse(200, topProducts, 'Top products fetched successfully.')
+    new ApiResponse(200, formattedTopProducts, 'Top products fetched successfully.')
   );
 });
 

@@ -36,7 +36,7 @@ const bannerSchema = new mongoose.Schema(
     },
     placement: {
       type: String,
-      enum: ['hero', 'promo', 'category'],
+      enum: ['hero', 'promo', 'category', 'flash-sale'],
       default: 'hero',
       index: true,
     },

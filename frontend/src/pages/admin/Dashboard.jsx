@@ -435,8 +435,19 @@ export const Dashboard = () => {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <img
-                      src={prod.image || 'https://via.placeholder.com/60'}
+                      src={
+                        typeof prod.image === 'string' && prod.image && prod.image !== '[object Object]'
+                          ? prod.image
+                          : typeof prod.image === 'object' && prod.image?.url
+                          ? prod.image.url
+                          : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80'
+                      }
                       alt={prod.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src =
+                          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80';
+                      }}
                       className="w-11 h-11 rounded-xl object-cover bg-white border border-slate-200 dark:border-slate-700 flex-shrink-0"
                     />
                     <div className="min-w-0">

@@ -171,28 +171,21 @@ export const deleteCategory = asyncHandler(async (req, res) => {
     throw new ApiError(404, `Category with ID '${id}' not found.`);
   }
 
-  // Check if active products reference this category
-  if (mongoose.models.Product) {
-    const activeProductsCount = await Product.countDocuments({
-      category: id,
-      isActive: true,
-    });
-    if (activeProductsCount > 0) {
-      throw new ApiError(
-        400,
-        `Cannot delete category. ${activeProductsCount} active products are currently referencing it.`
-      );
-    }
+  // Unassign this category from any products currently referencing it
+  await Product.updateMany({ category: id }, { $unset: { category: 1 } });
+
+  // Delete image asset from Cloudinary if present
+  if (category.image?.publicId && uploadService.isConfigured()) {
+    await uploadService.deleteAsset(category.image.publicId);
   }
 
-  category.isActive = false;
-  await category.save();
+  await category.deleteOne();
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      { _id: category._id, isActive: false },
-      'Category soft-deleted successfully (set to inactive).'
+      { _id: id },
+      `Category '${category.name}' deleted successfully.`
     )
   );
 });

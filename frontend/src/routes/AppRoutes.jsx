@@ -29,8 +29,9 @@ import { CategoryManagement } from '../pages/admin/CategoryManagement';
 import { BrandManagement } from '../pages/admin/BrandManagement';
 import { OrderManagement } from '../pages/admin/OrderManagement';
 import { CouponManagement } from '../pages/admin/CouponManagement';
-import { CustomerManagement } from '../pages/admin/CustomerManagement';
+import { UserManagement } from '../pages/admin/UserManagement';
 import { BannerManagement } from '../pages/admin/BannerManagement';
+import { InventoryManagement } from '../pages/admin/InventoryManagement';
 import { Reports } from '../pages/admin/Reports';
 
 export const AppRoutes = () => {
@@ -52,8 +53,8 @@ export const AppRoutes = () => {
         <Route path="orders" element={<OrderManagement />} />
         <Route path="coupons" element={<CouponManagement />} />
         <Route path="banners" element={<BannerManagement />} />
-        <Route path="customers" element={<CustomerManagement />} />
-        <Route path="inventory" element={<ProductManagement />} />
+        <Route path="customers" element={<UserManagement />} />
+        <Route path="inventory" element={<InventoryManagement />} />
         <Route path="reports" element={<Reports />} />
       </Route>
 

@@ -13,15 +13,23 @@ import {
   AlertTriangle,
   RefreshCw,
   Sparkles,
+  Download,
+  Printer,
+  Truck,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   fetchOrderById,
   cancelOrder,
   verifyPayment,
+  downloadInvoice,
+  regenerateInvoice,
+  fetchOrderTimeline,
 } from '../features/checkout/orderThunks';
 import { selectSelectedOrder } from '../features/checkout/orderSlice';
 import { loadRazorpayScript } from '../utils/loadRazorpayScript';
+import { triggerInvoiceDownload, triggerInvoicePrint } from '../utils/invoiceFile';
+import { isInvoiceAvailable, getProductImageUrl } from '../utils/orderHelpers';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -32,17 +40,76 @@ export const OrderDetail = () => {
   const { orderId } = useParams();
   const dispatch = useAppDispatch();
   const { data: order, loading, error } = useAppSelector(selectSelectedOrder);
+  const user = useAppSelector((state) => state.auth.user);
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
   const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
+  const [isRegeneratingInvoice, setIsRegeneratingInvoice] = useState(false);
 
   useEffect(() => {
     if (orderId) {
       dispatch(fetchOrderById(orderId));
     }
   }, [dispatch, orderId]);
+
+  // Poll lightweight timeline endpoint every 20 seconds while order is active
+  useEffect(() => {
+    if (!orderId || !order) return;
+
+    const terminalStatuses = ['delivered', 'cancelled', 'returned', 'refunded'];
+    if (terminalStatuses.includes(order.orderStatus)) return;
+
+    const intervalId = setInterval(() => {
+      dispatch(fetchOrderTimeline(orderId));
+    }, 20000);
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, orderId, order?.orderStatus]);
+
+  const handleDownloadInvoice = async () => {
+    if (isDownloadingInvoice || !order) return;
+    setIsDownloadingInvoice(true);
+    try {
+      const res = await dispatch(downloadInvoice(order._id)).unwrap();
+      triggerInvoiceDownload(res.blob, order.orderNumber);
+      toast.success('Invoice downloaded successfully.');
+    } catch (err) {
+      toast.error(err || 'Invoice is not available until payment is confirmed.');
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
+  };
+
+  const handlePrintInvoice = async () => {
+    if (isDownloadingInvoice || !order) return;
+    setIsDownloadingInvoice(true);
+    try {
+      const res = await dispatch(downloadInvoice(order._id)).unwrap();
+      triggerInvoicePrint(res.blob);
+      toast.success('Opening print dialog...');
+    } catch (err) {
+      toast.error(err || 'Invoice is not available until payment is confirmed.');
+    } finally {
+      setIsDownloadingInvoice(false);
+    }
+  };
+
+  const handleRegenerateInvoice = async () => {
+    if (isRegeneratingInvoice || !order) return;
+    setIsRegeneratingInvoice(true);
+    try {
+      await dispatch(regenerateInvoice(order._id)).unwrap();
+      toast.success('Invoice regenerated successfully!');
+      dispatch(fetchOrderById(order._id));
+    } catch (err) {
+      toast.error(err || 'Failed to regenerate invoice.');
+    } finally {
+      setIsRegeneratingInvoice(false);
+    }
+  };
 
   const handleCancelOrder = async () => {
     if (isCancelling) return;
@@ -163,8 +230,8 @@ export const OrderDetail = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between">
+      {/* Top Navigation & Action Buttons */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
           to="/orders"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
@@ -173,17 +240,61 @@ export const OrderDetail = () => {
           <span>Back to Order History</span>
         </Link>
 
-        {canCancel && (
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => setIsCancelModalOpen(true)}
-            className="rounded-xl font-bold text-xs"
-          >
-            <XCircle size={14} className="mr-1" />
-            <span>Cancel Order</span>
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isInvoiceAvailable(order) && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                isLoading={isDownloadingInvoice}
+                isDisabled={isDownloadingInvoice}
+                onClick={handleDownloadInvoice}
+                className="rounded-xl font-bold text-xs"
+              >
+                <Download size={14} className="mr-1" />
+                <span>Download Invoice</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                isLoading={isDownloadingInvoice}
+                isDisabled={isDownloadingInvoice}
+                onClick={handlePrintInvoice}
+                className="rounded-xl font-bold text-xs"
+              >
+                <Printer size={14} className="mr-1" />
+                <span>Print Invoice</span>
+              </Button>
+            </>
+          )}
+
+          {user?.role === 'admin' && isInvoiceAvailable(order) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              isLoading={isRegeneratingInvoice}
+              isDisabled={isRegeneratingInvoice}
+              onClick={handleRegenerateInvoice}
+              title="Force Regenerate Invoice"
+              className="rounded-xl p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              <RefreshCw size={14} className={isRegeneratingInvoice ? 'animate-spin' : ''} />
+            </Button>
+          )}
+
+          {canCancel && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setIsCancelModalOpen(true)}
+              className="rounded-xl font-bold text-xs"
+            >
+              <XCircle size={14} className="mr-1" />
+              <span>Cancel Order</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Header Banner */}
@@ -259,8 +370,12 @@ export const OrderDetail = () => {
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <img
-                      src={item.image || 'https://via.placeholder.com/80'}
+                      src={getProductImageUrl(item.product?.images || item.image)}
                       alt={item.name}
+                      onError={(e) => {
+                        e.target.src =
+                          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
+                      }}
                       className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 flex-shrink-0"
                     />
                     <div className="truncate">
@@ -319,7 +434,7 @@ export const OrderDetail = () => {
                         />
                       </div>
 
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-extrabold text-slate-900 dark:text-white capitalize">
                             Status: {history.status}
@@ -333,6 +448,22 @@ export const OrderDetail = () => {
                             {history.note}
                           </p>
                         )}
+
+                        {/* Shipment Details Sub-row for Shipped Step */}
+                        {history.status === 'shipped' &&
+                          order.shipment &&
+                          (order.shipment.carrier || order.shipment.trackingNumber) && (
+                            <div className="mt-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-[11px] font-mono text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                              <Truck size={14} className="text-primary-600 shrink-0" />
+                              <span>
+                                {order.shipment.carrier ? `Carrier: ${order.shipment.carrier}` : ''}
+                                {order.shipment.carrier && order.shipment.trackingNumber ? ' | ' : ''}
+                                {order.shipment.trackingNumber
+                                  ? `Tracking #: ${order.shipment.trackingNumber}`
+                                  : ''}
+                              </span>
+                            </div>
+                          )}
                       </div>
                     </div>
                   );

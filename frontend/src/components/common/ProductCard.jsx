@@ -12,6 +12,7 @@ import {
   setGuestWishlistItems,
 } from '../../features/wishlist/wishlistSlice';
 import { useRequireAuth } from '../../utils/useRequireAuth';
+import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const ProductCard = ({ product, onQuickView }) => {
@@ -40,10 +41,7 @@ export const ProductCard = ({ product, onQuickView }) => {
   } = product;
 
   // Primary image fallback
-  const primaryImage =
-    images.find((img) => img.isPrimary)?.url ||
-    images[0]?.url ||
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&auto=format';
+  const primaryImage = getProductImageUrl(images);
 
   // Calculate discount percentage
   const hasDiscount = discountPrice && discountPrice < price;
@@ -135,6 +133,10 @@ export const ProductCard = ({ product, onQuickView }) => {
           <img
             src={primaryImage}
             alt={name}
+            onError={(e) => {
+              e.target.src =
+                'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&auto=format';
+            }}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />

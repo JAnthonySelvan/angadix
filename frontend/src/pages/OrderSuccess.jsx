@@ -19,6 +19,7 @@ import { clearCartState } from '../features/cart/cartSlice';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
+import { getProductImageUrl } from '../utils/orderHelpers';
 
 export const OrderSuccess = () => {
   const { orderId } = useParams();
@@ -128,8 +129,12 @@ export const OrderSuccess = () => {
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <img
-                    src={item.image || 'https://via.placeholder.com/80'}
+                    src={getProductImageUrl(item.product?.images || item.image)}
                     alt={item.name}
+                    onError={(e) => {
+                      e.target.src =
+                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
+                    }}
                     className="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 flex-shrink-0"
                   />
                   <div className="truncate">

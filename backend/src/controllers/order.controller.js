@@ -54,14 +54,19 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'You are not authorized to use this shipping address.');
   }
 
+  const getProductImageString = (images) => {
+    if (!images || !Array.isArray(images) || images.length === 0) return '';
+    const primary = images.find((img) => img && img.isPrimary) || images[0];
+    if (typeof primary === 'string' && primary !== '[object Object]') return primary;
+    if (typeof primary === 'object' && primary !== null && primary.url) return primary.url;
+    return '';
+  };
+
   // Snapshot cart items and address
   const orderItems = cartData.items.map((item) => ({
     product: item.product._id,
     name: item.product.name,
-    image:
-      item.product.images && item.product.images.length > 0
-        ? item.product.images[0]
-        : '',
+    image: getProductImageString(item.product.images),
     price:
       item.product.discountPrice !== null &&
       item.product.discountPrice !== undefined
@@ -385,6 +390,35 @@ export const razorpayWebhook = asyncHandler(async (req, res) => {
   return res.status(200).json({ status: 'ok' });
 });
 
+const sanitizeOrderImages = (orderDoc) => {
+  if (!orderDoc) return orderDoc;
+  const order = orderDoc.toObject ? orderDoc.toObject() : { ...orderDoc };
+  if (order.items && Array.isArray(order.items)) {
+    order.items = order.items.map((item) => {
+      let resolvedImage = item.image;
+      if (
+        !resolvedImage ||
+        resolvedImage === '[object Object]' ||
+        typeof resolvedImage === 'object'
+      ) {
+        if (item.product && typeof item.product === 'object' && item.product.images) {
+          const imgs = item.product.images;
+          const primary = imgs.find((i) => i && i.isPrimary) || imgs[0];
+          resolvedImage =
+            typeof primary === 'string' && primary !== '[object Object]'
+              ? primary
+              : primary?.url || '';
+        }
+      }
+      return {
+        ...item,
+        image: resolvedImage || '',
+      };
+    });
+  }
+  return order;
+};
+
 // 4. Get My Orders (Paginated)
 export const getMyOrders = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page || '1', 10);
@@ -392,11 +426,13 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const total = await Order.countDocuments({ user: req.user._id });
-  const orders = await Order.find({ user: req.user._id })
+  const orderDocs = await Order.find({ user: req.user._id })
+    .populate({ path: 'items.product', select: 'name images price discountPrice' })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
+  const orders = orderDocs.map(sanitizeOrderImages);
   const totalPages = Math.ceil(total / limit) || 1;
 
   return res.status(200).json(
@@ -426,19 +462,24 @@ export const getOrderById = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Order not found.');
   }
 
-  const order = await Order.findById(id);
+  const orderDoc = await Order.findById(id).populate({
+    path: 'items.product',
+    select: 'name images price discountPrice',
+  });
 
-  if (!order) {
+  if (!orderDoc) {
     throw new ApiError(404, 'Order not found.');
   }
 
   // Non-admins can only fetch their own orders (throw 404 to avoid leaking existence)
   if (
     req.user.role !== 'admin' &&
-    order.user.toString() !== req.user._id.toString()
+    orderDoc.user.toString() !== req.user._id.toString()
   ) {
     throw new ApiError(404, 'Order not found.');
   }
+
+  const order = sanitizeOrderImages(orderDoc);
 
   return res
     .status(200)

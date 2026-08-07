@@ -26,6 +26,7 @@ import { AddressStep } from '../components/checkout/AddressStep';
 import { DeliveryStep } from '../components/checkout/DeliveryStep';
 import { PaymentStep } from '../components/checkout/PaymentStep';
 import { Badge } from '../components/ui/Badge';
+import { getProductImageUrl } from '../utils/orderHelpers';
 
 const STEPS = [
   { id: 'address', label: '1. Shipping Address', icon: MapPin },
@@ -174,12 +175,12 @@ export const Checkout = () => {
                     className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40"
                   >
                     <img
-                      src={
-                        product.images && product.images.length > 0
-                          ? product.images[0]
-                          : 'https://via.placeholder.com/80'
-                      }
+                      src={getProductImageUrl(product.images)}
                       alt={product.name}
+                      onError={(e) => {
+                        e.target.src =
+                          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
+                      }}
                       className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
                     />
                     <div className="flex-1 truncate">

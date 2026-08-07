@@ -18,6 +18,7 @@ import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { CountdownTimer } from '../components/common/CountdownTimer';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
+import { getProductImageUrl } from '../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 // ── Static Helper Components matching Figma App.tsx ──────────────────────────
@@ -307,8 +308,12 @@ export const Home = () => {
                   className="rounded-2xl p-4 flex gap-3.5 items-center bg-white/95 dark:bg-slate-800/90 text-slate-900 dark:text-white border border-white/80 dark:border-slate-700/60 shadow-md hover:shadow-xl transition-all"
                 >
                   <img
-                    src={item.images?.[0]?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400'}
+                    src={getProductImageUrl(item.images)}
                     alt={item.name}
+                    onError={(e) => {
+                      e.target.src =
+                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400';
+                    }}
                     className="w-20 h-20 object-cover rounded-xl shrink-0 border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                   />
                   <div className="flex-1 min-w-0">
@@ -416,8 +421,12 @@ export const Home = () => {
               >
                 <div className="md:w-1/2 relative overflow-hidden bg-[#D8EEFE]/60 dark:bg-slate-900/40">
                   <img
-                    src={f.images?.[0]?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500'}
+                    src={getProductImageUrl(f.images)}
                     alt={f.name}
+                    onError={(e) => {
+                      e.target.src =
+                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500';
+                    }}
                     className="w-full h-64 object-cover hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-4 left-4">

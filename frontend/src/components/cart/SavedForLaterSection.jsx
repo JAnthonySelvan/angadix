@@ -4,6 +4,7 @@ import { Bookmark, ShoppingCart, Trash2, CheckCircle2, AlertTriangle } from 'luc
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectSavedForLaterItems } from '../../features/savedForLater/savedForLaterSlice';
 import { moveSavedItemToCart, removeSavedItem } from '../../features/savedForLater/savedForLaterThunks';
+import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const SavedForLaterSection = () => {
@@ -45,10 +46,7 @@ export const SavedForLaterSection = () => {
           if (!product) return null;
           const isOutOfStock = product.stock <= 0 || product.isActive === false;
           const itemPrice = product.discountPrice || product.price || 0;
-          const primaryImage =
-            product.images?.find((img) => img.isPrimary)?.url ||
-            product.images?.[0]?.url ||
-            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
+          const primaryImage = getProductImageUrl(product.images);
 
           return (
             <div

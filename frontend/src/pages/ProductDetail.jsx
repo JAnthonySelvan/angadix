@@ -17,6 +17,7 @@ import { ProductCard } from '../components/common/ProductCard';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtTogether';
+import { getProductImageUrl } from '../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
@@ -98,7 +99,7 @@ export const ProductDetail = () => {
   const originalPrice = discountPrice ? price.toLocaleString('en-IN') : null;
 
   const allImages = images.length > 0
-    ? images.map((img) => img.url)
+    ? images.map((img) => getProductImageUrl(img)).filter(Boolean)
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800'];
 
   const handleAddToCart = () => {

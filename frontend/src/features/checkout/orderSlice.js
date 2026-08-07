@@ -5,6 +5,7 @@ import {
   fetchMyOrders,
   fetchOrderById,
   cancelOrder,
+  fetchOrderTimeline,
 } from './orderThunks';
 
 const initialState = {
@@ -129,6 +130,21 @@ const orderSlice = createSlice({
       state.myOrders.items = state.myOrders.items.map((ord) =>
         ord._id === updatedOrder._id ? updatedOrder : ord
       );
+    });
+
+    // 6. fetchOrderTimeline (Merge lightweight timeline into selected order)
+    builder.addCase(fetchOrderTimeline.fulfilled, (state, action) => {
+      const timelineData = action.payload; // { orderNumber, orderStatus, statusHistory, shipment, deliveredAt }
+      if (
+        state.selectedOrder.data &&
+        (state.selectedOrder.data.orderNumber === timelineData.orderNumber ||
+          state.selectedOrder.data._id)
+      ) {
+        state.selectedOrder.data.orderStatus = timelineData.orderStatus;
+        state.selectedOrder.data.statusHistory = timelineData.statusHistory;
+        state.selectedOrder.data.shipment = timelineData.shipment;
+        state.selectedOrder.data.deliveredAt = timelineData.deliveredAt;
+      }
     });
   },
 });

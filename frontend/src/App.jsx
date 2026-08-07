@@ -29,7 +29,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <GoogleOAuthProvider clientId={googleClientId}>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           {/* Custom Angadix Styled Toast Notifications */}
           <Toaster
             position="top-right"

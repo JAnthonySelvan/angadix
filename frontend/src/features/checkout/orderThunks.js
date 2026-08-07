@@ -104,3 +104,70 @@ export const cancelOrder = createAsyncThunk(
     }
   }
 );
+
+/**
+ * Download Invoice — returns a Blob for client-side save/print
+ * GET /api/v1/orders/:id/invoice
+ */
+export const downloadInvoice = createAsyncThunk(
+  'order/downloadInvoice',
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/invoice`, {
+        responseType: 'blob',
+      });
+      return { blob: response.data, orderId };
+    } catch (error) {
+      // If error payload is blob (JSON error response from backend), decode it
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          return rejectWithValue(json.message || 'Failed to download invoice.');
+        } catch {
+          // ignore parsing error
+        }
+      }
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to download invoice.'
+      );
+    }
+  }
+);
+
+/**
+ * Admin-only: force regenerate a cached invoice
+ * POST /api/v1/orders/:id/invoice/regenerate
+ */
+export const regenerateInvoice = createAsyncThunk(
+  'order/regenerateInvoice',
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/orders/${orderId}/invoice/regenerate`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to regenerate invoice.'
+      );
+    }
+  }
+);
+
+/**
+ * Fetch Order Timeline (Lightweight status history & shipment info)
+ * GET /api/v1/orders/:id/timeline
+ */
+export const fetchOrderTimeline = createAsyncThunk(
+  'order/fetchOrderTimeline',
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/orders/${orderId}/timeline`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch order timeline.'
+      );
+    }
+  }
+);
+

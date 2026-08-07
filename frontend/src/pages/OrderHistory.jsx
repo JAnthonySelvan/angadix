@@ -12,22 +12,41 @@ import {
   CheckCircle2,
   XCircle,
   Truck,
+  Download,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { fetchMyOrders } from '../features/checkout/orderThunks';
+import { fetchMyOrders, downloadInvoice } from '../features/checkout/orderThunks';
 import { selectMyOrders } from '../features/checkout/orderSlice';
+import { triggerInvoiceDownload } from '../utils/invoiceFile';
+import { isInvoiceAvailable, getProductImageUrl } from '../utils/orderHelpers';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
+import toast from 'react-hot-toast';
 
 export const OrderHistory = () => {
   const dispatch = useAppDispatch();
   const { items: orders, pagination, loading, error } = useAppSelector(selectMyOrders);
   const [page, setPage] = useState(1);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMyOrders({ page, limit: 10 }));
   }, [dispatch, page]);
+
+  const handleDownloadInvoice = async (ord) => {
+    if (downloadingId) return;
+    setDownloadingId(ord._id);
+    try {
+      const res = await dispatch(downloadInvoice(ord._id)).unwrap();
+      triggerInvoiceDownload(res.blob, ord.orderNumber);
+      toast.success('Invoice downloaded successfully.');
+    } catch (err) {
+      toast.error(err || 'Invoice is not available until payment is confirmed.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -122,7 +141,6 @@ export const OrderHistory = () => {
             );
 
             const displayItems = ord.items.slice(0, 3);
-            const extraCount = ord.items.length - 3;
 
             return (
               <motion.div
@@ -158,8 +176,12 @@ export const OrderHistory = () => {
                       {displayItems.map((item, idx) => (
                         <img
                           key={idx}
-                          src={item.image || 'https://via.placeholder.com/80'}
+                          src={getProductImageUrl(item.product?.images || item.image)}
                           alt={item.name}
+                          onError={(e) => {
+                            e.target.src =
+                              'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
+                          }}
                           className="inline-block h-12 w-12 rounded-xl object-cover ring-2 ring-white dark:ring-slate-900 border border-slate-200 dark:border-slate-700"
                         />
                       ))}
@@ -176,9 +198,9 @@ export const OrderHistory = () => {
                     </div>
                   </div>
 
-                  {/* Price & Detail Link */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-                    <div className="text-left sm:text-right">
+                  {/* Price & Action Buttons */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                    <div className="text-left sm:text-right mr-2">
                       <span className="text-[10px] text-slate-400 font-bold block uppercase">
                         Total Amount
                       </span>
@@ -187,16 +209,32 @@ export const OrderHistory = () => {
                       </span>
                     </div>
 
-                    <Link to={`/orders/${ord._id}`}>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="rounded-xl font-bold flex items-center gap-1"
-                      >
-                        <span>Details</span>
-                        <ChevronRight size={14} />
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {isInvoiceAvailable(ord) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          isLoading={downloadingId === ord._id}
+                          isDisabled={downloadingId === ord._id}
+                          onClick={() => handleDownloadInvoice(ord)}
+                          title="Download Invoice"
+                          className="rounded-xl font-bold p-2.5 text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400"
+                        >
+                          <Download size={15} />
+                        </Button>
+                      )}
+
+                      <Link to={`/orders/${ord._id}`}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="rounded-xl font-bold flex items-center gap-1"
+                        >
+                          <span>Details</span>
+                          <ChevronRight size={14} />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </motion.div>

@@ -3,6 +3,7 @@ import { Sparkles, Plus, ShoppingBag, Check } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addItemToCart } from '../../features/cart/cartThunks';
 import { useRequireAuth } from '../../utils/useRequireAuth';
+import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const FrequentlyBoughtTogether = ({ mainProduct = null }) => {
@@ -78,9 +79,7 @@ export const FrequentlyBoughtTogether = ({ mainProduct = null }) => {
         <div className="flex flex-wrap items-center gap-3 flex-1">
           {recommendations.map((prod, idx) => {
             const price = prod.discountPrice || prod.price;
-            const img =
-              prod.images?.[0]?.url ||
-              'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300';
+            const img = getProductImageUrl(prod.images);
 
             return (
               <React.Fragment key={prod._id}>

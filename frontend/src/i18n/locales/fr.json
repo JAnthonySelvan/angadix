@@ -274,5 +274,42 @@
     "loggedOut": "Déconnexion réussie",
     "loggedIn": "Bienvenue!",
     "orderPlaced": "Commande passée avec succès!"
+  },
+  "breadcrumb": {
+    "home": "Accueil",
+    "shop": "Boutique",
+    "cart": "Panier",
+    "checkout": "Paiement",
+    "wishlist": "Favoris",
+    "orders": "Commandes"
+  },
+  "reviews": {
+    "title": "Avis et Évaluations Clients",
+    "subTitle": "Avis vérifiés d'acheteurs authentiques",
+    "writeReview": "Écrire un avis",
+    "loginRequired": "Connectez-vous pour laisser un avis",
+    "totalReviews": "Avis clients",
+    "allReviews": "Liste des avis",
+    "sortNewest": "Plus récents",
+    "sortHighest": "Mieux notés",
+    "sortLowest": "Moins bien notés",
+    "noReviews": "Aucun avis pour ce produit.",
+    "yourRating": "Votre note",
+    "reviewTitle": "Titre de l'avis",
+    "reviewComment": "Avis détaillé",
+    "imageUrl": "URL de la photo (Optionnel)",
+    "submit": "Soumettre l'avis",
+    "successMessage": "Avis soumis avec succès!"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new": "nouveau",
+    "markAllRead": "Tout marquer comme lu",
+    "emptyTitle": "Aucune notification",
+    "emptySub": "Nous vous informerons de la mise à jour de vos commandes.",
+    "viewDetails": "Voir les détails"
+  },
+  "backToTop": {
+    "label": "Haut de page"
   }
 }

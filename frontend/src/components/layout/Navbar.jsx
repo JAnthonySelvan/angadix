@@ -22,6 +22,8 @@ import { selectWishlistItems } from '../../features/wishlist/wishlistSlice';
 import { fetchCategories, fetchProductsList, fetchSearchSuggestions } from '../../features/products/productThunks';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { MegaMenu } from '../common/MegaMenu';
+import { NotificationBell } from '../common/NotificationBell';
 import { TopAlertBanner } from './TopAlertBanner';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -146,47 +148,10 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* Category Dropdown & Search Bar */}
+          {/* MegaMenu & Search Bar */}
           <div className="hidden lg:flex items-center gap-2 flex-1 max-w-2xl relative mx-4">
-            {/* Category Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                className="flex items-center gap-2 px-3.5 py-2.5 rounded-l-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors border-r border-slate-200 dark:border-slate-700"
-              >
-                <Grid size={15} className="text-primary-600 dark:text-primary-400" />
-                <span>{t('common.categories', 'Categories')}</span>
-                <ChevronDown size={14} />
-              </button>
-
-              {/* Categories Menu */}
-              <AnimatePresence>
-                {isCategoryMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 ltr:left-0 rtl:right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 p-2 z-50 max-h-80 overflow-y-auto"
-                  >
-                    {categories.length > 0 ? (
-                      categories.map((cat) => (
-                        <Link
-                          key={cat._id}
-                          to={`/shop?category=${cat.slug}`}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-primary-50 dark:hover:bg-slate-800 hover:text-primary-600 rounded-xl transition-colors"
-                          onClick={() => setIsCategoryMenuOpen(false)}
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                          <span>{cat.name}</span>
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="p-3 text-xs text-slate-400 text-center">{t('common.loading', 'Loading...')}</div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* MegaMenu Dropdown */}
+            <MegaMenu />
 
             {/* Search Input with Live Dropdown */}
             <form onSubmit={handleSearchSubmit} className="flex-1 relative">
@@ -196,7 +161,7 @@ export const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-r-xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-all"
+                className="w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-all"
               />
               <button
                 type="submit"
@@ -239,8 +204,11 @@ export const Navbar = () => {
             </form>
           </div>
 
-          {/* Right Action Icons (Wishlist, Cart, Theme Toggle, Language Switcher, Profile) */}
+          {/* Right Action Icons (Notifications, Wishlist, Cart, Theme Toggle, Language Switcher, Profile) */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Notification Bell Dropdown */}
+            <NotificationBell />
+
             {/* Language Switcher */}
             <LanguageSwitcher />
 

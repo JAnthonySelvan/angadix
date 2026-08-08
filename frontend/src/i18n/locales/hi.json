@@ -274,5 +274,42 @@
     "loggedOut": "साइन आउट हो गए",
     "loggedIn": "पुनः स्वागत है!",
     "orderPlaced": "ऑर्डर सफलतापूर्वक दिया गया!"
+  },
+  "breadcrumb": {
+    "home": "होम",
+    "shop": "दुकान",
+    "cart": "कार्ट",
+    "checkout": "चेकआउट",
+    "wishlist": "विशलिस्ट",
+    "orders": "ऑर्डर"
+  },
+  "reviews": {
+    "title": "ग्राहक समीक्षाएं और रेटिंग",
+    "subTitle": "सत्यापित खरीदारों की प्रामाणिक समीक्षाएं",
+    "writeReview": "समीक्षा लिखें",
+    "loginRequired": "समीक्षा लिखने के लिए लॉग इन करें",
+    "totalReviews": "ग्राहक समीक्षाएं",
+    "allReviews": "समीक्षा सूची",
+    "sortNewest": "नवीनतम पहले",
+    "sortHighest": "उच्चतम रेटिंग",
+    "sortLowest": "निम्नतम रेटिंग",
+    "noReviews": "इस उत्पाद के लिए अभी तक कोई समीक्षा नहीं है।",
+    "yourRating": "आपकी रेटिंग",
+    "reviewTitle": "समीक्षा शीर्षक",
+    "reviewComment": "विस्तृत समीक्षा",
+    "imageUrl": "फोटो URL (वैकल्पिक)",
+    "submit": "समीक्षा जमा करें",
+    "successMessage": "समीक्षा सफलतापूर्वक जमा की गई!"
+  },
+  "notifications": {
+    "title": "सूचनाएं",
+    "new": "नई",
+    "markAllRead": "सभी को पढ़ा हुआ चिह्नित करें",
+    "emptyTitle": "कोई सूचना नहीं",
+    "emptySub": "ऑर्डर अपडेट होने पर हम आपको सूचित करेंगे।",
+    "viewDetails": "विवरण देखें"
+  },
+  "backToTop": {
+    "label": "ऊपर जाएं"
   }
 }

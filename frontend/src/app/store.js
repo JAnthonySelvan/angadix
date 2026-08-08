@@ -13,6 +13,8 @@ import adminUsersReducer from '../features/admin/adminUsersSlice';
 import adminBannersReducer from '../features/admin/bannerSlice';
 import adminProductsReducer from '../features/admin/adminProductsSlice';
 import adminInventoryReducer from '../features/admin/adminInventorySlice';
+import reviewReducer from '../features/reviews/reviewSlice';
+import notificationReducer from '../features/notifications/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +27,8 @@ export const store = configureStore({
     recentlyViewed: recentlyViewedReducer,
     address: addressReducer,
     order: orderReducer,
+    reviews: reviewReducer,
+    notifications: notificationReducer,
     adminAnalytics: adminAnalyticsReducer,
     adminUsers: adminUsersReducer,
     adminBanners: adminBannersReducer,

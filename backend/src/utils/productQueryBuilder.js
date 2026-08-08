@@ -55,6 +55,29 @@ export const buildProductFilterQuery = async (queryParams = {}) => {
         matchingCategories.forEach((cat) => catIds.push(cat._id));
       }
 
+      if (catIds.length > 0) {
+        let currentParentIds = [...catIds];
+        while (currentParentIds.length > 0) {
+          const childCategories = await Category.find({
+            parentCategory: { $in: currentParentIds },
+          })
+            .select('_id')
+            .lean();
+
+          if (childCategories.length === 0) break;
+
+          const newChildIds = [];
+          for (const child of childCategories) {
+            const alreadyIncluded = catIds.some((id) => id.equals(child._id));
+            if (!alreadyIncluded) {
+              catIds.push(child._id);
+              newChildIds.push(child._id);
+            }
+          }
+          currentParentIds = newChildIds;
+        }
+      }
+
       query.category = { $in: catIds };
     }
   }

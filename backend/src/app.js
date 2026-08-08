@@ -18,6 +18,8 @@ import bannerRoutes from './routes/banner.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import invoiceRoutes from './routes/invoice.routes.js';
+import reviewRoutes from './routes/review.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 import adminRouter from './routes/admin/index.js';
 import { razorpayWebhook } from './controllers/order.controller.js';
 import { notFound } from './middlewares/notFound.middleware.js';
@@ -94,6 +96,8 @@ app.use('/api/v1/banners', bannerRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/orders', invoiceRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin', adminRouter);
 
 // 9. 404 Route Handler for Unmapped Endpoints

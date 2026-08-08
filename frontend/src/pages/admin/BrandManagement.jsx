@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, Plus, Edit2, Trash2, X, ExternalLink } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { fetchBrands } from '../../features/products/productThunks';
 import { AdminTable } from '../../components/admin/AdminTable';
 import { AdminSearchBar } from '../../components/admin/AdminSearchBar';
+import { AdminPagination } from '../../components/admin/AdminPagination';
 import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { StatusBadge } from '../../components/admin/StatusBadge';
 import api from '../../lib/axios';
@@ -16,6 +17,8 @@ export const BrandManagement = () => {
   const loading = useAppSelector((state) => state.products.brands.loading);
 
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
 
@@ -40,10 +43,21 @@ export const BrandManagement = () => {
     dispatch(fetchBrands());
   }, [dispatch]);
 
-  const filteredBrands = brands.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase()) ||
-    b.slug.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredBrands = useMemo(() => {
+    return brands.filter(
+      (b) =>
+        b.name.toLowerCase().includes(search.toLowerCase()) ||
+        b.slug.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [brands, search]);
+
+  const totalBrands = filteredBrands.length;
+  const totalPages = Math.ceil(totalBrands / ITEMS_PER_PAGE) || 1;
+
+  const paginatedBrands = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredBrands.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredBrands, page]);
 
   const handleOpenSlideOver = (brand = null) => {
     if (brand) {
@@ -238,15 +252,26 @@ export const BrandManagement = () => {
       <AdminSearchBar
         placeholder="Search brands by name or slug..."
         value={search}
-        onChange={(val) => setSearch(val)}
+        onChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
       />
 
       {/* Table */}
       <AdminTable
         columns={columns}
-        data={filteredBrands}
+        data={paginatedBrands}
         loading={loading}
         emptyMessage="No brands created yet."
+      />
+
+      {/* Pagination */}
+      <AdminPagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={totalBrands}
+        onPageChange={(p) => setPage(p)}
       />
 
       {/* Confirm Dialog */}

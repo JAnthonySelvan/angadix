@@ -59,6 +59,9 @@ export const createBanner = asyncHandler(async (req, res) => {
         folder: 'angadix/banners',
         resource_type: 'image',
       });
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      imageObj = { url: `data:${req.file.mimetype};base64,${base64}`, publicId: '' };
     }
   } else if (req.body.imageUrl) {
     imageObj.url = req.body.imageUrl;
@@ -120,6 +123,9 @@ export const updateBanner = asyncHandler(async (req, res) => {
         folder: 'angadix/banners',
         resource_type: 'image',
       });
+    } else {
+      const base64 = req.file.buffer.toString('base64');
+      banner.image = { url: `data:${req.file.mimetype};base64,${base64}`, publicId: '' };
     }
   } else if (req.body.imageUrl) {
     banner.image = { url: req.body.imageUrl, publicId: '' };

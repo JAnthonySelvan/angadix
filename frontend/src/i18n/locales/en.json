@@ -274,5 +274,42 @@
     "loggedOut": "Signed out successfully",
     "loggedIn": "Welcome back!",
     "orderPlaced": "Order placed successfully!"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "shop": "Shop",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "wishlist": "Wishlist",
+    "orders": "Orders"
+  },
+  "reviews": {
+    "title": "Customer Reviews & Ratings",
+    "subTitle": "Verified feedback and ratings from authentic buyers",
+    "writeReview": "Write a Review",
+    "loginRequired": "Log in to write a product review",
+    "totalReviews": "Customer Reviews",
+    "allReviews": "Reviews List",
+    "sortNewest": "Newest First",
+    "sortHighest": "Highest Rated",
+    "sortLowest": "Lowest Rated",
+    "noReviews": "No reviews yet for this product.",
+    "yourRating": "Your Rating",
+    "reviewTitle": "Review Headline",
+    "reviewComment": "Detailed Review",
+    "imageUrl": "Photo URL (Optional)",
+    "submit": "Submit Review",
+    "successMessage": "Review submitted successfully!"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new": "new",
+    "markAllRead": "Mark all read",
+    "emptyTitle": "No notifications yet",
+    "emptySub": "We'll notify you when your orders update or promos launch.",
+    "viewDetails": "View Details"
+  },
+  "backToTop": {
+    "label": "Back to top"
   }
 }

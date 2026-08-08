@@ -18,6 +18,8 @@ import { ProductCard } from '../components/common/ProductCard';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtTogether';
+import { Breadcrumb } from '../components/common/Breadcrumb';
+import { ProductReviews } from '../components/reviews/ProductReviews';
 import { getProductImageUrl } from '../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
@@ -152,11 +154,14 @@ export const ProductDetail = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-      {/* Back Link */}
-      <Link to="/shop" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary-600 transition-colors">
-        <ArrowLeft size={16} />
-        <span>Back to Shop</span>
-      </Link>
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: t('nav.shop', 'Shop'), to: '/shop' },
+          { label: category?.name || 'Category', to: `/shop?category=${category?.slug}` },
+          { label: name },
+        ]}
+      />
 
       <div className="neu-card p-6 sm:p-10 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -371,6 +376,9 @@ export const ProductDetail = () => {
           </div>
         </section>
       )}
+
+      {/* Customer Reviews & Ratings */}
+      <ProductReviews productId={product._id} />
 
       {/* Recommendation Section 3: AI Frequently Bought Together */}
       <FrequentlyBoughtTogether mainProduct={product} />

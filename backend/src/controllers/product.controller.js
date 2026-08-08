@@ -517,6 +517,22 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   }
 
+  // Handle primary image selection if specified
+  if (uploadedImages.length > 0) {
+    const primaryIdx = req.body.primaryImageIndex !== undefined ? parseInt(req.body.primaryImageIndex, 10) : 0;
+    const primaryPubId = req.body.primaryImagePublicId;
+    uploadedImages.forEach((img, index) => {
+      if (primaryPubId) {
+        img.isPrimary = img.publicId === primaryPubId || img.url === primaryPubId;
+      } else {
+        img.isPrimary = index === primaryIdx;
+      }
+    });
+    if (!uploadedImages.some((img) => img.isPrimary)) {
+      uploadedImages[0].isPrimary = true;
+    }
+  }
+
   const parsedPrice = parseFloat(price);
   const parsedDiscount =
     discountPrice !== undefined && discountPrice !== null && discountPrice !== ''
@@ -620,23 +636,42 @@ export const updateProduct = asyncHandler(async (req, res) => {
   if (specifications !== undefined) product.specifications = parseSpecifications(specifications);
   if (tags !== undefined) product.tags = parseTags(tags);
 
-  // Handle uploaded new images / video
+  // 1. Delete requested images
+  if (req.body.deleteImagePublicIds) {
+    let toDelete = [];
+    try {
+      toDelete = typeof req.body.deleteImagePublicIds === 'string'
+        ? JSON.parse(req.body.deleteImagePublicIds)
+        : req.body.deleteImagePublicIds;
+    } catch {
+      toDelete = [req.body.deleteImagePublicIds];
+    }
+    if (Array.isArray(toDelete) && toDelete.length > 0) {
+      const validDeleteIds = toDelete.filter(Boolean);
+      if (validDeleteIds.length > 0) {
+        await uploadService.deleteMultipleAssets(validDeleteIds, 'image');
+        product.images = product.images.filter((img) => !validDeleteIds.includes(img.publicId));
+      }
+    }
+  }
+
+  // 2. Handle uploaded new images / video
   if (req.files && uploadService.isConfigured()) {
     if (req.files.images && req.files.images.length > 0) {
       const newImages = await uploadService.uploadMultipleImages(
         req.files.images,
         'angadix/products'
       );
-      // Append or replace images
+      // Reset isPrimary on newly uploaded batch so explicit primary selection controls it
+      newImages.forEach((img) => { img.isPrimary = false; });
+
       if (req.body.replaceImages === 'true') {
-        // Clean up old images
         const oldPublicIds = product.images.map((img) => img.publicId).filter(Boolean);
         if (oldPublicIds.length > 0) {
           await uploadService.deleteMultipleAssets(oldPublicIds, 'image');
         }
         product.images = newImages;
       } else {
-        // Append
         product.images.push(...newImages);
       }
     }
@@ -649,6 +684,28 @@ export const updateProduct = asyncHandler(async (req, res) => {
         folder: 'angadix/products/videos',
         resource_type: 'video',
       });
+    }
+  }
+
+  // 3. Set Primary Image if specified
+  const primaryPublicId = req.body.primaryImagePublicId;
+  const primaryIndex = req.body.primaryImageIndex !== undefined ? parseInt(req.body.primaryImageIndex, 10) : undefined;
+
+  if (primaryPublicId) {
+    product.images.forEach((img) => {
+      img.isPrimary = (img.publicId === primaryPublicId || img.url === primaryPublicId);
+    });
+  } else if (primaryIndex !== undefined && !isNaN(primaryIndex) && product.images[primaryIndex]) {
+    product.images.forEach((img, idx) => {
+      img.isPrimary = (idx === primaryIndex);
+    });
+  }
+
+  // Ensure at least one image is marked as primary if product has images
+  if (product.images && product.images.length > 0) {
+    const hasPrimary = product.images.some((img) => img.isPrimary);
+    if (!hasPrimary) {
+      product.images[0].isPrimary = true;
     }
   }
 

@@ -179,6 +179,7 @@ export const selectCartTotalPrice = (state) => state.cart.subtotal;
 export const selectCartDiscountAmount = (state) => state.cart.discountAmount;
 export const selectCartFinalTotal = (state) => state.cart.total;
 export const selectAppliedCoupon = (state) => state.cart.appliedCoupon;
+export const selectIsCartDrawerOpen = (state) => state.cart.isCartOpen;
 export const selectCartStatus = (state) => state.cart.status;
 export const selectCartError = (state) => state.cart.error;
 

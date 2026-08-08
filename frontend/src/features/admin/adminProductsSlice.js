@@ -32,7 +32,22 @@ const adminProductsSlice = createSlice({
       .addCase(fetchAdminProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.products = action.payload.products || action.payload.items || [];
-        state.pagination = action.payload.pagination || state.pagination;
+        const p = action.payload.pagination || {};
+        const page = p.page || p.currentPage || 1;
+        const total = p.total ?? p.totalProducts ?? p.totalItems ?? 0;
+        const totalPages = p.totalPages || Math.ceil(total / (p.limit || 10)) || 1;
+
+        state.pagination = {
+          total,
+          totalProducts: total,
+          totalItems: total,
+          page,
+          currentPage: page,
+          totalPages,
+          limit: p.limit || 10,
+          hasNextPage: p.hasNextPage ?? (page < totalPages),
+          hasPrevPage: p.hasPrevPage ?? (page > 1),
+        };
       })
       .addCase(fetchAdminProducts.rejected, (state, action) => {
         state.loading = false;

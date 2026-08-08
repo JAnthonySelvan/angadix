@@ -11,6 +11,7 @@ import {
   Upload,
   Check,
   Boxes,
+  Star,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { fetchCategories, fetchBrands } from '../../features/products/productThunks';
@@ -28,6 +29,7 @@ import { AdminPagination } from '../../components/admin/AdminPagination';
 import { ConfirmDialog } from '../../components/admin/ConfirmDialog';
 import { StatusBadge } from '../../components/admin/StatusBadge';
 import { Modal } from '../../components/ui/Modal';
+import { getProductImageUrl } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const ProductManagement = () => {
@@ -63,6 +65,10 @@ export const ProductManagement = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [imageFiles, setImageFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [primaryImagePublicId, setPrimaryImagePublicId] = useState('');
+  const [newFilesPrimaryIndex, setNewFilesPrimaryIndex] = useState(null);
+  const [deleteImagePublicIds, setDeleteImagePublicIds] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Quick Stock Edit State
@@ -120,6 +126,13 @@ export const ProductManagement = () => {
       setDescription(product.description || '');
       setIsFeatured(product.isFeatured || false);
       setIsActive(product.isActive !== undefined ? product.isActive : true);
+
+      const imgs = product.images || [];
+      setExistingImages(imgs);
+      const primaryImg = imgs.find((img) => img.isPrimary) || imgs[0];
+      setPrimaryImagePublicId(primaryImg?.publicId || primaryImg?.url || '');
+      setNewFilesPrimaryIndex(null);
+      setDeleteImagePublicIds([]);
     } else {
       setEditingProduct(null);
       setName('');
@@ -132,6 +145,10 @@ export const ProductManagement = () => {
       setDescription('');
       setIsFeatured(false);
       setIsActive(true);
+      setExistingImages([]);
+      setPrimaryImagePublicId('');
+      setNewFilesPrimaryIndex(0);
+      setDeleteImagePublicIds([]);
     }
     setImageFiles([]);
     setIsSlideOverOpen(true);
@@ -162,6 +179,19 @@ export const ProductManagement = () => {
         for (let i = 0; i < imageFiles.length; i++) {
           formData.append('images', imageFiles[i]);
         }
+      }
+
+      if (primaryImagePublicId) {
+        formData.append('primaryImagePublicId', primaryImagePublicId);
+      } else if (newFilesPrimaryIndex !== null) {
+        const remainingExistingCount = existingImages.filter(
+          (img) => !deleteImagePublicIds.includes(img.publicId)
+        ).length;
+        formData.append('primaryImageIndex', remainingExistingCount + newFilesPrimaryIndex);
+      }
+
+      if (deleteImagePublicIds.length > 0) {
+        formData.append('deleteImagePublicIds', JSON.stringify(deleteImagePublicIds));
       }
 
       if (editingProduct) {
@@ -262,7 +292,7 @@ export const ProductManagement = () => {
       render: (p) => (
         <div className="flex items-center gap-3">
           <img
-            src={p.images?.[0]?.url || 'https://via.placeholder.com/50'}
+            src={getProductImageUrl(p.images)}
             alt={p.name}
             className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-white flex-shrink-0"
           />
@@ -434,9 +464,9 @@ export const ProductManagement = () => {
 
       {/* Pagination */}
       <AdminPagination
-        currentPage={pagination?.currentPage || 1}
+        currentPage={pagination?.currentPage || pagination?.page || page || 1}
         totalPages={pagination?.totalPages || 1}
-        totalItems={pagination?.totalProducts || 0}
+        totalItems={pagination?.totalProducts ?? pagination?.total ?? 0}
         onPageChange={(p) => setPage(p)}
       />
 
@@ -643,17 +673,139 @@ export const ProductManagement = () => {
                   />
                 </div>
 
+                {/* Existing Images & Primary Selection */}
                 <div>
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Product Images (Max 8)
                   </label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Click the ⭐ icon on any thumbnail to set it as the Primary cover image.
+                  </p>
+
+                  {/* Render Existing Images */}
+                  {existingImages.filter((img) => !deleteImagePublicIds.includes(img.publicId)).length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                        Current Images:
+                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {existingImages
+                          .filter((img) => !deleteImagePublicIds.includes(img.publicId))
+                          .map((img, idx) => {
+                            const isPrimary =
+                              primaryImagePublicId === (img.publicId || img.url) ||
+                              (!primaryImagePublicId && newFilesPrimaryIndex === null && idx === 0);
+                            return (
+                              <div
+                                key={img.publicId || idx}
+                                className={`relative group rounded-xl overflow-hidden border-2 transition-all ${
+                                  isPrimary
+                                    ? 'border-primary-500 ring-2 ring-primary-500/20'
+                                    : 'border-slate-200 dark:border-slate-700'
+                                }`}
+                              >
+                                <img
+                                  src={img.url}
+                                  alt={`Product image ${idx + 1}`}
+                                  className="w-full h-16 object-cover"
+                                />
+                                <div className="absolute top-1 left-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPrimaryImagePublicId(img.publicId || img.url);
+                                      setNewFilesPrimaryIndex(null);
+                                    }}
+                                    title={isPrimary ? 'Primary Image' : 'Set as Primary Image'}
+                                    className={`p-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
+                                      isPrimary
+                                        ? 'bg-amber-500 text-white shadow-md'
+                                        : 'bg-black/60 hover:bg-amber-500 text-white'
+                                    }`}
+                                  >
+                                    <Star className="w-3.5 h-3.5 fill-current" />
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeleteImagePublicIds((prev) => [...prev, img.publicId]);
+                                    if (primaryImagePublicId === (img.publicId || img.url)) {
+                                      setPrimaryImagePublicId('');
+                                    }
+                                  }}
+                                  title="Delete Image"
+                                  className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
                   <input
                     type="file"
                     multiple
                     accept="image/*"
-                    onChange={(e) => setImageFiles(Array.from(e.target.files))}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      setImageFiles(files);
+                      if (files.length > 0 && !primaryImagePublicId && newFilesPrimaryIndex === null) {
+                        setNewFilesPrimaryIndex(0);
+                      }
+                    }}
                     className="w-full text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-50 file:text-primary-600"
                   />
+
+                  {/* Render New File Previews */}
+                  {imageFiles.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                        New Uploads Preview:
+                      </p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {imageFiles.map((file, idx) => {
+                          const isPrimary = !primaryImagePublicId && newFilesPrimaryIndex === idx;
+                          return (
+                            <div
+                              key={idx}
+                              className={`relative group rounded-xl overflow-hidden border-2 transition-all ${
+                                isPrimary
+                                  ? 'border-primary-500 ring-2 ring-primary-500/20'
+                                  : 'border-slate-200 dark:border-slate-700'
+                              }`}
+                            >
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`New file ${idx + 1}`}
+                                className="w-full h-16 object-cover"
+                              />
+                              <div className="absolute top-1 left-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewFilesPrimaryIndex(idx);
+                                    setPrimaryImagePublicId('');
+                                  }}
+                                  title={isPrimary ? 'Primary Image' : 'Set as Primary Image'}
+                                  className={`p-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
+                                    isPrimary
+                                      ? 'bg-amber-500 text-white shadow-md'
+                                      : 'bg-black/60 hover:bg-amber-500 text-white'
+                                  }`}
+                                >
+                                  <Star className="w-3.5 h-3.5 fill-current" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4 pt-2">

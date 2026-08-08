@@ -12,6 +12,7 @@ import { Product } from '../models/Product.js';
 import { calculateAndFormatCart } from './cart.controller.js';
 import { ALLOWED_TRANSITIONS, canTransition } from '../utils/orderStatusMachine.js';
 import { sendOrderStatusEmail } from '../services/email.service.js';
+import { createInAppNotification } from './notification.controller.js';
 
 // 1. Create Order (Checkout Entrypoint)
 export const createOrder = asyncHandler(async (req, res) => {
@@ -602,7 +603,16 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   order.addStatusEntry(orderStatus, note || `Status updated to ${orderStatus} by admin`);
   await order.save();
 
-  // Fire-and-forget order status update notification email
+  // Fire-and-forget order status update notification email and in-app notification
+  createInAppNotification({
+    userId: order.user,
+    type: 'order_status',
+    title: `Order Status Updated: ${orderStatus.toUpperCase()}`,
+    message: `Your order #${order.orderNumber} status is now ${orderStatus}.`,
+    link: `/orders/${order._id}`,
+    metadata: { orderId: order._id, orderNumber: order.orderNumber, status: orderStatus },
+  });
+
   order.populate('user', 'name email').then((populatedOrder) => {
     sendOrderStatusEmail(populatedOrder, previousStatus);
   }).catch((err) => {

@@ -274,5 +274,42 @@
     "loggedOut": "تم تسجيل الخروج بنجاح",
     "loggedIn": "مرحباً بعودتك!",
     "orderPlaced": "تم تقديم الطلب بنجاح!"
+  },
+  "breadcrumb": {
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "cart": "السلة",
+    "checkout": "الدفع",
+    "wishlist": "المفضلة",
+    "orders": "الطلبات"
+  },
+  "reviews": {
+    "title": "تقييمات وآراء العملاء",
+    "subTitle": "تقييمات موثقة من مشترين حقيقيين",
+    "writeReview": "كتابة تقييم",
+    "loginRequired": "سجل الدخول لكتابة تقييم للمنتج",
+    "totalReviews": "تقييمات العملاء",
+    "allReviews": "قائمة التقييمات",
+    "sortNewest": "الأحدث أولاً",
+    "sortHighest": "الأعلى تقييماً",
+    "sortLowest": "الأقل تقييماً",
+    "noReviews": "لا توجد تقييمات لهذا المنتج حتى الآن.",
+    "yourRating": "تقييمك",
+    "reviewTitle": "عنوان التقييم",
+    "reviewComment": "التقييم التفصيلي",
+    "imageUrl": "رابط الصورة (اختياري)",
+    "submit": "إرسال التقييم",
+    "successMessage": "تم إرسال التقييم بنجاح!"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "new": "جديد",
+    "markAllRead": "تحديد الكل كمقروء",
+    "emptyTitle": "لا توجد إشعارات حالياً",
+    "emptySub": "سنخطرك فور تحديث حالة طلباتك أو العروض.",
+    "viewDetails": "عرض التفاصيل"
+  },
+  "backToTop": {
+    "label": "العودة للأعلى"
   }
 }

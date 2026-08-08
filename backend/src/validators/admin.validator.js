@@ -39,8 +39,8 @@ export const createBannerValidator = [
     .withMessage('Title cannot exceed 150 characters'),
   body('placement')
     .optional()
-    .isIn(['hero', 'promo', 'category'])
-    .withMessage("Placement must be 'hero', 'promo', or 'category'"),
+    .isIn(['hero', 'promo', 'category', 'flash-sale'])
+    .withMessage("Placement must be 'hero', 'promo', 'category', or 'flash-sale'"),
 ];
 
 export const updateBannerValidator = [
@@ -59,8 +59,8 @@ export const updateBannerValidator = [
     .withMessage('Title cannot exceed 150 characters'),
   body('placement')
     .optional()
-    .isIn(['hero', 'promo', 'category'])
-    .withMessage("Placement must be 'hero', 'promo', or 'category'"),
+    .isIn(['hero', 'promo', 'category', 'flash-sale'])
+    .withMessage("Placement must be 'hero', 'promo', 'category', or 'flash-sale'"),
 ];
 
 export const bulkUpdateStockValidator = [

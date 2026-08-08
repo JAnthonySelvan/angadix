@@ -274,5 +274,42 @@
     "loggedOut": "Sesión cerrada correctamente",
     "loggedIn": "¡Bienvenido de nuevo!",
     "orderPlaced": "¡Pedido realizado con éxito!"
+  },
+  "breadcrumb": {
+    "home": "Inicio",
+    "shop": "Tienda",
+    "cart": "Carrito",
+    "checkout": "Pagar",
+    "wishlist": "Favoritos",
+    "orders": "Pedidos"
+  },
+  "reviews": {
+    "title": "Opiniones y Valoraciones de Clientes",
+    "subTitle": "Comentarios verificados de compradores auténticos",
+    "writeReview": "Escribir una opinión",
+    "loginRequired": "Inicia sesión para escribir una opinión",
+    "totalReviews": "Opiniones de clientes",
+    "allReviews": "Lista de opiniones",
+    "sortNewest": "Más recientes primero",
+    "sortHighest": "Mejor valorados",
+    "sortLowest": "Peor valorados",
+    "noReviews": "Aún no hay opiniones para este producto.",
+    "yourRating": "Tu valoración",
+    "reviewTitle": "Título de la opinión",
+    "reviewComment": "Opinión detallada",
+    "imageUrl": "URL de foto (Opcional)",
+    "submit": "Enviar opinión",
+    "successMessage": "¡Opinión enviada con éxito!"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "new": "nueva",
+    "markAllRead": "Marcar todo como leído",
+    "emptyTitle": "No hay notificaciones",
+    "emptySub": "Te notificaremos cuando cambie el estado de tus pedidos.",
+    "viewDetails": "Ver detalles"
+  },
+  "backToTop": {
+    "label": "Ir arriba"
   }
 }

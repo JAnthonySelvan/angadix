@@ -19,6 +19,7 @@ import { CountdownTimer } from '../components/common/CountdownTimer';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { getProductImageUrl } from '../utils/orderHelpers';
+import api from '../lib/axios';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
@@ -68,6 +69,7 @@ export const Home = () => {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [dbBanners, setDbBanners] = useState([]);
 
   useEffect(() => {
     dispatch(fetchHomepageProducts());
@@ -76,26 +78,47 @@ export const Home = () => {
     if (isAuthenticated) {
       dispatch(fetchRecommendedForYou());
     }
+
+    // Fetch active storefront banners from backend
+    api.get('/banners?isActive=true')
+      .then((res) => {
+        if (res.data?.data) {
+          setDbBanners(res.data.data);
+        }
+      })
+      .catch(() => {});
   }, [dispatch, isAuthenticated]);
 
-  const HERO_SLIDES = [
-    {
-      tag: t('home.heroTag', 'Next-Gen Technology'),
-      title: `${t('home.heroTitle1', 'Ultimate Audio &')} ${t('home.heroTitle2', 'Smart Wearables')}`,
-      sub: t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
-      cta1: t('common.shopNow', 'Shop Now'),
-      cta2: t('home.exploreCatalog', 'Explore Catalog'),
-      img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500&fit=crop&auto=format',
-    },
-    {
-      tag: t('home.trendingNow', 'Trending Now'),
-      title: t('home.heroTitle1', 'Innovation at Your Fingertips'),
-      sub: t('home.browseCategoriesSub', 'Explore our curated collection of high-tech gear'),
-      cta1: t('common.shopNow', 'Shop Now'),
-      cta2: t('common.viewAll', 'View All'),
-      img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=700&h=500&fit=crop&auto=format',
-    },
-  ];
+  const activeHeroBanners = dbBanners.filter((b) => b.placement === 'hero');
+
+  const HERO_SLIDES = activeHeroBanners.length > 0
+    ? activeHeroBanners.map((b) => ({
+        tag: b.subtitle || t('home.heroTag', 'Next-Gen Technology'),
+        title: b.title,
+        sub: b.subtitle || t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
+        cta1: b.ctaText || t('common.shopNow', 'Shop Now'),
+        cta2: t('home.exploreCatalog', 'Explore Catalog'),
+        img: b.image?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500&fit=crop&auto=format',
+        link: b.ctaLink || '/shop',
+      }))
+    : [
+        {
+          tag: t('home.heroTag', 'Next-Gen Technology'),
+          title: `${t('home.heroTitle1', 'Ultimate Audio &')} ${t('home.heroTitle2', 'Smart Wearables')}`,
+          sub: t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
+          cta1: t('common.shopNow', 'Shop Now'),
+          cta2: t('home.exploreCatalog', 'Explore Catalog'),
+          img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500&fit=crop&auto=format',
+        },
+        {
+          tag: t('home.trendingNow', 'Trending Now'),
+          title: t('home.heroTitle1', 'Innovation at Your Fingertips'),
+          sub: t('home.browseCategoriesSub', 'Explore our curated collection of high-tech gear'),
+          cta1: t('common.shopNow', 'Shop Now'),
+          cta2: t('common.viewAll', 'View All'),
+          img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=700&h=500&fit=crop&auto=format',
+        },
+      ];
 
   // Hero carousel auto advance
   useEffect(() => {

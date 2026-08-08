@@ -274,5 +274,42 @@
     "loggedOut": "Erfolgreich abgemeldet",
     "loggedIn": "Willkommen zurück!",
     "orderPlaced": "Bestellung erfolgreich aufgegeben!"
+  },
+  "breadcrumb": {
+    "home": "Startseite",
+    "shop": "Shop",
+    "cart": "Warenkorb",
+    "checkout": "Kasse",
+    "wishlist": "Wunschliste",
+    "orders": "Bestellungen"
+  },
+  "reviews": {
+    "title": "Kundenbewertungen",
+    "subTitle": "Verifizierte Bewertungen von echten Käufern",
+    "writeReview": "Bewertung schreiben",
+    "loginRequired": "Melden Sie sich an, um eine Bewertung zu schreiben",
+    "totalReviews": "Kundenbewertungen",
+    "allReviews": "Bewertungsliste",
+    "sortNewest": "Neueste zuerst",
+    "sortHighest": "Höchste Bewertung",
+    "sortLowest": "Niedrigste Bewertung",
+    "noReviews": "Noch keine Bewertungen für dieses Produkt.",
+    "yourRating": "Ihre Bewertung",
+    "reviewTitle": "Bewertungstitel",
+    "reviewComment": "Ausführliche Bewertung",
+    "imageUrl": "Foto-URL (Optional)",
+    "submit": "Bewertung absenden",
+    "successMessage": "Bewertung erfolgreich übermittelt!"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "new": "neu",
+    "markAllRead": "Alle als gelesen markieren",
+    "emptyTitle": "Keine Benachrichtigungen",
+    "emptySub": "Wir informieren Sie, wenn sich Ihr Bestellstatus ändert.",
+    "viewDetails": "Details anzeigen"
+  },
+  "backToTop": {
+    "label": "Nach oben"
   }
 }

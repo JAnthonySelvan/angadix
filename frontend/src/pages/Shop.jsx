@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SlidersHorizontal, RefreshCcw, Star, Check } from 'lucide-react';
+import { SlidersHorizontal, RefreshCcw, Star, Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
@@ -13,6 +13,7 @@ import {
 import { ProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { QuickViewModal } from '../components/common/QuickViewModal';
+import { Breadcrumb } from '../components/common/Breadcrumb';
 
 const parseParamArray = (paramVal) => {
   if (!paramVal) return [];
@@ -89,6 +90,96 @@ export const Shop = () => {
     }
     return map;
   }, [facets.data]);
+
+  // State for expanded parent category sections
+  const [expandedParents, setExpandedParents] = useState({});
+
+  // Group categories into parent categories and subcategories
+  const { parentCategories, subCategoriesMap } = useMemo(() => {
+    const items = categories.items || [];
+    const getParentId = (cat) => {
+      if (!cat || !cat.parentCategory) return null;
+      if (typeof cat.parentCategory === 'object') {
+        return cat.parentCategory._id ? String(cat.parentCategory._id) : cat.parentCategory.slug || null;
+      }
+      return String(cat.parentCategory);
+    };
+
+    const parents = [];
+    const parentIdSet = new Set();
+
+    items.forEach((cat) => {
+      const pId = getParentId(cat);
+      if (!pId) {
+        parents.push(cat);
+        parentIdSet.add(String(cat._id));
+        if (cat.slug) parentIdSet.add(cat.slug);
+      }
+    });
+
+    const subsMap = {};
+
+    items.forEach((cat) => {
+      const pId = getParentId(cat);
+      if (pId) {
+        const parentMatch = items.find(
+          (p) => String(p._id) === pId || p.slug === pId
+        );
+        const parentKey = parentMatch ? String(parentMatch._id) : pId;
+        if (!subsMap[parentKey]) subsMap[parentKey] = [];
+        subsMap[parentKey].push(cat);
+      }
+    });
+
+    const knownSubIds = new Set(Object.values(subsMap).flat().map((c) => String(c._id)));
+    const topLevelParents = items.filter((cat) => !knownSubIds.has(String(cat._id)));
+
+    return { parentCategories: topLevelParents, subCategoriesMap: subsMap };
+  }, [categories.items]);
+
+  // Auto-expand parent categories when parent or child is selected
+  useEffect(() => {
+    if (selectedCategories.length > 0 && parentCategories.length > 0) {
+      setExpandedParents((prev) => {
+        const next = { ...prev };
+        let changed = false;
+
+        parentCategories.forEach((parent) => {
+          const parentKey = String(parent._id);
+          const subCats = subCategoriesMap[parentKey] || [];
+          const isParentSelected = selectedCategories.includes(parent.slug);
+          const isChildSelected = subCats.some((sub) => selectedCategories.includes(sub.slug));
+
+          if ((isParentSelected || isChildSelected) && !next[parentKey]) {
+            next[parentKey] = true;
+            changed = true;
+          }
+        });
+
+        return changed ? next : prev;
+      });
+    }
+  }, [selectedCategories, parentCategories, subCategoriesMap]);
+
+  const toggleParentExpand = (parentKey, e) => {
+    e.stopPropagation();
+    setExpandedParents((prev) => ({
+      ...prev,
+      [parentKey]: !prev[parentKey],
+    }));
+  };
+
+  const getCategoryCount = (cat, subCats = []) => {
+    let directCount = facetCategoryCounts[cat.slug] ?? facetCategoryCounts[cat._id] ?? 0;
+    if (subCats && subCats.length > 0) {
+      let subTotal = 0;
+      subCats.forEach((sub) => {
+        subTotal += facetCategoryCounts[sub.slug] ?? facetCategoryCounts[sub._id] ?? 0;
+      });
+      return directCount + subTotal;
+    }
+    return directCount;
+  };
 
   // Determine if search query is active alone without other filters
   const isOnlySearchActive = useMemo(() => {
@@ -224,6 +315,9 @@ export const Shop = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Breadcrumb */}
+      <Breadcrumb items={[{ label: t('nav.shop', 'Shop Catalog') }]} />
+
       {/* Header Banner */}
       <div className="rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-r from-[#0266C8] via-[#0054A6] to-[#0a2540] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
         <h1 className="text-2xl sm:text-4xl font-extrabold font-heading mb-2 tracking-tight">
@@ -281,37 +375,120 @@ export const Shop = () => {
               </label>
             </div>
 
-            {/* Categories (Multi-Select) */}
+            {/* Categories (Hierarchical Multi-Select) */}
             <div className="space-y-2">
-              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                {t('shop.categoryFilter', 'Categories')}
+              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading flex items-center justify-between">
+                <span>{t('shop.categoryFilter', 'Categories')}</span>
+                {categories.items.length > 0 && (
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    ({categories.items.length})
+                  </span>
+                )}
               </h4>
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {categories.items.map((cat) => {
-                  const isChecked = selectedCategories.includes(cat.slug);
-                  const count = facetCategoryCounts[cat.slug] ?? facetCategoryCounts[cat._id];
+              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                {parentCategories.map((parent) => {
+                  const parentKey = String(parent._id);
+                  const subCats = subCategoriesMap[parentKey] || [];
+                  const hasSubCats = subCats.length > 0;
+                  const isParentChecked = selectedCategories.includes(parent.slug);
+                  const isExpanded = !!expandedParents[parentKey] || isParentChecked;
+                  const count = getCategoryCount(parent, subCats);
+
                   return (
-                    <label
-                      key={cat._id}
-                      className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                        isChecked
-                          ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleCategoryToggle(cat.slug)}
-                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
-                        />
-                        <span>{cat.name}</span>
+                    <div key={parent._id} className="space-y-1">
+                      {/* Parent Category Row */}
+                      <div
+                        className={`group flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                          isParentChecked
+                            ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isParentChecked}
+                            onChange={() => {
+                              handleCategoryToggle(parent.slug);
+                              if (!isExpanded && hasSubCats) {
+                                setExpandedParents((prev) => ({ ...prev, [parentKey]: true }));
+                              }
+                            }}
+                            className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
+                          />
+                          <span
+                            className="truncate flex-1"
+                            onClick={() => {
+                              if (hasSubCats) {
+                                setExpandedParents((prev) => ({ ...prev, [parentKey]: !isExpanded }));
+                              } else {
+                                handleCategoryToggle(parent.slug);
+                              }
+                            }}
+                          >
+                            {parent.name}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 ml-1">
+                          {count > 0 && (
+                            <span className="text-[10px] font-bold text-slate-400">({count})</span>
+                          )}
+                          {hasSubCats && (
+                            <button
+                              type="button"
+                              onClick={(e) => toggleParentExpand(parentKey, e)}
+                              className="p-1 text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-300 transition-transform"
+                              aria-label="Toggle subcategories"
+                            >
+                              <ChevronDown
+                                size={14}
+                                className={`transition-transform duration-200 ${
+                                  isExpanded ? 'rotate-180 text-[#0266C8] dark:text-sky-300' : ''
+                                }`}
+                              />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      {count !== undefined && (
-                        <span className="text-[10px] font-bold text-slate-400">({count})</span>
+
+                      {/* Subcategories (Indented Tree View) */}
+                      {hasSubCats && isExpanded && (
+                        <div className="ml-4 pl-2 border-l-2 border-[#BAE6FD] dark:border-slate-800 space-y-1 py-0.5">
+                          {subCats.map((sub) => {
+                            const isSubChecked = selectedCategories.includes(sub.slug);
+                            const subCount =
+                              facetCategoryCounts[sub.slug] ?? facetCategoryCounts[sub._id];
+
+                            return (
+                              <label
+                                key={sub._id}
+                                className={`flex items-center justify-between px-2.5 py-1 rounded-md text-[11px] font-medium cursor-pointer transition-colors ${
+                                  isSubChecked
+                                    ? 'bg-[#E1F5FE]/80 dark:bg-sky-950/50 text-[#0266C8] dark:text-sky-300 font-bold'
+                                    : isParentChecked
+                                    ? 'text-[#0266C8]/80 dark:text-sky-400/80 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSubChecked}
+                                    onChange={() => handleCategoryToggle(sub.slug)}
+                                    className="w-3 h-3 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
+                                  />
+                                  <span className="truncate">{sub.name}</span>
+                                </div>
+                                {subCount !== undefined && (
+                                  <span className="text-[10px] text-slate-400">({subCount})</span>
+                                )}
+                              </label>
+                            );
+                          })}
+                        </div>
                       )}
-                    </label>
+                    </div>
                   );
                 })}
               </div>

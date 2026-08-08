@@ -64,7 +64,10 @@ export const PaymentStep = ({ selectedAddressId, onBack }) => {
         }
 
         const options = {
-          key: response.razorpayKeyId,
+          key:
+            response.razorpayOrder?.key ||
+            response.razorpayKeyId ||
+            import.meta.env.VITE_RAZORPAY_KEY_ID,
           amount: response.razorpayOrder.amount,
           currency: response.razorpayOrder.currency,
           name: 'Angadix Store',

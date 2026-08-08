@@ -6,6 +6,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { env } from '../config/env.js';
 import razorpayInstance, { razorpayConfig } from '../config/razorpay.js';
 import { Order } from '../models/Order.js';
+import { Payment } from '../models/Payment.js';
 import { Address } from '../models/Address.js';
 import { Cart } from '../models/Cart.js';
 import { Product } from '../models/Product.js';
@@ -213,6 +214,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       201,
       {
         order,
+        razorpayKeyId: env.razorpay.keyId,
         razorpayOrder: {
           id: razorpayOrder.id,
           amount: razorpayOrder.amount,

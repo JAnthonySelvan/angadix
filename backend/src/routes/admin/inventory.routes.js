@@ -11,6 +11,6 @@ const router = Router();
 
 router.get('/', getInventoryProducts);
 router.get('/low-stock-alerts', getLowStockAlerts);
-router.patch('/bulk-update', bulkUpdateStock);
+router.patch('/bulk-update', validate(bulkUpdateStockValidator), bulkUpdateStock);
 
 export default router;

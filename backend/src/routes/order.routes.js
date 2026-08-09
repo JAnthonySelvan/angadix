@@ -8,6 +8,7 @@ import {
   verifyPaymentValidator,
   updateOrderStatusValidator,
   cancelOrderValidator,
+  getOrdersQueryValidator,
 } from '../validators/order.validator.js';
 import {
   createOrder,
@@ -49,7 +50,7 @@ router.use(protect);
 router
   .route('/')
   .post(checkoutLimiter, validate(createOrderValidator), createOrder)
-  .get(authorize('admin'), getAllOrders);
+  .get(authorize('admin'), validate(getOrdersQueryValidator), getAllOrders);
 
 router.post(
   '/verify-payment',

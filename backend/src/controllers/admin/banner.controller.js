@@ -20,6 +20,8 @@ export const getBanners = asyncHandler(async (req, res) => {
     .sort({ sortOrder: 1, createdAt: -1 })
     .lean();
 
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+
   return res.status(200).json(
     new ApiResponse(200, banners, 'Banners retrieved successfully.')
   );

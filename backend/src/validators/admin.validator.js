@@ -86,3 +86,33 @@ export const mongoIdParamValidator = [
     return true;
   }),
 ];
+
+export const updateUserRoleValidator = [
+  param('id').custom((value) => {
+    if (!mongoose.Types.ObjectId.isValid(value)) {
+      throw new Error('Invalid user ID format');
+    }
+    return true;
+  }),
+  body('role')
+    .notEmpty()
+    .withMessage('Role is required')
+    .isIn(['user', 'admin'])
+    .withMessage("Role must be either 'user' or 'admin'"),
+];
+
+export const getAdminUsersQueryValidator = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be an integer between 1 and 50'),
+  query('role')
+    .optional()
+    .isIn(['user', 'admin'])
+    .withMessage("Role filter must be 'user' or 'admin'"),
+  query('search').optional().trim(),
+];

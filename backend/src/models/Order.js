@@ -174,6 +174,8 @@ const orderSchema = new mongoose.Schema(
 
 // Indexes
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ user: 1, orderStatus: 1 });
+orderSchema.index({ orderStatus: 1, paymentStatus: 1, createdAt: -1 });
 
 // Helper to generate unique order numbers
 const generateOrderNumber = () => {

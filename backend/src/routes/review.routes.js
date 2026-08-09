@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import {
   getProductReviews,
   getProductReviewSummary,
@@ -15,6 +16,20 @@ import {
 
 const router = express.Router();
 
+// Rate limiter for review creation to prevent spam
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 10, // Limit each IP to 10 reviews per 15 minutes
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many reviews posted from this IP. Please try again after 15 minutes.',
+    errors: [],
+  },
+});
+
 // Public routes
 router.get('/product/:productId', getProductReviews);
 router.get('/product/:productId/summary', getProductReviewSummary);
@@ -23,6 +38,7 @@ router.get('/product/:productId/summary', getProductReviewSummary);
 router.post(
   '/product/:productId',
   protect,
+  reviewLimiter,
   validate(createReviewValidator),
   createReview
 );

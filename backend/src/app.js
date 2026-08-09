@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import mongoSanitize from 'express-mongo-sanitize';
 import morgan from 'morgan';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -29,12 +31,53 @@ import { ApiResponse } from './utils/ApiResponse.js';
 const app = express();
 
 // 1. HTTP Security Headers
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://checkout.razorpay.com',
+          'https://*.razorpay.com',
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https://res.cloudinary.com',
+          'https://*.razorpay.com',
+        ],
+        connectSrc: [
+          "'self'",
+          'https://api.razorpay.com',
+          'https://*.razorpay.com',
+        ],
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: env.isProd
+      ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+      : false,
+  })
+);
+
+// 1.1 Response Compression (Mounted after helmet, before webhook raw-body route)
+app.use(compression({ threshold: 0 }));
 
 // 2. Cross-Origin Resource Sharing (CORS)
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin: (origin, callback) => {
+      if (!origin || env.clientUrls.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true, // Allow cookies to be sent across origins
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -49,6 +92,21 @@ app.post(
   express.raw({ type: 'application/json' }),
   razorpayWebhook
 );
+
+// Global Fallback Rate Limiter (Applied AFTER raw-body webhook route and BEFORE API routers)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 300, // Generous limit: 300 requests per 15 minutes per IP
+  standardHeaders: 'draft-7',
+  legacyHeaders: true,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many requests from this IP. Please try again after 15 minutes.',
+    errors: [],
+  },
+});
+app.use('/api/v1', globalLimiter);
 
 // 3. Request Body Parsing
 app.use(express.json({ limit: '16kb' }));

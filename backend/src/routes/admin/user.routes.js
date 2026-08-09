@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { validate } from '../../middlewares/validate.middleware.js';
-import { mongoIdParamValidator } from '../../validators/admin.validator.js';
+import {
+  mongoIdParamValidator,
+  updateUserRoleValidator,
+  getAdminUsersQueryValidator,
+} from '../../validators/admin.validator.js';
 import {
   getAdminUsers,
   toggleUserBlock,
@@ -10,9 +14,9 @@ import {
 
 const router = Router();
 
-router.get('/', getAdminUsers);
+router.get('/', validate(getAdminUsersQueryValidator), getAdminUsers);
 router.get('/:id/orders', validate(mongoIdParamValidator), getUserOrders);
 router.patch('/:id/block', validate(mongoIdParamValidator), toggleUserBlock);
-router.patch('/:id/role', validate(mongoIdParamValidator), updateUserRole);
+router.patch('/:id/role', validate(updateUserRoleValidator), updateUserRole);
 
 export default router;

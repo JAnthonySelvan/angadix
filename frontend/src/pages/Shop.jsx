@@ -14,6 +14,7 @@ import { ProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { Breadcrumb } from '../components/common/Breadcrumb';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 const parseParamArray = (paramVal) => {
   if (!paramVal) return [];
@@ -21,6 +22,7 @@ const parseParamArray = (paramVal) => {
 };
 
 export const Shop = () => {
+  useDocumentTitle('Shop All Products');
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useAppDispatch();

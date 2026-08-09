@@ -154,11 +154,12 @@ const productSchema = new mongoose.Schema(
 
 // Compound indexes for optimized query paths
 productSchema.index({ category: 1, isActive: 1, price: 1 });
-productSchema.index({ brand: 1, isActive: 1 });
+productSchema.index({ brand: 1, isActive: 1, price: 1 });
 productSchema.index({ isFeatured: 1, ratingsAverage: -1 });
 productSchema.index({ isBestSeller: 1, isActive: 1 });
 productSchema.index({ price: 1, isActive: 1 });
 productSchema.index({ isActive: 1, ratingsAverage: -1 });
+productSchema.index({ isActive: 1, createdAt: -1 });
 productSchema.index({ tags: 1, isActive: 1 });
 
 // Full-text search index with field weighting

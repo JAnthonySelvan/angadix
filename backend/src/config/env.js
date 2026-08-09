@@ -33,6 +33,9 @@ export const env = {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  clientUrls: process.env.CLIENT_URLS
+    ? process.env.CLIENT_URLS.split(',').map((u) => u.trim())
+    : [process.env.CLIENT_URL || 'http://localhost:3000'],
   mongoUri: process.env.MONGO_URI,
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET,

@@ -28,6 +28,8 @@ export const getCategories = asyncHandler(async (req, res) => {
     .sort({ name: 1 })
     .lean();
 
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+
   return res.status(200).json(
     new ApiResponse(200, categories, 'Categories retrieved successfully.')
   );

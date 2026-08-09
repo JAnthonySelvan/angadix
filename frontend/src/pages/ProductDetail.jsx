@@ -21,6 +21,7 @@ import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtT
 import { Breadcrumb } from '../components/common/Breadcrumb';
 import { ProductReviews } from '../components/reviews/ProductReviews';
 import { getProductImageUrl } from '../utils/orderHelpers';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
@@ -98,6 +99,8 @@ export const ProductDetail = () => {
     tags = [],
   } = product;
 
+  useDocumentTitle(name);
+
   const currencySymbol = currency === 'INR' ? '₹' : '$';
   const displayPrice = (discountPrice || price).toLocaleString('en-IN');
   const originalPrice = discountPrice ? price.toLocaleString('en-IN') : null;
@@ -152,8 +155,35 @@ export const ProductDetail = () => {
     }
   };
 
+  const jsonLdSchema = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name,
+    image: allImages,
+    description: shortDescription || description,
+    sku: product.sku || product._id,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: currency,
+      price: discountPrice || price,
+      availability: stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+    ...(ratingsCount > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: ratingsAverage,
+        reviewCount: ratingsCount,
+      },
+    }),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+      {/* JSON-LD Structured Data Schema for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
+      />
       {/* Breadcrumb */}
       <Breadcrumb
         items={[

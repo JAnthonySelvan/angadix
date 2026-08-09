@@ -183,6 +183,7 @@ export const OrderHistory = () => {
                               'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&auto=format';
                           }}
                           className="inline-block h-12 w-12 rounded-xl object-cover ring-2 ring-white dark:ring-slate-900 border border-slate-200 dark:border-slate-700"
+                          loading="lazy"
                         />
                       ))}
                     </div>

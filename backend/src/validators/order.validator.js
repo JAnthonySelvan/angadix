@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import mongoose from 'mongoose';
 
 export const createOrderValidator = [
@@ -106,4 +106,40 @@ export const regenerateInvoiceValidator = [
       }
       return true;
     }),
+];
+
+export const getOrdersQueryValidator = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be an integer between 1 and 50'),
+  query('orderStatus')
+    .optional()
+    .isIn([
+      'pending',
+      'confirmed',
+      'packed',
+      'shipped',
+      'delivered',
+      'cancelled',
+      'returned',
+      'refunded',
+    ])
+    .withMessage('Invalid order status filter'),
+  query('paymentStatus')
+    .optional()
+    .isIn(['pending', 'paid', 'failed', 'refunded'])
+    .withMessage('Invalid payment status filter'),
+  query('startDate')
+    .optional()
+    .isISO8601()
+    .withMessage('startDate must be a valid ISO 8601 date string'),
+  query('endDate')
+    .optional()
+    .isISO8601()
+    .withMessage('endDate must be a valid ISO 8601 date string'),
 ];

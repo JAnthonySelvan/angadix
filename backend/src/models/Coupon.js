@@ -107,6 +107,8 @@ const couponSchema = new mongoose.Schema(
   }
 );
 
+couponSchema.index({ code: 1, isActive: 1 });
+
 // Pre-validate check ensuring validUntil > validFrom
 couponSchema.pre('validate', function (next) {
   if (this.validFrom && this.validUntil) {

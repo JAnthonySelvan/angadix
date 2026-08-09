@@ -21,6 +21,8 @@ export const getBrands = asyncHandler(async (req, res) => {
 
   const brands = await Brand.find(filter).sort({ name: 1 }).lean();
 
+  res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+
   return res.status(200).json(
     new ApiResponse(200, brands, 'Brands retrieved successfully.')
   );

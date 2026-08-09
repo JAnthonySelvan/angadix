@@ -23,30 +23,61 @@ import { OrderDetail } from '../pages/OrderDetail';
 
 import { AdminRoute } from '../components/common/AdminRoute';
 import { AdminLayout } from '../components/layout/AdminLayout';
-import { Dashboard } from '../pages/admin/Dashboard';
-import { ProductManagement } from '../pages/admin/ProductManagement';
-import { CategoryManagement } from '../pages/admin/CategoryManagement';
-import { BrandManagement } from '../pages/admin/BrandManagement';
-import { OrderManagement } from '../pages/admin/OrderManagement';
-import { CouponManagement } from '../pages/admin/CouponManagement';
-import { UserManagement } from '../pages/admin/UserManagement';
-import { BannerManagement } from '../pages/admin/BannerManagement';
-import { InventoryManagement } from '../pages/admin/InventoryManagement';
-import { Reports } from '../pages/admin/Reports';
+
+// Lazy-loaded Admin Page Modules (Route-level code splitting)
+const AdminDashboard = React.lazy(() =>
+  import('../pages/admin/Dashboard').then((m) => ({ default: m.Dashboard }))
+);
+const ProductManagement = React.lazy(() =>
+  import('../pages/admin/ProductManagement').then((m) => ({ default: m.ProductManagement }))
+);
+const CategoryManagement = React.lazy(() =>
+  import('../pages/admin/CategoryManagement').then((m) => ({ default: m.CategoryManagement }))
+);
+const BrandManagement = React.lazy(() =>
+  import('../pages/admin/BrandManagement').then((m) => ({ default: m.BrandManagement }))
+);
+const OrderManagement = React.lazy(() =>
+  import('../pages/admin/OrderManagement').then((m) => ({ default: m.OrderManagement }))
+);
+const CouponManagement = React.lazy(() =>
+  import('../pages/admin/CouponManagement').then((m) => ({ default: m.CouponManagement }))
+);
+const UserManagement = React.lazy(() =>
+  import('../pages/admin/UserManagement').then((m) => ({ default: m.UserManagement }))
+);
+const BannerManagement = React.lazy(() =>
+  import('../pages/admin/BannerManagement').then((m) => ({ default: m.BannerManagement }))
+);
+const InventoryManagement = React.lazy(() =>
+  import('../pages/admin/InventoryManagement').then((m) => ({ default: m.InventoryManagement }))
+);
+const Reports = React.lazy(() =>
+  import('../pages/admin/Reports').then((m) => ({ default: m.Reports }))
+);
+
+const AdminPageLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px] w-full text-slate-400 text-xs font-semibold">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mr-3"></div>
+    Loading Admin Module...
+  </div>
+);
 
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* Protected Admin Control Center Routes */}
+      {/* Protected Admin Control Center Routes (Lazy Loaded) */}
       <Route
         path="/admin"
         element={
           <AdminRoute>
-            <AdminLayout />
+            <React.Suspense fallback={<AdminPageLoader />}>
+              <AdminLayout />
+            </React.Suspense>
           </AdminRoute>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={<AdminDashboard />} />
         <Route path="products" element={<ProductManagement />} />
         <Route path="categories" element={<CategoryManagement />} />
         <Route path="brands" element={<BrandManagement />} />

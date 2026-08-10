@@ -45,8 +45,8 @@ function SectionHead({ badge, title, sub }) {
   return (
     <div className="text-center mb-10">
       <Chip variant="accent">{badge}</Chip>
-      <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mt-2">{title}</h2>
-      {sub && <p className="text-muted-foreground mt-2 max-w-xl mx-auto text-sm font-body">{sub}</p>}
+      <h2 className="font-heading text-2xl md:text-3xl font-bold text-[#0a2540] dark:text-white mt-2">{title}</h2>
+      {sub && <p className="text-slate-600 dark:text-slate-300 mt-2 max-w-xl mx-auto text-sm font-body">{sub}</p>}
     </div>
   );
 }
@@ -203,8 +203,7 @@ export const Home = () => {
       
       {/* ── 1. Hero Banner Section ───────────────────────────────────── */}
       <section
-        className="relative overflow-hidden py-10 md:py-16 border-b border-border"
-        style={{ background: 'linear-gradient(135deg, var(--secondary) 0%, var(--background) 55%, var(--muted) 100%)' }}
+        className="hero-section relative overflow-hidden border-b border-border"
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-10 min-h-[360px]">
@@ -553,14 +552,24 @@ export const Home = () => {
             {(brands.items.length > 0
               ? brands.items
               : ['Apple', 'Samsung', 'Sony', 'Nike', 'Dell', 'Bose'].map((b) => ({ _id: b, name: b }))
-            ).map((brand, idx) => (
-              <div
-                key={brand._id || idx}
-                className="bg-[#E1F5FE] dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-xl p-5 flex items-center justify-center text-center font-heading font-extrabold text-[#0a2540] dark:text-white text-sm hover:bg-[#D8EEFE] hover:border-[#0266C8]/40 transition-all shadow-sm"
-              >
-                {brand.name}
-              </div>
-            ))}
+            ).map((brand, idx) => {
+              const logoUrl = typeof brand.logo === 'string'
+                ? brand.logo
+                : (brand.logo?.url || (typeof brand.image === 'string' ? brand.image : brand.image?.url));
+              return (
+                <Link
+                  key={brand._id || idx}
+                  to={brand.slug ? `/shop?brand=${brand.slug}` : '/shop'}
+                  className="bg-white dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-xl p-4 flex flex-col items-center justify-center text-center font-heading font-extrabold text-[#0a2540] dark:text-white text-sm hover:border-[#0266C8] hover:shadow-md transition-all gap-2 h-24"
+                >
+                  {logoUrl ? (
+                    <img src={logoUrl} alt={brand.name} className="h-9 w-auto max-w-[85%] object-contain" />
+                  ) : (
+                    <span className="text-sm font-extrabold">{brand.name}</span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -20,6 +20,7 @@ import { Checkout } from '../pages/Checkout';
 import { OrderSuccess } from '../pages/OrderSuccess';
 import { OrderHistory } from '../pages/OrderHistory';
 import { OrderDetail } from '../pages/OrderDetail';
+import { BrowseCollection } from '../pages/BrowseCollection';
 
 import { AdminRoute } from '../components/common/AdminRoute';
 import { AdminLayout } from '../components/layout/AdminLayout';
@@ -108,6 +109,10 @@ export const AppRoutes = () => {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/categories" element={<BrowseCollection type="categories" />} />
+        <Route path="/brands" element={<BrowseCollection type="brands" />} />
+        <Route path="/best-sellers" element={<BrowseCollection type="bestSellers" />} />
+        <Route path="/flash-sale" element={<BrowseCollection type="flashSale" />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/products/:slug" element={<ProductDetail />} />

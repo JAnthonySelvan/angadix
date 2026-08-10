@@ -18,16 +18,26 @@
 .samsung-home > section > .max-w-7xl { max-width: 1280px; }
 .samsung-home h1, .samsung-home h2, .samsung-home h3 { letter-spacing: -0.045em; }
 
-/* Hero: full-bleed editorial panel with large, quiet type. */
-.samsung-home > section:first-child {
-  background: linear-gradient(118deg, #e7f5ff 0%, #f8fcff 52%, #d6edff 100%) !important;
+/* Hero: a dedicated full-bleed panel. `cover` keeps the artwork edge-to-edge
+   without stretching it as the hero grows or the viewport changes shape. */
+.samsung-home .hero-section {
+  background-image: url('../assets/hero-bg-light.jpg') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #edf8ff;
   border: 0 !important;
-  padding: 56px 0 64px !important;
+  padding-top: 56px !important;
+  padding-bottom: 64px !important;
+  min-height: 560px;
 }
-.dark .samsung-home > section:first-child { background: linear-gradient(118deg, #091a2c, #0c1420 56%, #102d47) !important; }
-.samsung-home > section:first-child h1 { font-size: clamp(2.7rem, 5vw, 4.7rem) !important; line-height: .98 !important; max-width: 680px; }
-.samsung-home > section:first-child img { border-radius: 28px !important; height: clamp(280px, 32vw, 420px) !important; object-fit: cover; box-shadow: 0 28px 60px rgba(2,102,200,.22) !important; }
-.samsung-home > section:first-child a { border-radius: 999px !important; padding: .85rem 1.6rem !important; }
+.dark .samsung-home .hero-section {
+  background-image: url('../assets/hero-bg-dark.jpg') !important;
+  background-color: #09111e;
+}
+.samsung-home .hero-section h1 { font-size: clamp(2.7rem, 5vw, 4.7rem) !important; line-height: .98 !important; max-width: 680px; }
+.samsung-home .hero-section img { border-radius: 28px !important; height: clamp(280px, 32vw, 420px) !important; object-fit: cover; box-shadow: 0 28px 60px rgba(2,102,200,.22) !important; }
+.samsung-home .hero-section a { border-radius: 999px !important; padding: .85rem 1.6rem !important; }
 
 /* Trust strip and category browsing become clean tile systems. */
 .samsung-home > section:nth-child(2) { background: #fff !important; border: 0 !important; padding: 28px 0 !important; }
@@ -40,9 +50,12 @@
 
 .samsung-home > section:nth-child(3) { padding: 68px 1rem !important; }
 .samsung-home > section:nth-child(3) .grid { gap: 14px !important; }
-.samsung-home > section:nth-child(3) .grid a { background: #f3f8fc !important; border: 0 !important; border-radius: 18px !important; min-height: 132px; justify-content: center; box-shadow: none !important; }
+.samsung-home > section:nth-child(3) .grid a { background: #f3f8fc !important; border: 0 !important; border-radius: 18px !important; min-height: 132px; justify-content: center; box-shadow: none !important; color: #0a2540 !important; }
 .samsung-home > section:nth-child(3) .grid a:hover { background: #e1f2ff !important; transform: translateY(-3px); }
 .samsung-home > section:nth-child(3) .grid a > div { background: #fff !important; border-radius: 50% !important; }
+.dark .samsung-home > section:nth-child(3) .grid a { background: #0d1826 !important; color: #f8fbff !important; }
+.dark .samsung-home > section:nth-child(3) .grid a:hover { background: #16263b !important; }
+.dark .samsung-home > section:nth-child(3) .grid a > div { background: #142236 !important; }
 
 /* Feature bands use generous padding and an understated studio-card feel. */
 .samsung-home > section:nth-child(4) { padding: 0 1rem 72px !important; }
@@ -78,8 +91,9 @@
 .samsung-home > section:nth-child(12) form input, .samsung-home > section:nth-child(12) form button { border-radius: 999px !important; }
 
 @media (max-width: 767px) {
-  .samsung-home > section:first-child { padding: 36px 0 48px !important; }
-  .samsung-home > section:first-child h1 { font-size: 2.7rem !important; }
+  .samsung-home { margin-top: -85px !important; }
+  .samsung-home .hero-section { min-height: 0; padding-top: 115px !important; padding-bottom: 48px !important; background-position: center center !important; }
+  .samsung-home .hero-section h1 { font-size: 2.7rem !important; }
   .samsung-home > section:nth-child(2) .grid { border-radius: 14px; }
   .samsung-home > section:nth-child(2) .grid > div:nth-child(odd) { border-left: 0 !important; }
   .samsung-home > section:nth-child(2) .grid > div:nth-child(n+3) { border-top: 1px solid rgba(2,102,200,.13) !important; }

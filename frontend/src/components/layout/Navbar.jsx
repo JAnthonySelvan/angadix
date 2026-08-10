@@ -19,7 +19,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logoutUser } from '../../features/auth/authThunks';
 import { toggleCartDrawer, selectCartTotalCount } from '../../features/cart/cartSlice';
 import { selectWishlistItems } from '../../features/wishlist/wishlistSlice';
-import { fetchCategories, fetchProductsList, fetchSearchSuggestions } from '../../features/products/productThunks';
+import { fetchBrands, fetchCategories, fetchProductsList, fetchSearchSuggestions } from '../../features/products/productThunks';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { MegaMenu } from '../common/MegaMenu';
@@ -53,6 +53,7 @@ export const Navbar = () => {
 
   useEffect(() => {
     dispatch(fetchCategories());
+    dispatch(fetchBrands());
   }, [dispatch]);
 
   useEffect(() => {
@@ -113,14 +114,13 @@ export const Navbar = () => {
   const navLinks = [
     { name: t('nav.home', 'Home'), path: '/' },
     { name: t('nav.shop', 'Shop'), path: '/shop' },
-    { name: t('nav.categories', 'Categories'), path: '/#categories' },
-    { name: t('home.shopByBrand', 'Brands'), path: '/#brands' },
-    { name: t('home.bestSellers', 'Best Sellers'), path: '/#bestsellers' },
-    { name: t('home.flashSale', 'Flash Sale'), path: '/#flashsale' },
+    { name: t('home.shopByBrand', 'Shop By Brand'), path: '/brands' },
+    { name: t('home.bestSellers', 'Best Sellers'), path: '/best-sellers' },
+    { name: t('home.flashSale', 'Flash Sale'), path: '/flash-sale' },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* 1. Top Alert Banner */}
       <TopAlertBanner />
 
@@ -148,11 +148,8 @@ export const Navbar = () => {
             </div>
           </Link>
 
-          {/* MegaMenu & Search Bar */}
+          {/* Search Bar */}
           <div className="hidden lg:flex items-center gap-2 flex-1 max-w-2xl relative mx-4">
-            {/* MegaMenu Dropdown */}
-            <MegaMenu />
-
             {/* Search Input with Live Dropdown */}
             <form onSubmit={handleSearchSubmit} className="flex-1 relative">
               <input
@@ -340,6 +337,7 @@ export const Navbar = () => {
       <div className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-800/60 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-10">
           <nav className="flex items-center gap-8">
+            <MegaMenu variant="nav" />
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -384,6 +382,12 @@ export const Navbar = () => {
             </form>
 
             <div className="flex flex-col gap-2">
+              <Link
+                to="/categories"
+                className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-primary-600 py-2 border-b border-slate-100 dark:border-slate-800"
+              >
+                {t('nav.categories', 'Categories')}
+              </Link>
               {navLinks.map((link) => (
                 <Link
                   key={link.name}

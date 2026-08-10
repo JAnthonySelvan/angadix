@@ -47,7 +47,7 @@
     overflow-x: hidden;
   }
 
-  /* Custom Scrollbar */
+  /* Custom Smooth Scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -58,12 +58,16 @@
   ::-webkit-scrollbar-thumb {
     background: #BAE6FD;
     border-radius: 9999px;
+    transition: background-color 0.2s ease;
   }
   .dark ::-webkit-scrollbar-thumb {
     background: #334155;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #0266C8;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #38BDF8;
   }
 }
 

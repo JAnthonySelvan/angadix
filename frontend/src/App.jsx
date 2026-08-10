@@ -7,6 +7,7 @@ import { fetchCurrentUser } from './features/auth/authThunks';
 import { syncUserData } from './utils/syncUserData';
 import { AppRoutes } from './routes/AppRoutes';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { ScrollToTop } from './components/common/ScrollToTop';
 
 const googleClientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your_google_client_id_here.apps.googleusercontent.com';
@@ -30,6 +31,7 @@ export default function App() {
     <ErrorBoundary>
       <GoogleOAuthProvider clientId={googleClientId}>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <ScrollToTop />
           {/* Custom Angadix Styled Toast Notifications */}
           <Toaster
             position="top-right"

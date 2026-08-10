@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SlidersHorizontal, RefreshCcw, Star, Check, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal, RefreshCcw, Star, Check, ChevronDown, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
@@ -264,18 +264,26 @@ export const Shop = () => {
   const handleCategoryToggle = (slug) => {
     setSelectedCategories((prev) => {
       const next = prev.includes(slug) ? prev.filter((c) => c !== slug) : [...prev, slug];
-      updateUrlParams({ category: next.length > 0 ? next.join(',') : null });
+      updateUrlParams({
+        category: next.length > 0 ? next.join(',') : null,
+        search: null,
+      });
       return next;
     });
+    setSearchQuery('');
     setCurrentPage(1);
   };
 
   const handleBrandToggle = (slug) => {
     setSelectedBrands((prev) => {
       const next = prev.includes(slug) ? prev.filter((b) => b !== slug) : [...prev, slug];
-      updateUrlParams({ brand: next.length > 0 ? next.join(',') : null });
+      updateUrlParams({
+        brand: next.length > 0 ? next.join(',') : null,
+        search: null,
+      });
       return next;
     });
+    setSearchQuery('');
     setCurrentPage(1);
   };
 
@@ -604,6 +612,52 @@ export const Shop = () => {
 
         {/* Right Main Grid */}
         <main className="space-y-6 lg:col-span-3">
+          {/* Active Filter Badges Bar */}
+          {(searchQuery || selectedCategories.length > 0 || selectedBrands.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs">
+              <span className="text-xs font-bold text-slate-400">Active Filters:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
+                  Search: "{searchQuery}"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      updateUrlParams({ search: null });
+                    }}
+                    className="hover:text-rose-500 transition-colors ml-0.5"
+                    aria-label="Remove search keyword filter"
+                  >
+                    <X size={13} />
+                  </button>
+                </span>
+              )}
+              {selectedCategories.map((slug) => (
+                <span key={slug} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
+                  Category: {slug}
+                  <button type="button" onClick={() => handleCategoryToggle(slug)} className="hover:text-rose-500 transition-colors ml-0.5">
+                    <X size={13} />
+                  </button>
+                </span>
+              ))}
+              {selectedBrands.map((slug) => (
+                <span key={slug} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
+                  Brand: {slug}
+                  <button type="button" onClick={() => handleBrandToggle(slug)} className="hover:text-rose-500 transition-colors ml-0.5">
+                    <X size={13} />
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline ml-auto"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
+
           {/* Top Sort & Search Toolbar */}
           <div className="p-4 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
@@ -641,8 +695,20 @@ export const Shop = () => {
                 />
               ))
             ) : (
-              <div className="col-span-full py-16 text-center text-slate-500 text-sm">
-                {t('shop.noProductsFound', 'No products found matching your active filters.')}
+              <div className="col-span-full py-16 text-center text-slate-500 text-sm space-y-4">
+                <p className="font-semibold text-slate-700 dark:text-slate-200">
+                  {searchQuery
+                    ? `No products found matching search "${searchQuery}"`
+                    : t('shop.noProductsFound', 'No products found matching your active filters.')}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#0266C8] hover:bg-[#0054A6] rounded-xl shadow-md transition-all"
+                >
+                  <RefreshCcw size={14} />
+                  <span>{t('shop.clearFilters', 'Reset Search & Clear Filters')}</span>
+                </button>
               </div>
             )}
           </div>

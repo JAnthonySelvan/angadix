@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../app/hooks';
 
-export const MegaMenu = () => {
+export const MegaMenu = ({ variant = 'compact' }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const categories = useAppSelector((state) => state.products.categories) || [];
-  const brands = useAppSelector((state) => state.products.brands) || [];
+  const categories = useAppSelector((state) => state.products.categories.items) || [];
+  const brands = useAppSelector((state) => state.products.brands.items) || [];
   const menuRef = useRef(null);
 
   // Close on outside click
@@ -28,7 +28,7 @@ export const MegaMenu = () => {
       {/* Category Dropdown Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 py-2 px-3 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs transition-colors focus:outline-none"
+        className={`flex items-center gap-2 py-2 px-3 font-extrabold text-xs transition-colors focus:outline-none ${variant === 'nav' ? 'h-10 -mx-3 rounded-lg text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800' : 'rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'}`}
       >
         <Grid size={15} className="text-primary-600 dark:text-primary-400" />
         <span>{t('nav.categories', 'Categories')}</span>
@@ -57,7 +57,7 @@ export const MegaMenu = () => {
                     <span>{t('nav.exploreCategories', 'Explore Categories')}</span>
                   </span>
                   <Link
-                    to="/shop"
+                  to="/categories"
                     onClick={() => setIsOpen(false)}
                     className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
                   >
@@ -72,29 +72,39 @@ export const MegaMenu = () => {
                       Loading categories...
                     </div>
                   ) : (
-                    categories.map((cat) => (
-                      <Link
-                        key={cat._id}
-                        to={`/shop?category=${cat.slug}`}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-slate-800 dark:text-slate-200 hover:text-primary-600 transition-all group"
-                      >
-                        {cat.image ? (
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="w-8 h-8 object-cover rounded-xl"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-xl bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600">
+                    categories.map((cat) => {
+                      const catImageUrl = typeof cat.image === 'string'
+                        ? cat.image
+                        : (cat.image?.url || (typeof cat.icon === 'string' ? cat.icon : cat.icon?.url));
+                      return (
+                        <Link
+                          key={cat._id}
+                          to={`/shop?category=${cat.slug}`}
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-primary-50 dark:hover:bg-primary-950/40 text-slate-800 dark:text-slate-200 hover:text-primary-600 transition-all group"
+                        >
+                          {catImageUrl ? (
+                            <img
+                              src={catImageUrl}
+                              alt={cat.name}
+                              className="w-8 h-8 object-cover rounded-xl shrink-0"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.classList.remove('hidden');
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-8 h-8 rounded-xl bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600 shrink-0 ${catImageUrl ? 'hidden' : ''}`}>
                             <Tag size={16} />
                           </div>
-                        )}
-                        <span className="text-xs font-bold truncate group-hover:translate-x-0.5 transition-transform">
-                          {cat.name}
-                        </span>
-                      </Link>
-                    ))
+                          <span className="text-xs font-bold truncate group-hover:translate-x-0.5 transition-transform">
+                            {cat.name}
+                          </span>
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -110,16 +120,24 @@ export const MegaMenu = () => {
 
                 {/* Brand Logos Pills */}
                 <div className="flex flex-wrap gap-2">
-                  {brands.slice(0, 6).map((brand) => (
-                    <Link
-                      key={brand._id}
-                      to={`/shop?brand=${brand.slug}`}
-                      onClick={() => setIsOpen(false)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-300 transition-colors"
-                    >
-                      {brand.name}
-                    </Link>
-                  ))}
+                  {brands.slice(0, 6).map((brand) => {
+                    const brandLogoUrl = typeof brand.logo === 'string'
+                      ? brand.logo
+                      : (brand.logo?.url || (typeof brand.image === 'string' ? brand.image : brand.image?.url));
+                    return (
+                      <Link
+                        key={brand._id}
+                        to={`/shop?brand=${brand.slug}`}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-300 transition-colors"
+                      >
+                        {brandLogoUrl ? (
+                          <img src={brandLogoUrl} alt={brand.name} className="w-4 h-4 object-contain rounded shrink-0" />
+                        ) : null}
+                        <span>{brand.name}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 {/* Highlight Promo Card */}
@@ -132,7 +150,7 @@ export const MegaMenu = () => {
                     {t('home.heroTitle1', 'Up to 50% Off Top Tech & Wearables')}
                   </h4>
                   <Link
-                    to="/shop"
+                    to="/flash-sale"
                     onClick={() => setIsOpen(false)}
                     className="inline-flex items-center gap-1 text-xs font-bold text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl transition-all"
                   >

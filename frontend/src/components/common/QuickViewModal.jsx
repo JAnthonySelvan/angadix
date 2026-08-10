@@ -91,6 +91,7 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: 'spring', damping: 28, stiffness: 320 }}
           className="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-10 my-8"
         >
           {/* Close Button */}

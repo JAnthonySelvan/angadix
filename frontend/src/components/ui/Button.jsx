@@ -55,7 +55,9 @@ export const Button = React.forwardRef(
       <motion.button
         ref={ref}
         type={type}
+        whileHover={!isButtonDisabled && variant === 'primary' ? { scale: 1.02 } : undefined}
         whileTap={!isButtonDisabled ? { scale: 0.97 } : undefined}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         disabled={isButtonDisabled}
         className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         onMouseEnter={onMouseEnter}

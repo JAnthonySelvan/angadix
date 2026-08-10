@@ -171,3 +171,21 @@ export const fetchRecommendedForYou = createAsyncThunk(
   }
 );
 
+/**
+ * Fetch Active Featured Showcase Items for Home Page
+ */
+export const fetchFeaturedShowcase = createAsyncThunk(
+  'products/fetchFeaturedShowcase',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get('/featured-showcase?isActive=true');
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch featured showcase items'
+      );
+    }
+  }
+);
+
+

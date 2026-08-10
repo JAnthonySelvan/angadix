@@ -50,7 +50,7 @@ export const Modal = ({
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
             onClick={(e) => e.stopPropagation()}
             className={`relative w-full ${maxWidth} max-h-[85vh] flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 z-10 overflow-hidden`}
           >

@@ -10,6 +10,7 @@ import {
   fetchProductFacets,
   fetchFrequentlyBoughtTogether,
   fetchRecommendedForYou,
+  fetchFeaturedShowcase,
 } from './productThunks';
 
 const initialState = {
@@ -23,6 +24,7 @@ const initialState = {
     loading: false,
     error: null,
   },
+  featuredShowcase: [],
   recommendations: {
     frequentlyBoughtTogether: [],
     recommendedForYou: [],
@@ -244,6 +246,12 @@ const productSlice = createSlice({
       .addCase(fetchRecommendedForYou.rejected, (state, action) => {
         state.recommendations.loading = false;
         state.recommendations.error = action.payload;
+      });
+
+    // Featured Showcase Items
+    builder
+      .addCase(fetchFeaturedShowcase.fulfilled, (state, action) => {
+        state.featuredShowcase = action.payload || [];
       });
   },
 });

@@ -2,16 +2,22 @@ import React, { useState } from 'react';
 import { Truck, HelpCircle, MapPin, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export const TopAlertBanner = () => {
+export const TopAlertBanner = ({ isOverHero = false }) => {
   const { t } = useTranslation();
   const [currency] = useState('INR (₹)');
 
   return (
-    <div className="bg-primary-900 text-white text-xs py-2 px-4 border-b border-primary-800/60 hidden sm:block">
+    <div
+      className={`text-xs py-2 px-4 border-b hidden sm:block transition-all duration-300 ${
+        isOverHero
+          ? 'bg-black/20 backdrop-blur-sm text-white border-white/10'
+          : 'bg-primary-900 text-white border-primary-800/60'
+      }`}
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left: Shipping Notice */}
         <div className="flex items-center gap-2 font-medium">
-          <Truck size={14} className="text-primary-300 animate-pulse" />
+          <Truck size={14} className={isOverHero ? 'text-sky-300 animate-pulse' : 'text-primary-300 animate-pulse'} />
           <span>
             {t('nav.topBannerText', '⚡ Free Express Shipping on all orders over ₹999')}
           </span>

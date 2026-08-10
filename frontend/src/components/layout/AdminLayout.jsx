@@ -18,6 +18,7 @@ import {
   Shield,
   ShoppingBag,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logoutUser } from '../../features/auth/authThunks';
@@ -38,6 +39,7 @@ export const AdminLayout = () => {
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Coupons', path: '/admin/coupons', icon: Ticket },
     { name: 'Banners', path: '/admin/banners', icon: ImageIcon },
+    { name: 'Featured Showcase', path: '/admin/featured-showcase', icon: Sparkles },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Inventory', path: '/admin/inventory', icon: Boxes },
     { name: 'Reports', path: '/admin/reports', icon: FileSpreadsheet },

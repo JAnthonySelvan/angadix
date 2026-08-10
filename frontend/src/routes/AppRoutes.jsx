@@ -50,6 +50,9 @@ const UserManagement = React.lazy(() =>
 const BannerManagement = React.lazy(() =>
   import('../pages/admin/BannerManagement').then((m) => ({ default: m.BannerManagement }))
 );
+const FeaturedShowcaseManagement = React.lazy(() =>
+  import('../pages/admin/FeaturedShowcaseManagement').then((m) => ({ default: m.FeaturedShowcaseManagement }))
+);
 const InventoryManagement = React.lazy(() =>
   import('../pages/admin/InventoryManagement').then((m) => ({ default: m.InventoryManagement }))
 );
@@ -85,6 +88,7 @@ export const AppRoutes = () => {
         <Route path="orders" element={<OrderManagement />} />
         <Route path="coupons" element={<CouponManagement />} />
         <Route path="banners" element={<BannerManagement />} />
+        <Route path="featured-showcase" element={<FeaturedShowcaseManagement />} />
         <Route path="customers" element={<UserManagement />} />
         <Route path="inventory" element={<InventoryManagement />} />
         <Route path="reports" element={<Reports />} />

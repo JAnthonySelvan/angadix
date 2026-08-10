@@ -132,8 +132,8 @@ export const ProductCard = ({ product, onQuickView }) => {
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -6, scale: 1.015 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl overflow-hidden group hover:shadow-[0_18px_38px_rgba(2,102,200,0.14)] transition-all duration-300 flex flex-col h-full relative"
       onMouseEnter={() => setIsHovered(true)}
       aria-label={`Product card for ${name}`}

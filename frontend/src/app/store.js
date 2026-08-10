@@ -11,6 +11,7 @@ import orderReducer from '../features/checkout/orderSlice';
 import adminAnalyticsReducer from '../features/admin/analyticsSlice';
 import adminUsersReducer from '../features/admin/adminUsersSlice';
 import adminBannersReducer from '../features/admin/bannerSlice';
+import adminFeaturedShowcaseReducer from '../features/admin/featuredShowcaseSlice';
 import adminProductsReducer from '../features/admin/adminProductsSlice';
 import adminInventoryReducer from '../features/admin/adminInventorySlice';
 import reviewReducer from '../features/reviews/reviewSlice';
@@ -32,6 +33,7 @@ export const store = configureStore({
     adminAnalytics: adminAnalyticsReducer,
     adminUsers: adminUsersReducer,
     adminBanners: adminBannersReducer,
+    adminFeaturedShowcase: adminFeaturedShowcaseReducer,
     adminProducts: adminProductsReducer,
     adminInventory: adminInventoryReducer,
   },

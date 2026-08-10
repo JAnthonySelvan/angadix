@@ -16,7 +16,7 @@ import {
   selectUnreadCount,
 } from '../../features/notifications/notificationSlice';
 
-export const NotificationBell = () => {
+export const NotificationBell = ({ isOverHero = false }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
@@ -56,7 +56,11 @@ export const NotificationBell = () => {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-full text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none"
+        className={`relative p-2.5 rounded-full transition-colors focus:outline-none ${
+          isOverHero
+            ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25'
+            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+        }`}
         aria-label={t('nav.notifications', 'Notifications')}
       >
         <Bell size={20} />

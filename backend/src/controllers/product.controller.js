@@ -814,7 +814,7 @@ export const getHomepageProducts = asyncHandler(async (req, res) => {
       .lean(),
 
     // Featured: isFeatured = true
-    Product.find({ ...activeQuery, isFeatured: true })
+    Product.find({ ...activeQuery, isFeatured: { $in: [true, 'true', 1] } })
       .select(selectFields)
       .populate(populateOptions)
       .sort({ createdAt: -1 })
@@ -822,7 +822,7 @@ export const getHomepageProducts = asyncHandler(async (req, res) => {
       .lean(),
 
     // Best Sellers: isBestSeller = true
-    Product.find({ ...activeQuery, isBestSeller: true })
+    Product.find({ ...activeQuery, isBestSeller: { $in: [true, 'true', 1] } })
       .select(selectFields)
       .populate(populateOptions)
       .sort({ createdAt: -1 })
@@ -845,6 +845,8 @@ export const getHomepageProducts = asyncHandler(async (req, res) => {
       .limit(limitCap)
       .lean(),
   ]);
+
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   return res.status(200).json(
     new ApiResponse(

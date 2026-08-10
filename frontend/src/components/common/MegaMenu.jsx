@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '../../app/hooks';
 
-export const MegaMenu = ({ variant = 'compact' }) => {
+export const MegaMenu = ({ variant = 'compact', isOverHero = false }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const categories = useAppSelector((state) => state.products.categories.items) || [];
@@ -28,9 +28,15 @@ export const MegaMenu = ({ variant = 'compact' }) => {
       {/* Category Dropdown Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 py-2 px-3 font-extrabold text-xs transition-colors focus:outline-none ${variant === 'nav' ? 'h-10 -mx-3 rounded-lg text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800' : 'rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'}`}
+        className={`flex items-center gap-2 py-2 px-3 font-extrabold text-xs transition-colors focus:outline-none ${
+          variant === 'nav'
+            ? isOverHero
+              ? 'h-10 -mx-3 rounded-lg text-white hover:text-white/80 hover:bg-white/10'
+              : 'h-10 -mx-3 rounded-lg text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800'
+            : 'rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
+        }`}
       >
-        <Grid size={15} className="text-primary-600 dark:text-primary-400" />
+        <Grid size={15} className={variant === 'nav' && isOverHero ? 'text-white' : 'text-primary-600 dark:text-primary-400'} />
         <span>{t('nav.categories', 'Categories')}</span>
         <ChevronDown
           size={14}

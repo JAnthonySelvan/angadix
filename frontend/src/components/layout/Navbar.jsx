@@ -51,6 +51,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isOverHero = location.pathname === '/' && !isScrolled;
+
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchBrands());
@@ -122,12 +124,14 @@ export const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* 1. Top Alert Banner */}
-      <TopAlertBanner />
+      <TopAlertBanner isOverHero={isOverHero} />
 
       {/* 2. Main Header */}
       <div
         className={`w-full transition-all duration-300 ${
-          isScrolled
+          isOverHero
+            ? 'bg-transparent border-b-0 py-3.5'
+            : isScrolled
             ? 'glass-header shadow-lg py-2.5'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 py-3.5'
         }`}
@@ -139,10 +143,14 @@ export const Navbar = () => {
               <ShoppingBag size={20} className="stroke-[2.5]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white leading-none">
-                ANGADIX<span className="text-primary-600 dark:text-primary-400">.</span>
+              <span className={`font-extrabold text-xl tracking-tight leading-none transition-colors duration-300 ${
+                isOverHero ? 'text-white' : 'text-slate-900 dark:text-white'
+              }`}>
+                ANGADIX<span className={isOverHero ? 'text-sky-300' : 'text-primary-600 dark:text-primary-400'}>.</span>
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400 leading-none mt-0.5">
+              <span className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-0.5 transition-colors duration-300 ${
+                isOverHero ? 'text-sky-200' : 'text-primary-600 dark:text-primary-400'
+              }`}>
                 PREMIUM STORE
               </span>
             </div>
@@ -158,11 +166,17 @@ export const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none transition-all"
+                className={`w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium rounded-2xl border transition-all duration-300 ${
+                  isOverHero
+                    ? 'bg-white/15 placeholder-white/70 text-white border-white/25 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none'
+                }`}
               />
               <button
                 type="submit"
-                className="absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600 transition-colors"
+                className={`absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
+                  isOverHero ? 'text-white/80 hover:text-white' : 'text-slate-400 hover:text-primary-600'
+                }`}
               >
                 <Search size={16} />
               </button>
@@ -204,18 +218,22 @@ export const Navbar = () => {
           {/* Right Action Icons (Notifications, Wishlist, Cart, Theme Toggle, Language Switcher, Profile) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Notification Bell Dropdown */}
-            <NotificationBell />
+            <NotificationBell isOverHero={isOverHero} />
 
             {/* Language Switcher */}
-            <LanguageSwitcher />
+            <LanguageSwitcher isOverHero={isOverHero} />
 
             {/* Theme Toggle Button */}
-            <ThemeToggle />
+            <ThemeToggle isOverHero={isOverHero} />
 
             {/* Wishlist Icon */}
             <Link
               to="/wishlist"
-              className="relative p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className={`relative p-2.5 rounded-full transition-colors duration-300 ${
+                isOverHero
+                  ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
               title={t('nav.wishlist', 'Wishlist')}
               aria-label="View wishlist"
             >
@@ -230,7 +248,11 @@ export const Navbar = () => {
             {/* Cart Drawer Trigger */}
             <button
               onClick={() => dispatch(toggleCartDrawer())}
-              className="relative p-2.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30 transition-all focus:outline-none"
+              className={`relative p-2.5 rounded-full transition-all duration-300 focus:outline-none ${
+                isOverHero
+                  ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25 shadow-md'
+                  : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30'
+              }`}
               title={t('nav.cart', 'Cart')}
               aria-label="Open shopping cart drawer"
             >
@@ -247,15 +269,21 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 p-1.5 pl-3 rtl:pr-3 rtl:pl-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                  className={`flex items-center gap-2 p-1.5 pl-3 rtl:pr-3 rtl:pl-1.5 rounded-full border transition-all duration-300 ${
+                    isOverHero
+                      ? 'border-white/25 bg-white/15 hover:bg-white/25 text-white'
+                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}
                 >
                   <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline max-w-[100px] truncate">
+                  <span className={`text-xs font-bold hidden sm:inline max-w-[100px] truncate ${
+                    isOverHero ? 'text-white' : 'text-slate-800 dark:text-slate-200'
+                  }`}>
                     {user.name}
                   </span>
-                  <ChevronDown size={14} className="text-slate-400" />
+                  <ChevronDown size={14} className={isOverHero ? 'text-white/70' : 'text-slate-400'} />
                 </button>
 
                 {/* Profile Dropdown */}
@@ -309,13 +337,21 @@ export const Navbar = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  className={`px-3.5 py-2 text-xs font-bold transition-colors duration-300 ${
+                    isOverHero
+                      ? 'text-white hover:text-white/80'
+                      : 'text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400'
+                  }`}
                 >
                   {t('nav.login', 'Sign In')}
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-extrabold rounded-full shadow-md shadow-primary-600/30 transition-all hidden sm:inline-block"
+                  className={`px-4 py-2 text-xs font-extrabold rounded-full transition-all hidden sm:inline-block ${
+                    isOverHero
+                      ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm'
+                      : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30'
+                  }`}
                 >
                   {t('nav.register', 'Create Account')}
                 </Link>
@@ -325,7 +361,11 @@ export const Navbar = () => {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className={`lg:hidden p-2 rounded-xl transition-colors duration-300 ${
+                isOverHero
+                  ? 'text-white hover:bg-white/25 border border-white/20'
+                  : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -334,22 +374,34 @@ export const Navbar = () => {
       </div>
 
       {/* 3. Navigation Sub-bar */}
-      <div className="bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-800/60 hidden lg:block">
+      <div
+        className={`border-b hidden lg:block transition-all duration-300 ${
+          isOverHero
+            ? 'bg-transparent border-transparent'
+            : 'bg-slate-50/80 dark:bg-slate-900/80 border-slate-200/60 dark:border-slate-800/60'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-10">
           <nav className="flex items-center gap-8">
-            <MegaMenu variant="nav" />
+            <MegaMenu variant="nav" isOverHero={isOverHero} />
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors tracking-wide"
+                className={`text-xs font-bold transition-colors duration-300 tracking-wide ${
+                  isOverHero
+                    ? 'text-white/90 hover:text-white'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400'
+                }`}
               >
                 {link.name}
               </Link>
             ))}
           </nav>
 
-          <div className="text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1">
+          <div className={`text-xs font-semibold flex items-center gap-1 transition-colors duration-300 ${
+            isOverHero ? 'text-sky-200' : 'text-primary-600 dark:text-primary-400'
+          }`}>
             <Sparkles size={13} />
             <span>{t('home.heroTag', 'Next-Gen Technology')}</span>
           </div>

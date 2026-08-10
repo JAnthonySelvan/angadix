@@ -12,7 +12,7 @@ import {
   Eye, TrendingUp, Cpu, Shield, Zap, Sparkle, CheckCircle2
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { fetchHomepageProducts, fetchCategories, fetchBrands, fetchRecommendedForYou } from '../features/products/productThunks';
+import { fetchHomepageProducts, fetchCategories, fetchBrands, fetchRecommendedForYou, fetchFeaturedShowcase } from '../features/products/productThunks';
 import { ProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { CountdownTimer } from '../components/common/CountdownTimer';
@@ -95,16 +95,24 @@ export const Home = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const { homepage, categories, brands, recommendations, loading } = useAppSelector((state) => state.products);
+  const { homepage, categories, brands, recommendations, featuredShowcase, loading } = useAppSelector((state) => state.products);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [dbBanners, setDbBanners] = useState([]);
 
+  const sectionAnimation = {
+    initial: { opacity: 0, y: 24 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.2 },
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  };
+
   useEffect(() => {
     dispatch(fetchHomepageProducts());
     dispatch(fetchCategories());
     dispatch(fetchBrands());
+    dispatch(fetchFeaturedShowcase());
     if (isAuthenticated) {
       dispatch(fetchRecommendedForYou());
     }
@@ -205,7 +213,10 @@ export const Home = () => {
       <section
         className="hero-section relative overflow-hidden border-b border-border"
       >
-        <div className="max-w-7xl mx-auto px-4">
+        {/* Top gradient overlay to guarantee text/icon contrast for floating transparent navbar */}
+        <div className="absolute top-0 left-0 right-0 h-44 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none z-0" />
+
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-10 min-h-[360px]">
             <div className="flex-1 space-y-5">
               <Chip variant="accent">{HERO_SLIDES[heroIdx].tag}</Chip>
@@ -300,7 +311,7 @@ export const Home = () => {
       </section>
 
       {/* ── 3. Shop By Category Grid ─────────────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <SectionHead badge="Browse" title="Shop by Category" sub="Explore our wide range of categories and find what you need." />
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
           {displayCategories.map((cat, idx) => {
@@ -321,10 +332,10 @@ export const Home = () => {
             );
           })}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 4. Flash Sale Section with Live Countdown ────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <div className="rounded-3xl overflow-hidden shadow-xl border border-sky-200/80 dark:border-slate-800/80 bg-gradient-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#F0F9FF] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
           <div className="p-6 md:p-10 text-slate-900 dark:text-white">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
@@ -388,10 +399,10 @@ export const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 5. Trending Products Grid ─────────────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Chip variant="primary">
@@ -413,10 +424,10 @@ export const Home = () => {
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* ── 6. Best Sellers Section ───────────────────────────────────── */}
-      <section className="py-12 bg-secondary/30 border-y border-border">
+      <motion.section {...sectionAnimation} className="py-12 bg-secondary/30 border-y border-border">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -436,10 +447,10 @@ export const Home = () => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 7. New Arrivals / Recently Added ─────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Chip variant="accent">
@@ -457,62 +468,87 @@ export const Home = () => {
             <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      {/* ── 8. Featured Products Banner ────────────────────────────────── */}
-      <section className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
+      {/* ── 8. Featured Showcase Section ────────────────────────────────── */}
+      <motion.section {...sectionAnimation} className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4">
           <SectionHead badge="Featured" title="Featured Showcase" sub="Handpicked premium selections curated by our tech experts." />
           <div className="space-y-6">
-            {(homepage?.featured?.length > 0 ? homepage.featured : homepage?.trending?.slice(0, 2) || []).map((f, i) => (
-              <div
-                key={f._id || i}
-                className={`bg-[#E1F5FE] dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-2xl overflow-hidden flex flex-col ${
-                  i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-                } hover:shadow-lg transition-shadow`}
-              >
-                <div className="md:w-1/2 relative overflow-hidden bg-[#D8EEFE]/60 dark:bg-slate-900/40">
-                  <img
-                    src={getProductImageUrl(f.images)}
-                    alt={f.name}
-                    onError={(e) => {
-                      e.target.src =
-                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500';
-                    }}
-                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Chip variant="primary">Editor's Choice</Chip>
+            {(
+              featuredShowcase && featuredShowcase.length > 0
+                ? featuredShowcase
+                : (homepage?.featured?.length > 0 ? homepage.featured : homepage?.trending?.slice(0, 2) || [])
+            ).map((f, i) => {
+              const isAdminShowcase = Boolean(f.title);
+              const cardTitle = isAdminShowcase ? f.title : f.name;
+              const cardDesc = isAdminShowcase
+                ? f.description
+                : (f.description || f.shortDescription || 'Experience premium audio quality, sleek ergonomic design, and industry-leading performance.');
+              const cardImage = isAdminShowcase
+                ? (typeof f.image === 'string' ? f.image : (f.image?.url || getProductImageUrl(f.linkedProduct?.images || f.linkedProduct?.image)))
+                : getProductImageUrl(f.images);
+              const cardCtaText = isAdminShowcase ? (f.ctaText || 'Shop Now') : 'Shop Now';
+              const cardCtaLink = isAdminShowcase
+                ? (f.ctaLink || (f.linkedProduct?.slug ? `/products/${f.linkedProduct.slug}` : '/shop'))
+                : `/products/${f.slug}`;
+
+              return (
+                <div
+                  key={f._id || i}
+                  className={`bg-[#E1F5FE] dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-2xl overflow-hidden flex flex-col ${
+                    i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
+                  } hover:shadow-lg transition-shadow`}
+                >
+                  <div className="md:w-1/2 min-h-[300px] md:min-h-[380px] relative overflow-hidden bg-slate-950 flex items-center justify-center group">
+                    <div
+                      className="absolute inset-0 bg-cover bg-center blur-lg opacity-45 scale-110"
+                      style={{ backgroundImage: `url(${cardImage})` }}
+                    />
+                    <img
+                      src={cardImage}
+                      alt={cardTitle}
+                      onError={(e) => {
+                        e.target.src =
+                          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500';
+                      }}
+                      className="relative z-10 w-full h-full min-h-[300px] md:min-h-[380px] max-h-[420px] object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-4 left-4 z-20">
+                      <Chip variant="primary">Editor's Choice</Chip>
+                    </div>
+                  </div>
+                  <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
+                    <h3 className="font-heading text-xl md:text-2xl font-bold text-[#0a2540] dark:text-white mb-3">{cardTitle}</h3>
+                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-body">
+                      {cardDesc}
+                    </p>
+                    <div className="flex gap-3">
+                      <Link
+                        to={cardCtaLink}
+                        className="bg-[#0266C8] text-white px-6 py-2.5 rounded-lg font-bold font-body hover:bg-[#0054A6] transition-all text-sm shadow-md"
+                      >
+                        {cardCtaText}
+                      </Link>
+                      {!isAdminShowcase && (
+                        <button
+                          onClick={() => setQuickViewProduct(f)}
+                          className="border border-[#0266C8] text-[#0266C8] dark:text-sky-400 bg-white/80 dark:bg-slate-800 px-5 py-2.5 rounded-lg font-bold font-body hover:bg-[#0266C8] hover:text-white transition-colors text-sm"
+                        >
+                          Quick View
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
-                  <h3 className="font-heading text-xl md:text-2xl font-bold text-[#0a2540] dark:text-white mb-3">{f.name}</h3>
-                  <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-body">
-                    {f.description || f.shortDescription || 'Experience premium audio quality, sleek ergonomic design, and industry-leading performance.'}
-                  </p>
-                  <div className="flex gap-3">
-                    <Link
-                      to={`/products/${f.slug}`}
-                      className="bg-[#0266C8] text-white px-6 py-2.5 rounded-lg font-bold font-body hover:bg-[#0054A6] transition-all text-sm shadow-md"
-                    >
-                      Shop Now
-                    </Link>
-                    <button
-                      onClick={() => setQuickViewProduct(f)}
-                      className="border border-[#0266C8] text-[#0266C8] dark:text-sky-400 bg-white/80 dark:bg-slate-800 px-5 py-2.5 rounded-lg font-bold font-body hover:bg-[#0266C8] hover:text-white transition-colors text-sm"
-                    >
-                      Quick View
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 9. AI Recommended For You ───────────────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>
             <Chip variant="accent">
@@ -537,7 +573,7 @@ export const Home = () => {
             <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Recently Viewed Section ───────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4">
@@ -545,7 +581,7 @@ export const Home = () => {
       </div>
 
       {/* ── 10. Featured Brands Grid ──────────────────────────────────── */}
-      <section className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
+      <motion.section {...sectionAnimation} className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4">
           <SectionHead badge="Partners" title="Top Featured Brands" sub="Shop genuine products directly from official brand partners." />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -572,10 +608,10 @@ export const Home = () => {
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 11. Customer Reviews Section ──────────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <SectionHead badge="Testimonials" title="Customer Reviews" sub="See what verified buyers are saying about their shopping experience." />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {REVIEWS.map((rev) => (
@@ -602,10 +638,10 @@ export const Home = () => {
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── 12. Newsletter Section ────────────────────────────────────── */}
-      <section className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
         <div className="rounded-3xl p-8 md:p-12 text-center shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-br from-[#E1F5FE] via-[#E0F2FE]/70 to-[#F0F8FF] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
           <div className="max-w-xl mx-auto space-y-4">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold font-heading bg-[#0266C8]/10 text-[#0266C8] dark:bg-sky-500/20 dark:text-sky-300">
@@ -636,7 +672,7 @@ export const Home = () => {
             </form>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Quick View Modal Trigger */}
       {quickViewProduct && (

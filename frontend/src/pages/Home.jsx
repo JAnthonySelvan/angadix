@@ -63,6 +63,34 @@ function TimeDig({ val, label }) {
   );
 }
 
+// Keeps the storefront's discovery row varied without changing the homepage API.
+function mixProductsByCategory(productGroups, limit = 8) {
+  const seenProducts = new Set();
+  const categoryBuckets = new Map();
+
+  productGroups.flat().forEach((product) => {
+    if (!product?._id || seenProducts.has(product._id)) return;
+    seenProducts.add(product._id);
+
+    const category = typeof product.category === 'object'
+      ? product.category?.name || product.category?._id
+      : product.category;
+    const key = category || 'other';
+
+    if (!categoryBuckets.has(key)) categoryBuckets.set(key, []);
+    categoryBuckets.get(key).push(product);
+  });
+
+  const mixed = [];
+  while (mixed.length < limit && [...categoryBuckets.values()].some((items) => items.length)) {
+    categoryBuckets.forEach((items) => {
+      if (items.length && mixed.length < limit) mixed.push(items.shift());
+    });
+  }
+
+  return mixed;
+}
+
 export const Home = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -163,6 +191,13 @@ export const Home = () => {
     { id: 2, name: 'Rahul Verma', loc: 'Delhi', rating: 5, text: 'The customer support is incredible. Had an issue with my order and it was resolved within an hour. Highly recommend this platform!', avatar: 'RV' },
     { id: 3, name: 'Ananya Patel', loc: 'Bangalore', rating: 4, text: 'Great selection of products. I always find exactly what I am looking for. The app is smooth and checkout is super quick.', avatar: 'AP' },
   ];
+  const mixedTrendingProducts = mixProductsByCategory([
+    homepage?.trending || [],
+    homepage?.bestSellers || [],
+    homepage?.recentlyAdded || [],
+    homepage?.featured || [],
+    homepage?.topRated || [],
+  ]);
   return (
     <PageTransition className="samsung-home font-body bg-background text-foreground min-h-screen space-y-12 pb-16">
       
@@ -374,7 +409,7 @@ export const Home = () => {
           <ProductSkeleton count={4} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {(homepage?.trending?.length > 0 ? homepage.trending : []).slice(0, 8).map((product) => (
+            {mixedTrendingProducts.map((product) => (
               <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
             ))}
           </div>

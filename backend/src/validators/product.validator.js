@@ -241,8 +241,8 @@ export const searchProductsValidator = [
     .withMessage('Page must be a positive integer'),
   query('limit')
     .optional()
-    .isInt({ min: 1, max: 50 })
-    .withMessage('Limit must be between 1 and 50'),
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
 ];
 
 export const searchSuggestionsValidator = [
@@ -281,7 +281,7 @@ export const getProductsQueryValidator = [
     .withMessage('Page must be a positive integer'),
   query('limit')
     .optional()
-    .isInt({ min: 1, max: 50 })
-    .withMessage('Limit must be between 1 and 50'),
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
 ];
 

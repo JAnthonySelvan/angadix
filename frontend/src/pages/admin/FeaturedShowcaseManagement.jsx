@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Image as ImageIcon,
@@ -66,7 +66,16 @@ export const FeaturedShowcaseManagement = () => {
       .catch(() => {});
   }, [dispatch]);
 
-  const availableProducts = products.length > 0 ? products : allProducts;
+  const availableProducts = useMemo(() => {
+    const combined = [...products, ...allProducts];
+    const productMap = new Map();
+    combined.forEach((p) => {
+      if (p && p._id && !productMap.has(String(p._id))) {
+        productMap.set(String(p._id), p);
+      }
+    });
+    return Array.from(productMap.values());
+  }, [products, allProducts]);
 
   const handleOpenSlideOver = (item = null) => {
     if (item) {
@@ -75,7 +84,10 @@ export const FeaturedShowcaseManagement = () => {
       setDescription(item.description || '');
       setCtaText(item.ctaText || 'Shop Now');
       setCtaLink(item.ctaLink || '');
-      setLinkedProduct(item.linkedProduct?._id || item.linkedProduct || '');
+      const linkedProdId = item.linkedProduct
+        ? (typeof item.linkedProduct === 'object' ? item.linkedProduct._id : item.linkedProduct)
+        : '';
+      setLinkedProduct(linkedProdId ? String(linkedProdId) : '');
       setSortOrder(String(item.sortOrder ?? 0));
       setIsActive(item.isActive !== undefined ? item.isActive : true);
       setPreviewUrl(item.image?.url || '');
@@ -444,16 +456,19 @@ export const FeaturedShowcaseManagement = () => {
                     className="w-full px-4 py-2.5 text-xs bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-900 dark:text-white border border-transparent focus:border-primary-500 focus:outline-none cursor-pointer"
                   >
                     <option value="">-- Select Product (Optional) --</option>
-                    {linkedProduct && !availableProducts.some((p) => p._id === linkedProduct) && (
+                    {linkedProduct && !availableProducts.some((p) => String(p._id) === String(linkedProduct)) && (
                       <option value={linkedProduct}>
                         {editingItem?.linkedProduct?.name || 'Selected Product'} ({linkedProduct})
                       </option>
                     )}
-                    {availableProducts.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name} (₹{(p.discountPrice || p.salePrice || p.price || 0).toLocaleString('en-IN')})
-                      </option>
-                    ))}
+                    {availableProducts.map((p) => {
+                      const displayPrice = (p.discountPrice && p.discountPrice < p.price) ? p.discountPrice : (p.salePrice || p.price || 0);
+                      return (
+                        <option key={p._id} value={p._id}>
+                          {p.name} (₹{displayPrice.toLocaleString('en-IN')})
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

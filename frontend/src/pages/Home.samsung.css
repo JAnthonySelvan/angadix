@@ -67,20 +67,15 @@
 .dark .samsung-home > section:nth-child(4) .grid > div > div > p { color: #f8fbff !important; }
 .samsung-home > section:nth-child(4) button, .samsung-home > section:nth-child(4) a { border-radius: 999px !important; }
 
-.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(8), .samsung-home > section:nth-child(10) { background: #f4f8fc !important; border: 0 !important; }
-.dark .samsung-home > section:nth-child(6), .dark .samsung-home > section:nth-child(8), .dark .samsung-home > section:nth-child(10) { background: #0d1826 !important; }
+.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(10) { background: #f4f8fc !important; border: 0 !important; }
+.dark .samsung-home > section:nth-child(6), .dark .samsung-home > section:nth-child(10) { background: #0d1826 !important; }
 .samsung-home > section:nth-child(5), .samsung-home > section:nth-child(7), .samsung-home > section:nth-child(9), .samsung-home > section:nth-child(11) { padding-top: 68px !important; padding-bottom: 68px !important; }
-.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(8), .samsung-home > section:nth-child(10) { padding: 68px 0 !important; }
+.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(10) { padding: 68px 0 !important; }
 
 /* Preserve existing product controls while making their presentation airy and premium. */
 .samsung-home .grid > [aria-label^='Product card'] { border-radius: 20px !important; }
 .samsung-home .grid > [aria-label^='Product card'] img { background: #f4f8fc; }
 .samsung-home .grid > [aria-label^='Product card'] button { border-radius: 999px; }
-
-.samsung-home > section:nth-child(8) .space-y-6 > div { border: 0 !important; border-radius: 28px !important; background: #fff !important; box-shadow: 0 10px 30px rgba(8,44,80,.07); }
-.dark .samsung-home > section:nth-child(8) .space-y-6 > div { background: #111f30 !important; }
-.samsung-home > section:nth-child(8) .space-y-6 img { height: 320px !important; object-fit: contain; padding: 24px; background: #e9f5ff; }
-.samsung-home > section:nth-child(8) a, .samsung-home > section:nth-child(8) button { border-radius: 999px !important; }
 
 .samsung-home > section:nth-child(10) .grid > div { border: 0 !important; border-radius: 14px !important; background: #fff !important; min-height: 86px; box-shadow: none !important; }
 .dark .samsung-home > section:nth-child(10) .grid > div { background: #142236 !important; }

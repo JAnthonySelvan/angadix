@@ -102,10 +102,10 @@ export const Home = () => {
   const [dbBanners, setDbBanners] = useState([]);
 
   const sectionAnimation = {
-    initial: { opacity: 0, y: 24 },
+    initial: { opacity: 1, y: 0 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    viewport: { once: true, amount: 0.05 },
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
   };
 
   useEffect(() => {
@@ -471,10 +471,25 @@ export const Home = () => {
       </motion.section>
 
       {/* ── 8. Featured Showcase Section ────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4">
-          <SectionHead badge="Featured" title="Featured Showcase" sub="Handpicked premium selections curated by our tech experts." />
-          <div className="space-y-6">
+      <section className="py-20 bg-gradient-to-b from-[#F0F8FF] via-[#E1F5FE]/40 to-[#F0F8FF] dark:from-[#030712] dark:via-[#09111e] dark:to-[#030712] text-[#0a2540] dark:text-white border-y border-[#BAE6FD] dark:border-slate-800/80 relative overflow-hidden transition-colors duration-300">
+        {/* Subtle Ambient Background Lighting Glows */}
+        <div className="absolute top-1/4 -left-32 w-[500px] h-[500px] bg-[#0266C8]/10 dark:bg-[#0266C8]/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-10 -right-32 w-[600px] h-[600px] bg-sky-400/10 dark:bg-sky-500/10 rounded-full blur-[160px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <span className="text-xs font-black uppercase tracking-[0.25em] text-[#0266C8] dark:text-sky-400 mb-2 block">
+              Curated Excellence
+            </span>
+            <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-black text-[#0a2540] dark:text-white tracking-tight">
+              Spotlight Showcase
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base mt-3 font-body font-normal leading-relaxed">
+              Handcrafted tech moments and flagship innovations, curated for extraordinary performance.
+            </p>
+          </div>
+
+          <div className="space-y-16 lg:space-y-24">
             {(
               featuredShowcase && featuredShowcase.length > 0
                 ? featuredShowcase
@@ -492,52 +507,147 @@ export const Home = () => {
               const cardCtaLink = isAdminShowcase
                 ? (f.ctaLink || (f.linkedProduct?.slug ? `/products/${f.linkedProduct.slug}` : '/shop'))
                 : `/products/${f.slug}`;
+              const linkedProd = f.linkedProduct && typeof f.linkedProduct === 'object' && f.linkedProduct.name ? f.linkedProduct : null;
 
               return (
                 <div
                   key={f._id || i}
-                  className={`bg-[#E1F5FE] dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-2xl overflow-hidden flex flex-col ${
-                    i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-                  } hover:shadow-lg transition-shadow`}
+                  className="group relative rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/80 border border-[#BAE6FD] dark:border-slate-800/90 backdrop-blur-xl shadow-xl dark:shadow-2xl transition-all duration-700 hover:border-[#0266C8]/40 dark:hover:border-slate-700 hover:shadow-[#0266C8]/10"
                 >
-                  <div className="md:w-1/2 min-h-[300px] md:min-h-[380px] relative overflow-hidden bg-slate-950 flex items-center justify-center group">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-center overflow-hidden">
+                    {/* Hero Photography Container (Column 1) */}
                     <div
-                      className="absolute inset-0 bg-cover bg-center blur-lg opacity-45 scale-110"
-                      style={{ backgroundImage: `url(${cardImage})` }}
-                    />
-                    <img
-                      src={cardImage}
-                      alt={cardTitle}
-                      onError={(e) => {
-                        e.target.src =
-                          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500';
-                      }}
-                      className="relative z-10 w-full h-full min-h-[300px] md:min-h-[380px] max-h-[420px] object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 left-4 z-20">
-                      <Chip variant="primary">Editor's Choice</Chip>
-                    </div>
-                  </div>
-                  <div className="md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
-                    <h3 className="font-heading text-xl md:text-2xl font-bold text-[#0a2540] dark:text-white mb-3">{cardTitle}</h3>
-                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6 font-body">
-                      {cardDesc}
-                    </p>
-                    <div className="flex gap-3">
-                      <Link
-                        to={cardCtaLink}
-                        className="bg-[#0266C8] text-white px-6 py-2.5 rounded-lg font-bold font-body hover:bg-[#0054A6] transition-all text-sm shadow-md"
-                      >
-                        {cardCtaText}
-                      </Link>
-                      {!isAdminShowcase && (
-                        <button
-                          onClick={() => setQuickViewProduct(f)}
-                          className="border border-[#0266C8] text-[#0266C8] dark:text-sky-400 bg-white/80 dark:bg-slate-800 px-5 py-2.5 rounded-lg font-bold font-body hover:bg-[#0266C8] hover:text-white transition-colors text-sm"
+                      className={`lg:col-span-7 relative min-h-[380px] sm:min-h-[480px] md:min-h-[540px] lg:min-h-[580px] overflow-hidden bg-slate-900 dark:bg-slate-950 ${
+                        i % 2 === 1 ? 'lg:order-last' : ''
+                      }`}
+                    >
+                      {/* Background Ambient Blur Fallback */}
+                      <div
+                        className="absolute inset-0 bg-cover bg-center blur-3xl opacity-30 scale-125 z-0"
+                        style={{ backgroundImage: `url(${cardImage})` }}
+                      />
+                      
+                      {/* Main Full-Cover Photography */}
+                      <img
+                        src={cardImage}
+                        alt={cardTitle}
+                        onError={(e) => {
+                          e.target.src =
+                            'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&h=500';
+                        }}
+                        className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000 ease-out z-10"
+                      />
+
+                      {/* Vignette & Gradient Overlays */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-15 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/30 z-15 pointer-events-none" />
+
+                      {/* Top Floating Kicker Badge */}
+                      <div className="absolute top-6 left-6 z-20">
+                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-black tracking-wider uppercase bg-black/60 backdrop-blur-md text-white border border-white/15 shadow-xl">
+                          <Sparkles size={12} className="text-sky-400" />
+                          <span>Editor's Choice</span>
+                        </span>
+                      </div>
+
+                      {/* Floating Glassmorphism Product Spotlight Panel (Overlapping Photography) */}
+                      {linkedProd && (
+                        <div
+                          className="absolute bottom-6 left-6 right-6 sm:right-auto sm:left-6 z-30 bg-white/95 dark:bg-slate-950/90 text-[#0a2540] dark:text-white backdrop-blur-xl border border-[#BAE6FD] dark:border-white/15 rounded-2xl p-4 shadow-2xl flex items-center justify-between gap-4 max-w-sm hover:border-[#0266C8]/60 transition-all group/glass"
                         >
-                          Quick View
-                        </button>
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <img
+                              src={
+                                linkedProd.image?.url ||
+                                (typeof linkedProd.image === 'string' ? linkedProd.image : '') ||
+                                getProductImageUrl(linkedProd.images || linkedProd.image)
+                              }
+                              alt={linkedProd.name}
+                              onError={(e) => {
+                                e.target.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200';
+                              }}
+                              className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-white/20 flex-shrink-0 bg-slate-100 dark:bg-slate-900 group-hover/glass:scale-105 transition-transform"
+                            />
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0266C8] dark:text-sky-400 block truncate">
+                                Featured Product
+                              </span>
+                              <Link
+                                to={`/products/${linkedProd.slug || ''}`}
+                                className="text-xs font-bold text-[#0a2540] dark:text-white truncate block hover:underline hover:text-[#0266C8] dark:hover:text-sky-300"
+                              >
+                                {linkedProd.name}
+                              </Link>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                                  ₹{(linkedProd.discountPrice || linkedProd.salePrice || linkedProd.price || 0).toLocaleString('en-IN')}
+                                </span>
+                                {linkedProd.discountPrice && linkedProd.discountPrice < linkedProd.price && (
+                                  <span className="text-[11px] text-slate-400 line-through">
+                                    ₹{linkedProd.price.toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewProduct(linkedProd)}
+                            className="w-9 h-9 rounded-xl bg-[#0266C8]/10 text-[#0266C8] hover:bg-[#0266C8] hover:text-white dark:bg-white/10 dark:text-white dark:hover:bg-[#0266C8] flex items-center justify-center transition-all flex-shrink-0 border border-[#BAE6FD] dark:border-white/10 hover:border-transparent cursor-pointer"
+                            title="Quick View Item"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </div>
                       )}
+                    </div>
+
+                    {/* Editorial Content Container (Column 2) */}
+                    <div className="lg:col-span-5 p-8 sm:p-12 lg:p-14 flex flex-col justify-between self-stretch z-20 space-y-6 bg-white/60 dark:bg-slate-900/40">
+                      <div className="space-y-4">
+                        <span className="text-xs font-black uppercase tracking-[0.25em] text-[#0266C8] dark:text-sky-400 block">
+                          Flagship Highlight
+                        </span>
+                        <h3 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-[#0a2540] dark:text-white tracking-tight leading-[1.1]">
+                          {cardTitle}
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed font-body font-normal pt-2">
+                          {cardDesc}
+                        </p>
+                      </div>
+
+                      {/* Editorial Actions */}
+                      <div className="flex flex-wrap items-center gap-5 pt-4">
+                        <Link
+                          to={cardCtaLink}
+                          className="inline-flex items-center gap-3 bg-[#0266C8] hover:bg-[#0054A6] text-white px-8 py-4 rounded-2xl font-extrabold font-body text-sm transition-all duration-300 shadow-xl shadow-[#0266C8]/25 hover:scale-105 active:scale-95"
+                        >
+                          <span>{cardCtaText}</span>
+                          <ArrowRight size={18} />
+                        </Link>
+                        {linkedProd ? (
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewProduct(linkedProd)}
+                            className="inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-[#0266C8] dark:hover:text-white font-extrabold text-sm transition-colors group/link py-2 cursor-pointer"
+                          >
+                            <Eye size={16} className="text-[#0266C8] dark:text-sky-400 group-hover/link:text-[#0054A6] dark:group-hover/link:text-sky-300 transition-colors" />
+                            <span>Quick View Product</span>
+                            <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                          </button>
+                        ) : !isAdminShowcase && (
+                          <button
+                            type="button"
+                            onClick={() => setQuickViewProduct(f)}
+                            className="inline-flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-[#0266C8] dark:hover:text-white font-extrabold text-sm transition-colors group/link py-2 cursor-pointer"
+                          >
+                            <Eye size={16} className="text-[#0266C8] dark:text-sky-400 group-hover/link:text-[#0054A6] dark:group-hover/link:text-sky-300 transition-colors" />
+                            <span>Quick View</span>
+                            <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -545,7 +655,7 @@ export const Home = () => {
             })}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ── 9. AI Recommended For You ───────────────────────────────────── */}
       <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">

@@ -106,7 +106,7 @@ const parseTags = (tags) => {
  */
 export const getProducts = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page || '1', 10));
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '12', 10)));
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || '12', 10)));
   const skip = (page - 1) * limit;
 
   const query = await buildProductFilterQuery(req.query);
@@ -214,7 +214,7 @@ export const searchProducts = asyncHandler(async (req, res) => {
   }
 
   const page = Math.max(1, parseInt(req.query.page || '1', 10));
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '12', 10)));
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || '12', 10)));
   const skip = (page - 1) * limit;
 
   const filterQuery = await buildProductFilterQuery(req.query);

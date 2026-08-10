@@ -22,7 +22,7 @@ export const getFeaturedShowcases = asyncHandler(async (req, res) => {
   }
 
   const showcases = await FeaturedShowcase.find(filter)
-    .populate('linkedProduct', '_id name slug price salePrice image images')
+    .populate('linkedProduct', '_id name slug price discountPrice salePrice image images')
     .sort({ sortOrder: 1, createdAt: -1 })
     .lean();
 
@@ -42,7 +42,7 @@ export const getFeaturedShowcaseById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const showcase = await FeaturedShowcase.findById(id)
-    .populate('linkedProduct', '_id name slug price salePrice image')
+    .populate('linkedProduct', '_id name slug price discountPrice salePrice image images')
     .lean();
 
   if (!showcase) {
@@ -87,13 +87,13 @@ export const createFeaturedShowcase = asyncHandler(async (req, res) => {
     image: imageObj,
     ctaText: ctaText || 'Shop Now',
     ctaLink: ctaLink || '',
-    linkedProduct: (linkedProduct && String(linkedProduct).trim() !== '' && String(linkedProduct) !== 'null') ? linkedProduct : null,
+    linkedProduct: (linkedProduct && String(linkedProduct).trim() !== '' && String(linkedProduct) !== 'null' && String(linkedProduct) !== 'undefined') ? linkedProduct : null,
     sortOrder: sortOrder !== undefined ? parseInt(sortOrder, 10) : 0,
     isActive: isActive !== undefined ? Boolean(isActive === 'true' || isActive === true) : true,
   });
 
   const populatedShowcase = await FeaturedShowcase.findById(showcase._id)
-    .populate('linkedProduct', '_id name slug price salePrice image')
+    .populate('linkedProduct', '_id name slug price discountPrice salePrice image images')
     .lean();
 
   return res.status(201).json(
@@ -120,7 +120,7 @@ export const updateFeaturedShowcase = asyncHandler(async (req, res) => {
   if (ctaText !== undefined) showcase.ctaText = ctaText;
   if (ctaLink !== undefined) showcase.ctaLink = ctaLink;
   if (linkedProduct !== undefined) {
-    showcase.linkedProduct = (linkedProduct && String(linkedProduct).trim() !== '' && String(linkedProduct) !== 'null') ? linkedProduct : null;
+    showcase.linkedProduct = (linkedProduct && String(linkedProduct).trim() !== '' && String(linkedProduct) !== 'null' && String(linkedProduct) !== 'undefined') ? linkedProduct : null;
   }
   if (sortOrder !== undefined) showcase.sortOrder = parseInt(sortOrder, 10);
   if (isActive !== undefined) showcase.isActive = Boolean(isActive === 'true' || isActive === true);
@@ -145,7 +145,7 @@ export const updateFeaturedShowcase = asyncHandler(async (req, res) => {
   await showcase.save();
 
   const populatedShowcase = await FeaturedShowcase.findById(showcase._id)
-    .populate('linkedProduct', '_id name slug price salePrice image')
+    .populate('linkedProduct', '_id name slug price discountPrice salePrice image images')
     .lean();
 
   return res.status(200).json(

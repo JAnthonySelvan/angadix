@@ -22,6 +22,7 @@ import { isInvoiceAvailable, getProductImageUrl } from '../utils/orderHelpers';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
+import { PageTransition } from '../components/common/PageTransition';
 import toast from 'react-hot-toast';
 
 export const OrderHistory = () => {
@@ -67,7 +68,7 @@ export const OrderHistory = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header & Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -274,6 +275,6 @@ export const OrderHistory = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 };

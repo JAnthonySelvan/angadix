@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, ArrowRight, ExternalLink } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
@@ -13,6 +13,7 @@ import {
 } from '../../features/cart/cartSlice';
 import { CartItemRow } from './CartItemRow';
 import { CouponSection } from './CouponSection';
+import { ConfirmDialog } from '../admin/ConfirmDialog';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -27,7 +28,15 @@ export const CartDrawer = () => {
   const discountAmount = useAppSelector(selectCartDiscountAmount);
   const finalTotal = useAppSelector(selectCartFinalTotal);
 
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleClearCart = () => {
+    dispatch(clearCartRemote());
+    setIsConfirmOpen(false);
+    toast.success('Cart cleared.');
+  };
 
   const handleClose = () => {
     dispatch(setCartDrawerOpen(false));
@@ -156,14 +165,20 @@ export const CartDrawer = () => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <button
-                      onClick={() => {
-                        dispatch(clearCartRemote());
-                        toast.success('Cart cleared.');
-                      }}
+                      onClick={() => setIsConfirmOpen(true)}
                       className="py-2.5 px-3 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors"
                     >
                       Clear
                     </button>
+
+                    <ConfirmDialog
+                      isOpen={isConfirmOpen}
+                      onClose={() => setIsConfirmOpen(false)}
+                      onConfirm={handleClearCart}
+                      title="Clear Shopping Cart"
+                      message="Are you sure you want to clear all items from your shopping cart? This action cannot be undone."
+                      confirmText="Clear Cart"
+                    />
 
                     <button
                       onClick={handleNavigateToCartPage}

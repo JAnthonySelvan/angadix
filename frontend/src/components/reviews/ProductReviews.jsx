@@ -28,6 +28,7 @@ import {
 } from '../../features/reviews/reviewSlice';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Skeleton } from '../ui/Skeleton';
 import toast from 'react-hot-toast';
 
 export const ProductReviews = ({ productId }) => {
@@ -90,7 +91,9 @@ export const ProductReviews = ({ productId }) => {
     }
   };
 
-  const totalReviewsCount = summary.count || 0;
+  const totalReviewsCount = summary?.count || 0;
+  const avgRating = summary?.average || 0;
+  const distribution = summary?.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
   return (
     <section className="space-y-8 pt-8 border-t border-slate-200/80 dark:border-slate-800">
@@ -127,7 +130,7 @@ export const ProductReviews = ({ productId }) => {
         {/* Overall Score */}
         <div className="md:col-span-4 text-center md:border-r md:border-slate-100 md:dark:border-slate-800 md:pr-6">
           <div className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-            {summary.average.toFixed(1)}
+            {avgRating.toFixed(1)}
           </div>
 
           <div className="flex items-center justify-center gap-1 my-2">
@@ -136,7 +139,7 @@ export const ProductReviews = ({ productId }) => {
                 key={star}
                 size={20}
                 className={
-                  star <= Math.round(summary.average)
+                  star <= Math.round(avgRating)
                     ? 'fill-amber-400 text-amber-400'
                     : 'text-slate-200 dark:text-slate-700'
                 }
@@ -152,7 +155,7 @@ export const ProductReviews = ({ productId }) => {
         {/* Rating Star Distribution Bar Chart */}
         <div className="md:col-span-8 space-y-2">
           {[5, 4, 3, 2, 1].map((star) => {
-            const count = summary.distribution[star] || 0;
+            const count = distribution[star] || 0;
             const pct = totalReviewsCount > 0 ? (count / totalReviewsCount) * 100 : 0;
 
             return (
@@ -197,8 +200,29 @@ export const ProductReviews = ({ productId }) => {
 
       {/* Reviews List Grid */}
       {isLoading ? (
-        <div className="p-8 text-center text-xs text-slate-400 font-semibold">
-          Loading reviews...
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-3">
+            <div className="flex items-center gap-3">
+              <Skeleton circle width={40} height={40} />
+              <div className="space-y-1.5 flex-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-3">
+            <div className="flex items-center gap-3">
+              <Skeleton circle width={40} height={40} />
+              <div className="space-y-1.5 flex-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </div>
       ) : reviews.length === 0 ? (
         <div className="p-12 text-center rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-3">

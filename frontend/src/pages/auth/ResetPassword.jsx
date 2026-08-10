@@ -8,6 +8,7 @@ import { useAppDispatch } from '../../app/hooks';
 import { resetPassword } from '../../features/auth/authThunks';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { SuccessBanner } from '../../components/common/SuccessBanner';
 import toast from 'react-hot-toast';
 
 const schema = z
@@ -88,20 +89,12 @@ export const ResetPassword = () => {
       </div>
 
       {isSuccess ? (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3 animate-fadeIn">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-            <CheckCircle2 size={24} />
-          </div>
-          <h3 className="text-base font-bold text-emerald-900">Password Reset Complete</h3>
-          <p className="text-xs text-emerald-800">
-            Your password has been updated. Redirecting to login in 3 seconds...
-          </p>
-          <Link to="/login" className="w-full mt-2">
-            <Button variant="primary" size="md" className="w-full">
-              Proceed to Sign In
-            </Button>
-          </Link>
-        </div>
+        <SuccessBanner
+          title="Password Reset Complete"
+          message="Your password has been updated. Redirecting to login in 3 seconds..."
+          actionText="Proceed to Sign In"
+          onAction={() => navigate('/login')}
+        />
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <Input

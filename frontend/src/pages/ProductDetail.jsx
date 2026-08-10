@@ -22,6 +22,8 @@ import { Breadcrumb } from '../components/common/Breadcrumb';
 import { ProductReviews } from '../components/reviews/ProductReviews';
 import { getProductImageUrl } from '../utils/orderHelpers';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
+import { Skeleton } from '../components/ui/Skeleton';
+import { PageTransition } from '../components/common/PageTransition';
 import toast from 'react-hot-toast';
 
 export const ProductDetail = () => {
@@ -47,6 +49,8 @@ export const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
+  useDocumentTitle(product?.name || 'Product Details');
+
   useEffect(() => {
     if (slug) {
       dispatch(fetchProductBySlug(slug));
@@ -62,9 +66,60 @@ export const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 font-bold text-sm">
-        {t('common.loading', 'Loading product details...')}
-      </div>
+      <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-20" />
+          <span className="text-slate-300">/</span>
+          <Skeleton className="h-4 w-24" />
+          <span className="text-slate-300">/</span>
+          <Skeleton className="h-4 w-32" />
+        </div>
+
+        <div className="neu-card p-6 sm:p-10 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            {/* Gallery Skeleton */}
+            <div className="space-y-4">
+              <Skeleton className="w-full h-80 sm:h-96 rounded-2xl" />
+              <div className="flex gap-3">
+                <Skeleton className="w-16 h-16 rounded-xl" />
+                <Skeleton className="w-16 h-16 rounded-xl" />
+                <Skeleton className="w-16 h-16 rounded-xl" />
+              </div>
+            </div>
+
+            {/* Info Skeleton */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-9 w-3/4" />
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-10 w-40" />
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-28 rounded-xl" />
+                  <Skeleton className="h-12 flex-1 rounded-xl" />
+                  <Skeleton className="h-12 w-12 rounded-xl" />
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <Skeleton className="h-10 rounded-xl" />
+                  <Skeleton className="h-10 rounded-xl" />
+                  <Skeleton className="h-10 rounded-xl" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -99,13 +154,12 @@ export const ProductDetail = () => {
     tags = [],
   } = product;
 
-  useDocumentTitle(name);
-
   const currencySymbol = currency === 'INR' ? '₹' : '$';
-  const displayPrice = (discountPrice || price).toLocaleString('en-IN');
-  const originalPrice = discountPrice ? price.toLocaleString('en-IN') : null;
+  const rawPrice = discountPrice ?? price ?? 0;
+  const displayPrice = Number(rawPrice).toLocaleString('en-IN');
+  const originalPrice = discountPrice && price ? Number(price).toLocaleString('en-IN') : null;
 
-  const allImages = images.length > 0
+  const allImages = images && images.length > 0
     ? images.map((img) => getProductImageUrl(img)).filter(Boolean)
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800'];
 
@@ -178,7 +232,7 @@ export const ProductDetail = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* JSON-LD Structured Data Schema for SEO */}
       <script
         type="application/ld+json"
@@ -255,7 +309,7 @@ export const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {ratingsAverage.toFixed(1)} ({ratingsCount} verified reviews)
+                  {(ratingsAverage || 0).toFixed(1)} ({ratingsCount || 0} verified reviews)
                 </span>
               </div>
 
@@ -421,7 +475,7 @@ export const ProductDetail = () => {
         isOpen={Boolean(quickViewProduct)}
         onClose={() => setQuickViewProduct(null)}
       />
-    </div>
+    </PageTransition>
   );
 };
 

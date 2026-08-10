@@ -1,0 +1,87 @@
+/* Samsung-inspired storefront composition, scoped to Home so app behavior stays unchanged. */
+.samsung-home {
+  --home-ink: #071a33;
+  --home-blue: #0266c8;
+  --home-soft: #eef7ff;
+  background: #fff !important;
+  color: var(--home-ink);
+  gap: 0 !important;
+}
+
+.dark .samsung-home { background: #090f19 !important; --home-ink: #f8fbff; --home-soft: #101c2b; }
+
+.samsung-home > section {
+  /* Some Home sections carry max-w-7xl themselves; keep those centered too. */
+  width: 100%;
+  margin: 0 auto !important;
+}
+.samsung-home > section > .max-w-7xl { max-width: 1280px; }
+.samsung-home h1, .samsung-home h2, .samsung-home h3 { letter-spacing: -0.045em; }
+
+/* Hero: full-bleed editorial panel with large, quiet type. */
+.samsung-home > section:first-child {
+  background: linear-gradient(118deg, #e7f5ff 0%, #f8fcff 52%, #d6edff 100%) !important;
+  border: 0 !important;
+  padding: 56px 0 64px !important;
+}
+.dark .samsung-home > section:first-child { background: linear-gradient(118deg, #091a2c, #0c1420 56%, #102d47) !important; }
+.samsung-home > section:first-child h1 { font-size: clamp(2.7rem, 5vw, 4.7rem) !important; line-height: .98 !important; max-width: 680px; }
+.samsung-home > section:first-child img { border-radius: 28px !important; height: clamp(280px, 32vw, 420px) !important; object-fit: cover; box-shadow: 0 28px 60px rgba(2,102,200,.22) !important; }
+.samsung-home > section:first-child a { border-radius: 999px !important; padding: .85rem 1.6rem !important; }
+
+/* Trust strip and category browsing become clean tile systems. */
+.samsung-home > section:nth-child(2) { background: #fff !important; border: 0 !important; padding: 28px 0 !important; }
+.dark .samsung-home > section:nth-child(2) { background: #090f19 !important; }
+.samsung-home > section:nth-child(2) > div > h2 { display: none; }
+.samsung-home > section:nth-child(2) .grid { gap: 0 !important; border: 1px solid rgba(2,102,200,.13); border-radius: 18px; overflow: hidden; }
+.samsung-home > section:nth-child(2) .grid > div { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; padding: 18px !important; }
+.samsung-home > section:nth-child(2) .grid > div + div { border-left: 1px solid rgba(2,102,200,.13) !important; }
+.dark .samsung-home > section:nth-child(2) .grid > div { background: #0d1826 !important; }
+
+.samsung-home > section:nth-child(3) { padding: 68px 1rem !important; }
+.samsung-home > section:nth-child(3) .grid { gap: 14px !important; }
+.samsung-home > section:nth-child(3) .grid a { background: #f3f8fc !important; border: 0 !important; border-radius: 18px !important; min-height: 132px; justify-content: center; box-shadow: none !important; }
+.samsung-home > section:nth-child(3) .grid a:hover { background: #e1f2ff !important; transform: translateY(-3px); }
+.samsung-home > section:nth-child(3) .grid a > div { background: #fff !important; border-radius: 50% !important; }
+
+/* Feature bands use generous padding and an understated studio-card feel. */
+.samsung-home > section:nth-child(4) { padding: 0 1rem 72px !important; }
+.samsung-home > section:nth-child(4) > div { border: 0 !important; border-radius: 30px !important; box-shadow: none !important; background: linear-gradient(135deg, #072d59, #0266c8 56%, #1089df) !important; }
+.samsung-home > section:nth-child(4) h2, .samsung-home > section:nth-child(4) p { color: white !important; }
+.samsung-home > section:nth-child(4) .grid > div { border: 0 !important; border-radius: 18px !important; box-shadow: none !important; }
+.samsung-home > section:nth-child(4) .grid > div > div > p { color: #071a33 !important; }
+.dark .samsung-home > section:nth-child(4) .grid > div > div > p { color: #f8fbff !important; }
+.samsung-home > section:nth-child(4) button, .samsung-home > section:nth-child(4) a { border-radius: 999px !important; }
+
+.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(8), .samsung-home > section:nth-child(10) { background: #f4f8fc !important; border: 0 !important; }
+.dark .samsung-home > section:nth-child(6), .dark .samsung-home > section:nth-child(8), .dark .samsung-home > section:nth-child(10) { background: #0d1826 !important; }
+.samsung-home > section:nth-child(5), .samsung-home > section:nth-child(7), .samsung-home > section:nth-child(9), .samsung-home > section:nth-child(11) { padding-top: 68px !important; padding-bottom: 68px !important; }
+.samsung-home > section:nth-child(6), .samsung-home > section:nth-child(8), .samsung-home > section:nth-child(10) { padding: 68px 0 !important; }
+
+/* Preserve existing product controls while making their presentation airy and premium. */
+.samsung-home .grid > [aria-label^='Product card'] { border-radius: 20px !important; }
+.samsung-home .grid > [aria-label^='Product card'] img { background: #f4f8fc; }
+.samsung-home .grid > [aria-label^='Product card'] button { border-radius: 999px; }
+
+.samsung-home > section:nth-child(8) .space-y-6 > div { border: 0 !important; border-radius: 28px !important; background: #fff !important; box-shadow: 0 10px 30px rgba(8,44,80,.07); }
+.dark .samsung-home > section:nth-child(8) .space-y-6 > div { background: #111f30 !important; }
+.samsung-home > section:nth-child(8) .space-y-6 img { height: 320px !important; object-fit: contain; padding: 24px; background: #e9f5ff; }
+.samsung-home > section:nth-child(8) a, .samsung-home > section:nth-child(8) button { border-radius: 999px !important; }
+
+.samsung-home > section:nth-child(10) .grid > div { border: 0 !important; border-radius: 14px !important; background: #fff !important; min-height: 86px; box-shadow: none !important; }
+.dark .samsung-home > section:nth-child(10) .grid > div { background: #142236 !important; }
+.samsung-home > section:nth-child(11) .grid > div { background: #f4f8fc !important; border: 0 !important; border-radius: 18px !important; box-shadow: none !important; }
+.dark .samsung-home > section:nth-child(11) .grid > div { background: #111f30 !important; }
+.samsung-home > section:nth-child(12) { padding: 0 1rem 72px !important; }
+.samsung-home > section:nth-child(12) > div { border: 0 !important; border-radius: 30px !important; background: linear-gradient(120deg, #e3f4ff, #f8fcff 58%, #caeaff) !important; box-shadow: none !important; }
+.dark .samsung-home > section:nth-child(12) > div { background: linear-gradient(120deg, #0d2540, #111827 58%, #123657) !important; }
+.samsung-home > section:nth-child(12) form input, .samsung-home > section:nth-child(12) form button { border-radius: 999px !important; }
+
+@media (max-width: 767px) {
+  .samsung-home > section:first-child { padding: 36px 0 48px !important; }
+  .samsung-home > section:first-child h1 { font-size: 2.7rem !important; }
+  .samsung-home > section:nth-child(2) .grid { border-radius: 14px; }
+  .samsung-home > section:nth-child(2) .grid > div:nth-child(odd) { border-left: 0 !important; }
+  .samsung-home > section:nth-child(2) .grid > div:nth-child(n+3) { border-top: 1px solid rgba(2,102,200,.13) !important; }
+  .samsung-home > section:nth-child(5), .samsung-home > section:nth-child(7), .samsung-home > section:nth-child(9), .samsung-home > section:nth-child(11), .samsung-home > section:nth-child(6), .samsung-home > section:nth-child(8), .samsung-home > section:nth-child(10) { padding-top: 44px !important; padding-bottom: 44px !important; }
+}

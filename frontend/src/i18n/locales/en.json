@@ -39,7 +39,9 @@
     "or": "or",
     "required": "Required",
     "success": "Success",
-    "error": "Error"
+    "error": "Error",
+    "tryAgain": "Try Again",
+    "returnHome": "Return Home"
   },
   "nav": {
     "home": "Home",
@@ -311,5 +313,13 @@
   },
   "backToTop": {
     "label": "Back to top"
+  },
+  "errors": {
+    "serverErrorTitle": "Server Error",
+    "serverErrorSub": "We encountered an unexpected server error. Please try reloading or check back shortly.",
+    "boundaryTitle": "Something Went Wrong",
+    "boundarySub": "An unexpected application error occurred. We have logged this issue.",
+    "clearCartTitle": "Clear Shopping Cart",
+    "clearCartConfirm": "Are you sure you want to clear all items from your shopping cart? This action cannot be undone."
   }
 }

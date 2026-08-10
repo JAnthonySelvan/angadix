@@ -24,6 +24,7 @@ export const ProductCard = ({ product, onQuickView }) => {
   const { requireAuth, isAuthenticated } = useRequireAuth();
 
   const [isHovered, setIsHovered] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   if (!product) return null;
 
@@ -73,43 +74,52 @@ export const ProductCard = ({ product, onQuickView }) => {
       .catch((err) => toast.error(err || 'Failed to add item to cart'));
   };
 
-  const handleToggleWishlist = (e) => {
+  const confirmRemoveWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setShowRemoveConfirm(false);
 
     if (!isAuthenticated) {
       const currentGuestWishlist = loadGuestWishlistFromStorage();
       const targetId = String(_id);
-      const existsIndex = currentGuestWishlist.findIndex((item) => {
+      const updated = currentGuestWishlist.filter((item) => {
         const itemId = item._id || item.id || item.product?._id || item;
-        return String(itemId) === targetId;
+        return String(itemId) !== targetId;
       });
-
-      let updated;
-      if (existsIndex > -1) {
-        updated = currentGuestWishlist.filter((_, idx) => idx !== existsIndex);
-        toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist'));
-      } else {
-        updated = [...currentGuestWishlist, product];
-        toast.success(t('toasts.addedToWishlist', 'Saved to wishlist'));
-      }
-
       saveGuestWishlistToStorage(updated);
       dispatch(setGuestWishlistItems(updated));
+      toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist'));
       return;
     }
 
+    dispatch(removeWishlistItem(_id))
+      .unwrap()
+      .then(() => toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist')))
+      .catch((err) => toast.error(err || 'Failed to remove from wishlist'));
+  };
+
+  const handleToggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (isInWishlist) {
-      dispatch(removeWishlistItem(_id))
-        .unwrap()
-        .then(() => toast.success(t('toasts.removedFromWishlist', 'Removed from wishlist')))
-        .catch((err) => toast.error(err || 'Failed to remove from wishlist'));
-    } else {
-      dispatch(addWishlistItem(_id))
-        .unwrap()
-        .then(() => toast.success(t('toasts.addedToWishlist', 'Saved to wishlist')))
-        .catch((err) => toast.error(err || 'Failed to add to wishlist'));
+      setShowRemoveConfirm(true);
+      return;
     }
+
+    if (!isAuthenticated) {
+      const currentGuestWishlist = loadGuestWishlistFromStorage();
+      const updated = [...currentGuestWishlist, product];
+      saveGuestWishlistToStorage(updated);
+      dispatch(setGuestWishlistItems(updated));
+      toast.success(t('toasts.addedToWishlist', 'Saved to wishlist'));
+      return;
+    }
+
+    dispatch(addWishlistItem(_id))
+      .unwrap()
+      .then(() => toast.success(t('toasts.addedToWishlist', 'Saved to wishlist')))
+      .catch((err) => toast.error(err || 'Failed to add to wishlist'));
   };
 
   const handleQuickView = (e) => {
@@ -124,13 +134,16 @@ export const ProductCard = ({ product, onQuickView }) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="bg-gradient-to-br from-white via-[#F0F8FF] to-[#E1F5FE] dark:from-slate-800 dark:to-slate-900 border border-[#BAE6FD] dark:border-slate-700/80 rounded-xl overflow-hidden group hover:shadow-xl transition-all duration-300 flex flex-col h-full"
+      className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl overflow-hidden group hover:shadow-[0_18px_38px_rgba(2,102,200,0.14)] transition-all duration-300 flex flex-col h-full relative"
       onMouseEnter={() => setIsHovered(true)}
       aria-label={`Product card for ${name}`}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setShowRemoveConfirm(false);
+      }}
     >
       {/* Thumbnail & Badges */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-sky-50 to-[#D8EEFE]/70 dark:from-slate-900/60 dark:to-slate-800/60">
+      <div className="relative overflow-hidden bg-[#f4f8fc] dark:bg-slate-950">
         <Link to={`/products/${slug}`}>
           <img
             src={primaryImage}
@@ -139,7 +152,7 @@ export const ProductCard = ({ product, onQuickView }) => {
               e.target.src =
                 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&auto=format';
             }}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-56 object-contain p-4 mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         </Link>
@@ -165,16 +178,45 @@ export const ProductCard = ({ product, onQuickView }) => {
 
         {/* Action Floating Buttons Top Right */}
         <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
-          <button
-            onClick={handleToggleWishlist}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-            title={isInWishlist ? t('product.removeFromWishlist', 'Remove from Wishlist') : t('product.addToWishlist', 'Add to Wishlist')}
-          >
-            <Heart
-              size={15}
-              className={isInWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}
-            />
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleToggleWishlist}
+              className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
+              title={isInWishlist ? t('product.removeFromWishlist', 'Remove from Wishlist') : t('product.addToWishlist', 'Add to Wishlist')}
+            >
+              <Heart
+                size={15}
+                className={isInWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}
+              />
+            </button>
+
+            {/* Inline Confirm Popover */}
+            {showRemoveConfirm && (
+              <div className="absolute top-10 right-0 z-30 w-44 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl text-center space-y-2">
+                <p className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200">
+                  {t('wishlist.removeConfirm', 'Remove item?')}
+                </p>
+                <div className="flex gap-1.5 justify-center">
+                  <button
+                    onClick={confirmRemoveWishlist}
+                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] shadow-sm"
+                  >
+                    {t('common.remove', 'Remove')}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowRemoveConfirm(false);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-[10px]"
+                  >
+                    {t('common.cancel', 'Cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           <button
             onClick={handleQuickView}
@@ -187,7 +229,7 @@ export const ProductCard = ({ product, onQuickView }) => {
       </div>
 
       {/* Content Details */}
-      <div className="p-4 flex flex-col flex-1 gap-2 bg-gradient-to-br from-white/60 via-[#F0F8FF]/80 to-[#E1F5FE] dark:from-slate-800/90 dark:to-slate-900/90">
+      <div className="p-4 flex flex-col flex-1 gap-2 bg-white dark:bg-slate-900">
         <p className="text-xs text-[#0D78D6] dark:text-sky-400 font-bold uppercase tracking-wider">
           {category?.name || 'Electronics'}
         </p>
@@ -230,7 +272,7 @@ export const ProductCard = ({ product, onQuickView }) => {
         <button
           onClick={handleAddToCart}
           disabled={stock <= 0}
-          className={`mt-2 w-full py-2.5 rounded-lg text-xs font-bold font-body transition-all duration-200 flex items-center justify-center gap-2 ${
+          className={`mt-2 w-full py-2.5 rounded-full text-xs font-bold font-body transition-all duration-200 flex items-center justify-center gap-2 ${
             stock <= 0
               ? 'bg-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-500'
               : isInCart

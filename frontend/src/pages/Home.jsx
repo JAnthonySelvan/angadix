@@ -18,10 +18,12 @@ import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { CountdownTimer } from '../components/common/CountdownTimer';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
+import { PageTransition } from '../components/common/PageTransition';
 import { getProductImageUrl } from '../utils/orderHelpers';
 import api from '../lib/axios';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import './Home.samsung.css';
 
 // ── Static Helper Components matching Figma App.tsx ──────────────────────────
 function Chip({ children, variant = 'primary' }) {
@@ -161,9 +163,8 @@ export const Home = () => {
     { id: 2, name: 'Rahul Verma', loc: 'Delhi', rating: 5, text: 'The customer support is incredible. Had an issue with my order and it was resolved within an hour. Highly recommend this platform!', avatar: 'RV' },
     { id: 3, name: 'Ananya Patel', loc: 'Bangalore', rating: 4, text: 'Great selection of products. I always find exactly what I am looking for. The app is smooth and checkout is super quick.', avatar: 'AP' },
   ];
-
   return (
-    <div className="font-body bg-background text-foreground min-h-screen space-y-12 pb-16">
+    <PageTransition className="samsung-home font-body bg-background text-foreground min-h-screen space-y-12 pb-16">
       
       {/* ── 1. Hero Banner Section ───────────────────────────────────── */}
       <section
@@ -597,6 +598,6 @@ export const Home = () => {
       {quickViewProduct && (
         <QuickViewModal product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
       )}
-    </div>
+    </PageTransition>
   );
 };

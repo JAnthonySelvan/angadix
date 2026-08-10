@@ -26,12 +26,16 @@ import { CouponSection } from '../components/cart/CouponSection';
 import { SavedForLaterSection } from '../components/cart/SavedForLaterSection';
 import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtTogether';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
+import { ConfirmDialog } from '../components/admin/ConfirmDialog';
+import { PageTransition } from '../components/common/PageTransition';
 import toast from 'react-hot-toast';
 
 export const Cart = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const items = useAppSelector(selectCartItems);
   const totalCount = useAppSelector(selectCartTotalCount);
@@ -41,11 +45,22 @@ export const Cart = () => {
 
   const handleClearCart = () => {
     dispatch(clearCartRemote());
+    setIsConfirmOpen(false);
     toast.success(t('toasts.cartCleared', 'Cart cleared.'));
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Confirm Clear Cart Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleClearCart}
+        title={t('errors.clearCartTitle', 'Clear Shopping Cart')}
+        message={t('errors.clearCartConfirm', 'Are you sure you want to clear all items from your shopping cart? This action cannot be undone.')}
+        confirmText={t('cart.clearCart', 'Clear Cart')}
+      />
+
       {/* Breadcrumb / Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -58,7 +73,7 @@ export const Cart = () => {
 
         {items.length > 0 && (
           <button
-            onClick={handleClearCart}
+            onClick={() => setIsConfirmOpen(true)}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors"
           >
             <Trash2 size={14} />
@@ -223,6 +238,6 @@ export const Cart = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 };

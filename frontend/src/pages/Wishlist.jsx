@@ -10,6 +10,7 @@ import {
 } from '../features/wishlist/wishlistSlice';
 import { fetchWishlist } from '../features/wishlist/wishlistThunks';
 import { ProductCard } from '../components/common/ProductCard';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const Wishlist = () => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ export const Wishlist = () => {
   }, [dispatch, isAuthenticated]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Navigation */}
       <div className="flex items-center justify-between">
         <Link
@@ -93,6 +94,6 @@ export const Wishlist = () => {
           ))}
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 };

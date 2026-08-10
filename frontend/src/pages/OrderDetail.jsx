@@ -33,7 +33,8 @@ import { isInvoiceAvailable, getProductImageUrl } from '../utils/orderHelpers';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
-import { Spinner } from '../components/ui/Spinner';
+import { Skeleton } from '../components/ui/Skeleton';
+import { PageTransition } from '../components/common/PageTransition';
 import toast from 'react-hot-toast';
 
 export const OrderDetail = () => {
@@ -188,12 +189,55 @@ export const OrderDetail = () => {
 
   if (loading || !order) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-        <Spinner size="lg" color="primary" />
-        <p className="text-sm font-bold text-slate-600 dark:text-slate-400">
-          Loading order details...
-        </p>
-      </div>
+      <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-4 w-36" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-32 rounded-xl" />
+            <Skeleton className="h-8 w-24 rounded-xl" />
+          </div>
+        </div>
+
+        <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-24 rounded-full" />
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-4">
+              <Skeleton className="h-5 w-44" />
+              <div className="space-y-3 pt-2">
+                <Skeleton className="h-16 w-full rounded-2xl" />
+                <Skeleton className="h-16 w-full rounded-2xl" />
+              </div>
+            </div>
+            <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-4">
+              <Skeleton className="h-5 w-52" />
+              <Skeleton className="h-24 w-full rounded-2xl" />
+            </div>
+          </div>
+
+          <div className="lg:col-span-4 space-y-6">
+            <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-4">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-20 w-full rounded-xl" />
+            </div>
+            <div className="neu-card p-6 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-4">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-28 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </PageTransition>
     );
   }
 
@@ -229,7 +273,7 @@ export const OrderDetail = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Navigation & Action Buttons */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
@@ -597,6 +641,6 @@ export const OrderDetail = () => {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageTransition>
   );
 };

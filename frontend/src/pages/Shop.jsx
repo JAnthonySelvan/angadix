@@ -14,6 +14,7 @@ import { ProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { Breadcrumb } from '../components/common/Breadcrumb';
+import { PageTransition } from '../components/common/PageTransition';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 const parseParamArray = (paramVal) => {
@@ -316,7 +317,7 @@ export const Shop = () => {
   const pagination = currentProductState.pagination || {};
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Breadcrumb */}
       <Breadcrumb items={[{ label: t('nav.shop', 'Shop Catalog') }]} />
 
@@ -686,6 +687,6 @@ export const Shop = () => {
         isOpen={Boolean(quickViewProduct)}
         onClose={() => setQuickViewProduct(null)}
       />
-    </div>
+    </PageTransition>
   );
 };

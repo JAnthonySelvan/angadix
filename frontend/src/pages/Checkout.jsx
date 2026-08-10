@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PageTransition } from '../components/common/PageTransition';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   selectCartItems,
@@ -62,7 +63,7 @@ export const Checkout = () => {
   const currentStepIndex = stepOrder.indexOf(step);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link
@@ -268,6 +269,6 @@ export const Checkout = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };

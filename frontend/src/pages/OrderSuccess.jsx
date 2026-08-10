@@ -20,6 +20,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { getProductImageUrl } from '../utils/orderHelpers';
+import { PageTransition } from '../components/common/PageTransition';
 
 export const OrderSuccess = () => {
   const { orderId } = useParams();
@@ -51,12 +52,12 @@ export const OrderSuccess = () => {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          Unable to Load Order Details
+          Unable to Load Order
         </h2>
         <p className="text-xs text-rose-500">{error}</p>
-        <Link to="/orders">
+        <Link to="/shop">
           <Button variant="primary" size="md">
-            View Order History
+            Return to Shop
           </Button>
         </Link>
       </div>
@@ -73,7 +74,7 @@ export const OrderSuccess = () => {
   });
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Animated Success Card Header */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -249,6 +250,6 @@ export const OrderSuccess = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 };

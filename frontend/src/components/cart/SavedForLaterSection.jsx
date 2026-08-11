@@ -4,7 +4,7 @@ import { Bookmark, ShoppingCart, Trash2, CheckCircle2, AlertTriangle } from 'luc
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectSavedForLaterItems } from '../../features/savedForLater/savedForLaterSlice';
 import { moveSavedItemToCart, removeSavedItem } from '../../features/savedForLater/savedForLaterThunks';
-import { getProductImageUrl } from '../../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const SavedForLaterSection = () => {
@@ -47,18 +47,20 @@ export const SavedForLaterSection = () => {
           const isOutOfStock = product.stock <= 0 || product.isActive === false;
           const itemPrice = product.discountPrice || product.price || 0;
           const primaryImage = getProductImageUrl(product.images);
+          const rawImage = getRawProductImageUrl(product.images);
 
           return (
             <div
               key={product._id}
-              className="neu-card p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex gap-3 items-center justify-between transition-all hover:border-slate-200 dark:hover:border-slate-700"
+              className="neu-card p-4 bg-gradient-to-b from-white to-[#f0f8ff] dark:from-[#111927] dark:to-[#0b101d] border border-[#0266C8]/15 dark:border-sky-500/20 rounded-2xl flex gap-3 items-center justify-between transition-all hover:border-[#0266C8]/40 dark:hover:border-sky-400/40"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <Link to={`/products/${product.slug}`} className="flex-shrink-0">
                   <img
                     src={primaryImage}
                     alt={product.name}
-                    className="w-16 h-16 rounded-xl object-contain bg-slate-50 dark:bg-slate-800 p-1.5 border border-slate-100 dark:border-slate-800"
+                    onError={(e) => handleProductImageError(e, rawImage)}
+                    className="w-16 h-16 rounded-xl object-contain bg-transparent p-1 border-none mix-blend-multiply dark:mix-blend-normal"
                   />
                 </Link>
 

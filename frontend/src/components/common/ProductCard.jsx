@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, ShoppingCart, Star, Eye } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Eye, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { addItemToCart } from '../../features/cart/cartThunks';
@@ -13,17 +13,50 @@ import {
   setGuestWishlistItems,
 } from '../../features/wishlist/wishlistSlice';
 import { useRequireAuth } from '../../utils/useRequireAuth';
-import { getProductImageUrl } from '../../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
-export const ProductCard = ({ product, onQuickView }) => {
+export const ProductImageWrapper = ({
+  src,
+  alt,
+  rawImage,
+  slug,
+  className = '',
+  imgClassName = '',
+  maxHeightClass = 'max-h-48 sm:max-h-52',
+  children,
+}) => {
+  const content = (
+    <img
+      src={src}
+      alt={alt}
+      onError={(e) => handleProductImageError(e, rawImage)}
+      className={`w-full h-full ${maxHeightClass} object-contain bg-transparent mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500 ease-out ${imgClassName}`}
+      loading="lazy"
+    />
+  );
+
+  return (
+    <div className={`relative overflow-hidden bg-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 flex items-center justify-center aspect-square ${className}`}>
+      {slug ? (
+        <Link to={`/products/${slug}`} className="w-full h-full flex items-center justify-center">
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
+      {children}
+    </div>
+  );
+};
+
+export const PremiumProductCard = ({ product, onQuickView }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const isInWishlist = useAppSelector(selectIsInWishlist(product?._id));
   const { requireAuth, isAuthenticated } = useRequireAuth();
 
-  const [isHovered, setIsHovered] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   if (!product) return null;
@@ -37,21 +70,15 @@ export const ProductCard = ({ product, onQuickView }) => {
     images = [],
     ratingsAverage = 4.5,
     ratingsCount = 0,
-    isFeatured,
-    isBestSeller,
     category,
     stock = 10,
   } = product;
 
-  // Primary image fallback
   const primaryImage = getProductImageUrl(images);
-
-  // Calculate discount percentage
+  const rawImage = getRawProductImageUrl(images);
   const hasDiscount = discountPrice && discountPrice < price;
-  const discountPercent = hasDiscount ? Math.round(((price - discountPrice) / price) * 100) : 0;
   const finalPrice = hasDiscount ? discountPrice : price;
 
-  // State check for cart
   const isInCart = cartItems.some(
     (item) => item.product?._id === _id || item.product === _id
   );
@@ -128,78 +155,51 @@ export const ProductCard = ({ product, onQuickView }) => {
     if (onQuickView) onQuickView(product);
   };
 
+  const categoryName = typeof category === 'object' ? category?.name : category;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -6, scale: 1.015 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl overflow-hidden group hover:shadow-[0_18px_38px_rgba(2,102,200,0.14)] transition-all duration-300 flex flex-col h-full relative"
-      onMouseEnter={() => setIsHovered(true)}
+      whileHover={{ y: -6 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="bg-gradient-to-b from-white via-white to-[#f0f8ff] dark:from-[#111927] dark:to-[#0b101d] border border-[#0266C8]/15 dark:border-sky-500/20 rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col justify-between group hover:border-[#0266C8]/40 dark:hover:border-sky-400/40 hover:shadow-[0_20px_45px_rgba(2,102,200,0.12)] dark:hover:shadow-[0_20px_45px_rgba(2,102,200,0.35)] transition-all duration-300 relative h-full"
       aria-label={`Product card for ${name}`}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setShowRemoveConfirm(false);
-      }}
+      onMouseLeave={() => setShowRemoveConfirm(false)}
     >
-      {/* Thumbnail & Badges */}
-      <div className="relative overflow-hidden bg-[#f4f8fc] dark:bg-slate-950">
-        <Link to={`/products/${slug}`}>
-          <img
-            src={primaryImage}
-            alt={name}
-            onError={(e) => {
-              e.target.src =
-                'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop&auto=format';
-            }}
-            className="w-full h-56 object-contain p-4 mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
-        </Link>
+      {/* Top Image Container */}
+      <ProductImageWrapper
+        src={primaryImage}
+        alt={name}
+        rawImage={rawImage}
+        slug={slug}
+        className="mb-5"
+      >
 
-        {/* Badges Top Left */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-10 pointer-events-none">
-          {isBestSeller && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-[#0266C8] text-white font-heading shadow-sm">
-              {t('common.hot', 'Bestseller')}
-            </span>
-          )}
-          {isFeatured && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-amber-500 text-white font-heading shadow-sm">
-              {t('common.new', 'Featured')}
-            </span>
-          )}
-          {hasDiscount && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-rose-600 text-white font-heading shadow-sm">
-              -{discountPercent}%
-            </span>
-          )}
-        </div>
-
-        {/* Action Floating Buttons Top Right */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+        {/* Minimal Action Overlay Top Right */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
           <div className="relative">
             <button
               onClick={handleToggleWishlist}
-              className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
+              className="w-8 h-8 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-md border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-black shadow-xs transition-all"
               title={isInWishlist ? t('product.removeFromWishlist', 'Remove from Wishlist') : t('product.addToWishlist', 'Add to Wishlist')}
             >
               <Heart
-                size={15}
-                className={isInWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'}
+                size={14}
+                className={isInWishlist ? 'fill-rose-500 text-rose-500' : 'text-slate-600 dark:text-slate-300'}
               />
             </button>
 
             {/* Inline Confirm Popover */}
             {showRemoveConfirm && (
-              <div className="absolute top-10 right-0 z-30 w-44 p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl text-center space-y-2">
-                <p className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200">
+              <div className="absolute top-10 right-0 z-30 w-44 p-2.5 bg-white dark:bg-[#1d1d1f] border border-slate-200 dark:border-white/15 rounded-xl shadow-2xl text-center space-y-2">
+                <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">
                   {t('wishlist.removeConfirm', 'Remove item?')}
                 </p>
                 <div className="flex gap-1.5 justify-center">
                   <button
                     onClick={confirmRemoveWishlist}
-                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] shadow-sm"
+                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] shadow-xs"
                   >
                     {t('common.remove', 'Remove')}
                   </button>
@@ -209,7 +209,7 @@ export const ProductCard = ({ product, onQuickView }) => {
                       e.stopPropagation();
                       setShowRemoveConfirm(false);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-[10px]"
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-semibold text-[10px]"
                   >
                     {t('common.cancel', 'Cancel')}
                   </button>
@@ -218,72 +218,78 @@ export const ProductCard = ({ product, onQuickView }) => {
             )}
           </div>
 
-          <button
-            onClick={handleQuickView}
-            className="w-8 h-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors"
-            title={t('common.quickView', 'Quick View')}
-          >
-            <Eye size={15} className="text-slate-600 dark:text-slate-300 hover:text-slate-900" />
-          </button>
+          {onQuickView && (
+            <button
+              onClick={handleQuickView}
+              className="w-8 h-8 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-md border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-black shadow-xs transition-all opacity-0 group-hover:opacity-100"
+              title={t('common.quickView', 'Quick View')}
+            >
+              <Eye size={14} className="text-slate-600 dark:text-slate-300" />
+            </button>
+          )}
         </div>
-      </div>
+      </ProductImageWrapper>
 
       {/* Content Details */}
-      <div className="p-4 flex flex-col flex-1 gap-2 bg-white dark:bg-slate-900">
-        <p className="text-xs text-[#0D78D6] dark:text-sky-400 font-bold uppercase tracking-wider">
-          {category?.name || 'Electronics'}
+      <div className="flex flex-col flex-1">
+        {/* Eyebrow Category */}
+        <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 tracking-[0.2em] uppercase font-body mb-1 truncate">
+          {categoryName || 'TECHNOLOGY'}
         </p>
 
-        <Link to={`/products/${slug}`} className="group-hover:text-[#0266C8] transition-colors">
-          <h3 className="font-heading font-semibold text-[#0a2540] dark:text-white text-sm leading-snug line-clamp-2 min-h-[2.5rem]">
+        {/* Title */}
+        <Link to={`/products/${slug}`} className="block mb-2">
+          <h3 className="font-heading font-semibold text-[#0a2540] dark:text-white text-base sm:text-lg leading-snug line-clamp-2 group-hover:text-[#0266C8] dark:group-hover:text-sky-400 transition-colors">
             {name}
           </h3>
         </Link>
 
-        {/* Ratings */}
-        <div className="flex items-center gap-1 my-0.5">
-          <div className="flex gap-0.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                className={i < Math.round(ratingsAverage) ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'}
-              />
-            ))}
+        {/* Minimal Price & Ghost Actions */}
+        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3">
+          <div>
+            <span className="text-[10px] text-slate-400 block font-body font-medium uppercase tracking-wider">From</span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-heading font-extrabold text-[#0a2540] dark:text-white text-base sm:text-lg">
+                ₹{finalPrice.toLocaleString('en-IN')}
+              </span>
+              {hasDiscount && (
+                <span className="text-xs text-slate-400 line-through font-body">
+                  ₹{price.toLocaleString('en-IN')}
+                </span>
+              )}
+            </div>
           </div>
-          <span className="text-xs text-slate-600 dark:text-slate-400 font-body">
-            ({ratingsCount > 0 ? ratingsCount : 128})
-          </span>
-        </div>
 
-        {/* Pricing */}
-        <div className="flex items-baseline gap-2 mt-auto pt-1">
-          <span className="font-heading font-extrabold text-[#0266C8] dark:text-sky-400 text-base">
-            ₹{finalPrice.toLocaleString('en-IN')}
-          </span>
-          {hasDiscount && (
-            <span className="text-xs text-slate-500 line-through font-body">
-              ₹{price.toLocaleString('en-IN')}
-            </span>
-          )}
-        </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/products/${slug}`}
+              className="text-xs font-semibold text-[#0266C8] dark:text-sky-400 hover:underline inline-flex items-center gap-0.5 group/link"
+            >
+              <span>{t('common.learnMore', 'Learn more')}</span>
+              <ChevronRight size={14} className="group-hover/link:translate-x-0.5 transition-transform" />
+            </Link>
 
-        {/* Action Button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={stock <= 0}
-          className={`mt-2 w-full py-2.5 rounded-full text-xs font-bold font-body transition-all duration-200 flex items-center justify-center gap-2 ${
-            stock <= 0
-              ? 'bg-slate-300 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-500'
-              : isInCart
-              ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md'
-              : 'bg-[#0266C8] hover:bg-[#0054A6] text-white shadow-md hover:shadow-lg'
-          }`}
-        >
-          <ShoppingCart size={14} />
-          <span>{isInCart ? t('common.inCart', 'In Cart') : stock <= 0 ? t('common.outOfStock', 'Out of Stock') : t('common.addToCart', 'Add to Cart')}</span>
-        </button>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={stock <= 0}
+              className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${
+                stock <= 0
+                  ? 'text-slate-400 cursor-not-allowed'
+                  : isInCart
+                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-[#0266C8]/10 dark:bg-sky-500/10 text-[#0266C8] dark:text-sky-400 hover:bg-[#0266C8] hover:text-white dark:hover:bg-sky-500 dark:hover:text-white'
+              }`}
+            >
+              {isInCart ? t('common.inCart', 'In Cart') : t('common.buy', 'Buy')}
+            </button>
+          </div>
+        </div>
       </div>
     </motion.div>
   );
+};
+
+export const ProductCard = ({ product, onQuickView }) => {
+  return <PremiumProductCard product={product} onQuickView={onQuickView} />;
 };

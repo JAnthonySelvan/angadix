@@ -6,20 +6,19 @@ import {
   Truck, ShieldCheck, RefreshCw, Headphones, Star, ArrowRight,
   Play, ChevronLeft, ChevronRight, MapPin, Mail, Globe,
   Instagram, Twitter, Facebook, Youtube, Linkedin, CheckCircle,
-  Package, Award, Clock, Smartphone, Monitor, Laptop, Shirt,
-  Home as HomeIcon, Leaf, Dumbbell, Book, Car, PawPrint, Baby, Sparkles,
+  Award, Clock, Sparkles,
   Flame, Gift, CreditCard, RotateCcw, Apple, QrCode, Send,
   Eye, TrendingUp, Cpu, Shield, Zap, Sparkle, CheckCircle2
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { fetchHomepageProducts, fetchCategories, fetchBrands, fetchRecommendedForYou, fetchFeaturedShowcase } from '../features/products/productThunks';
-import { ProductCard } from '../components/common/ProductCard';
+import { ProductCard, PremiumProductCard } from '../components/common/ProductCard';
 import { ProductSkeleton } from '../components/common/ProductSkeleton';
 import { CountdownTimer } from '../components/common/CountdownTimer';
 import { QuickViewModal } from '../components/common/QuickViewModal';
 import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { PageTransition } from '../components/common/PageTransition';
-import { getProductImageUrl } from '../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../utils/orderHelpers';
 import api from '../lib/axios';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -100,6 +99,14 @@ export const Home = () => {
   const [heroIdx, setHeroIdx] = useState(0);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [dbBanners, setDbBanners] = useState([]);
+  const aiScrollRef = useRef(null);
+
+  const handleAiScroll = (direction) => {
+    if (aiScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      aiScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const sectionAnimation = {
     initial: { opacity: 1, y: 0 },
@@ -172,27 +179,42 @@ export const Home = () => {
     }
   };
 
-  const staticCategoryIcons = [
-    { icon: Monitor, label: 'Electronics' },
-    { icon: Shirt, label: 'Fashion' },
-    { icon: Smartphone, label: 'Mobiles' },
-    { icon: Laptop, label: 'Laptops' },
-    { icon: HomeIcon, label: 'Home & Kitchen' },
-    { icon: Leaf, label: 'Beauty' },
-    { icon: Package, label: 'Grocery' },
-    { icon: Dumbbell, label: 'Sports' },
-    { icon: Book, label: 'Books' },
-    { icon: Baby, label: 'Toys' },
-    { icon: Car, label: 'Automotive' },
-    { icon: PawPrint, label: 'Pet Care' },
-  ];
+  // Some legacy brand uploads include a light checkerboard instead of real
+  // transparency. Remove only light, low-saturation pixels so the logo mark
+  // itself keeps its original colour and sharpness.
+  const cleanBrandLogoBackground = (event) => {
+    const image = event.currentTarget;
+    if (image.dataset.backgroundCleaned || !image.naturalWidth || !image.naturalHeight) return;
 
-  const displayCategories = categories.items.length > 0
-    ? categories.items.map((cat, idx) => ({
-        ...cat,
-        icon: staticCategoryIcons[idx % staticCategoryIcons.length].icon,
-      }))
-    : staticCategoryIcons.map((c) => ({ _id: c.label, name: c.label, slug: c.label.toLowerCase().replace(/ /g, '-'), ...c }));
+    try {
+      const maxDimension = 480;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context.drawImage(image, 0, 0, width, height);
+
+      const pixels = context.getImageData(0, 0, width, height);
+      for (let pixel = 0; pixel < pixels.data.length; pixel += 4) {
+        const red = pixels.data[pixel];
+        const green = pixels.data[pixel + 1];
+        const blue = pixels.data[pixel + 2];
+        const brightness = (red + green + blue) / 3;
+        const saturation = Math.max(red, green, blue) - Math.min(red, green, blue);
+        if (brightness > 172 && saturation < 20) pixels.data[pixel + 3] = 0;
+      }
+      context.putImageData(pixels, 0, 0);
+      image.dataset.backgroundCleaned = 'true';
+      image.src = canvas.toDataURL('image/png');
+    } catch {
+      // Cross-origin images without canvas permission continue to render normally.
+    }
+  };
+
+  const displayCategories = categories.items.length > 0 ? categories.items : [];
 
   const REVIEWS = [
     { id: 1, name: 'Priya Sharma', loc: 'Mumbai', rating: 5, text: 'ANGADIX is my go-to for everything. Fast delivery, genuine products, and unbeatable prices. Ordered an iPhone and got it in 2 days!', avatar: 'PS' },
@@ -311,23 +333,33 @@ export const Home = () => {
       </section>
 
       {/* ── 3. Shop By Category Grid ─────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="py-12 max-w-7xl mx-auto px-4 sm:px-6">
         <SectionHead badge="Browse" title="Shop by Category" sub="Explore our wide range of categories and find what you need." />
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
           {displayCategories.map((cat, idx) => {
-            const IconComp = cat.icon || Monitor;
+            const categoryImage = typeof cat.image === 'string' ? cat.image : cat.image?.url;
             return (
               <Link
                 key={cat._id || idx}
                 to={`/shop?category=${cat.slug}`}
-                className="bg-gradient-to-br from-white via-[#F0F8FF] to-[#E1F5FE] dark:from-slate-800/90 dark:to-slate-900/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-xl p-4 flex flex-col items-center gap-2.5 hover:from-white hover:to-[#D8EEFE] hover:border-[#0266C8]/40 hover:shadow-md transition-all duration-200 group"
+                className="group relative isolate min-h-40 sm:min-h-52 overflow-hidden rounded-2xl bg-slate-900 border border-slate-200/70 dark:border-white/10 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#0266C8]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0266C8] focus-visible:ring-offset-2"
               >
-                <div className="w-12 h-12 rounded-xl bg-white/80 dark:bg-slate-700 group-hover:bg-[#0266C8]/10 flex items-center justify-center transition-colors shadow-xs">
-                  <IconComp size={22} className="text-[#0266C8] dark:text-sky-400" />
+                {categoryImage && (
+                  <img
+                    src={categoryImage}
+                    alt={cat.name}
+                    className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                )}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#031627]/95 via-[#031627]/35 to-[#031627]/5 transition-opacity duration-500 group-hover:from-[#013d79]/95 group-hover:via-[#013d79]/35" />
+                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                  <span className="block font-heading text-base sm:text-lg font-extrabold tracking-tight text-white drop-shadow-md">
+                    {cat.name}
+                  </span>
+                  <span className="mt-1 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-sky-200 opacity-0 transition-all duration-300 -translate-y-1 group-hover:translate-y-0 group-hover:opacity-100">
+                    Explore collection <ArrowRight size={12} />
+                  </span>
                 </div>
-                <span className="font-body font-bold text-[#0a2540] dark:text-white text-xs text-center leading-tight">
-                  {cat.name}
-                </span>
               </Link>
             );
           })}
@@ -335,138 +367,227 @@ export const Home = () => {
       </motion.section>
 
       {/* ── 4. Flash Sale Section with Live Countdown ────────────────── */}
-      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
-        <div className="rounded-3xl overflow-hidden shadow-xl border border-sky-200/80 dark:border-slate-800/80 bg-gradient-to-br from-[#E0F2FE] via-[#BAE6FD] to-[#F0F9FF] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
-          <div className="p-6 md:p-10 text-slate-900 dark:text-white">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
-              <div>
-                <Chip variant="primary">
-                  <Flame size={12} className="inline mr-1" /> Limited Time Deals
-                </Chip>
-                <h2 className="font-heading text-2xl md:text-3xl font-extrabold text-[#0a2540] dark:text-white mt-2 tracking-tight">
+      <motion.section {...sectionAnimation} className="py-10 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="relative overflow-hidden rounded-none border border-[#BAE6FD] dark:border-sky-500/20 bg-gradient-to-br from-[#E0F2FE] via-[#D0EAFF] to-[#F0F8FF] dark:from-[#061224] dark:via-[#091830] dark:to-[#040914] text-[#0a2540] dark:text-white shadow-xl dark:shadow-[0_25px_60px_-15px_rgba(2,102,200,0.35)] transition-all duration-300">
+          {/* Ambient Background Lighting Glows */}
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#0266C8]/15 dark:bg-[#0266C8]/25 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-rose-500/10 dark:bg-rose-500/15 rounded-full blur-[130px] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-sky-400/15 dark:bg-sky-400/10 rounded-full blur-[140px] pointer-events-none" />
+
+          <div className="relative z-10 p-6 sm:p-10 lg:p-12">
+            {/* Header & Urgency Bar */}
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10 pb-8 border-b border-[#BAE6FD]/80 dark:border-sky-500/20">
+              <div className="space-y-3 max-w-2xl">
+                {/* Live Badge */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-none bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] uppercase tracking-[0.2em]">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  <Flame size={13} className="text-rose-500 dark:text-rose-400" />
+                  <span>Limited Time Offers</span>
+                </div>
+
+                <h2 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#0a2540] dark:text-white leading-tight">
                   Flash Sale Countdown
                 </h2>
-                <p className="text-slate-700 dark:text-slate-300 text-sm mt-1 font-body">
-                  Premium product deals, heavy discounts, and flash promotions.
+                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base font-body leading-relaxed">
+                  Deep discounts on flagship tech and exclusive gear. Quantities are strictly limited—grab yours before the timer expires.
                 </p>
-                <Link
-                  to="/shop?sort=discount"
-                  className="mt-4 inline-block bg-[#0266C8] hover:bg-[#0054A6] text-white px-6 py-2.5 rounded-xl text-sm font-bold font-body transition-all shadow-md hover:shadow-lg"
-                >
-                  Shop Flash Sale Now
-                </Link>
+
+                <div className="pt-2">
+                  <Link
+                    to="/shop?sort=discount"
+                    className="inline-flex items-center gap-2 rounded-none bg-[#0266C8] hover:bg-[#0054A6] text-white px-6 py-3 font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md hover:shadow-lg dark:shadow-[0_0_20px_rgba(2,102,200,0.4)] dark:hover:shadow-[0_0_30px_rgba(2,102,200,0.7)] border border-sky-400/40 group"
+                  >
+                    <span>Shop All Flash Deals</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
               </div>
 
-              {/* Countdown Component */}
-              <div className="flex items-center gap-3">
-                <CountdownTimer />
+              {/* Countdown Timer Block */}
+              <div className="flex flex-col items-start lg:items-end gap-2 bg-white/80 dark:bg-[#040c1a]/80 p-5 border border-[#BAE6FD] dark:border-sky-500/25 backdrop-blur-md rounded-none shadow-lg">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#0266C8] dark:text-sky-400 flex items-center gap-1.5">
+                  <Clock size={12} className="text-[#0266C8] dark:text-sky-400 animate-pulse" />
+                  Offer Expires In
+                </span>
+                <CountdownTimer variant="sharp" />
               </div>
             </div>
 
-            {/* Flash Sale Product Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {(homepage?.flashSale?.length > 0 ? homepage.flashSale : homepage?.trending?.slice(0, 3) || []).map((item) => (
-                <div
-                  key={item._id}
-                  className="rounded-2xl p-4 flex gap-3.5 items-center bg-white/95 dark:bg-slate-800/90 text-slate-900 dark:text-white border border-white/80 dark:border-slate-700/60 shadow-md hover:shadow-xl transition-all"
-                >
-                  <img
-                    src={getProductImageUrl(item.images)}
-                    alt={item.name}
-                    onError={(e) => {
-                      e.target.src =
-                        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400';
-                    }}
-                    className="w-20 h-20 object-cover rounded-xl shrink-0 border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-rose-500 text-white font-heading shadow-xs">
-                      HOT DEAL
-                    </span>
-                    <p className="font-heading font-bold text-slate-900 dark:text-white text-sm mt-1 truncate">{item.name}</p>
-                    <p className="font-heading font-extrabold text-[#0266C8] dark:text-sky-400 text-base">
-                      ₹{(item.discountPrice || item.price || 19999).toLocaleString('en-IN')}
-                    </p>
-                    <button
-                      onClick={() => setQuickViewProduct(item)}
-                      className="mt-2 w-full bg-[#0266C8] hover:bg-[#0054A6] text-white rounded-lg py-1.5 text-xs font-bold font-body transition-colors shadow-xs"
-                    >
-                      Quick View
-                    </button>
+            {/* Flash Sale Product Cards Grid (Compact Sharp Cards: border-radius: 0) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+              {(homepage?.flashSale?.length > 0 ? homepage.flashSale : homepage?.trending?.slice(0, 4) || []).map((item) => {
+                const itemImage = getProductImageUrl(item.images);
+                const itemRawImage = getRawProductImageUrl(item.images);
+                const hasDiscount = item.discountPrice && item.discountPrice < item.price;
+                const finalPrice = hasDiscount ? item.discountPrice : item.price;
+                const discountPercent = hasDiscount ? Math.round(((item.price - item.discountPrice) / item.price) * 100) : 0;
+
+                return (
+                  <div
+                    key={item._id}
+                    className="rounded-none bg-white dark:bg-[#050e1c]/95 border border-[#BAE6FD] dark:border-sky-500/20 hover:border-[#0266C8]/50 dark:hover:border-sky-400/60 p-3.5 sm:p-4 flex flex-col justify-between group/card transition-all duration-300 shadow-sm hover:shadow-lg dark:hover:shadow-[0_12px_28px_rgba(2,102,200,0.22)] relative overflow-hidden h-full"
+                  >
+                    {/* Top Badge Overlay */}
+                    <div className="flex items-center justify-between gap-1.5 mb-2">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-[9px] font-extrabold uppercase tracking-wider bg-rose-600 text-white font-heading shadow-xs">
+                        <Flame size={10} /> HOT DEAL
+                      </span>
+                      {discountPercent > 0 && (
+                        <span className="inline-block px-1.5 py-0.5 rounded-none text-[9px] font-extrabold uppercase bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/40">
+                          {discountPercent}% OFF
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Image Wrapper (Compact sharp container & transparent image) */}
+                    <div className="relative w-full h-36 sm:h-40 p-2 sm:p-3 flex items-center justify-center bg-transparent mb-3 border-b border-[#BAE6FD]/60 dark:border-sky-500/15 rounded-none overflow-hidden">
+                      <Link to={`/products/${item.slug}`} className="w-full h-full flex items-center justify-center">
+                        <img
+                          src={itemImage}
+                          alt={item.name}
+                          onError={(e) => handleProductImageError(e, itemRawImage)}
+                          className="w-full h-full max-h-32 sm:max-h-36 object-contain bg-transparent mix-blend-multiply dark:mix-blend-normal group-hover/card:scale-105 transition-transform duration-500 rounded-none"
+                        />
+                      </Link>
+                    </div>
+
+                    {/* Info & Details */}
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-0.5">
+                          {typeof item.category === 'object' ? item.category?.name : (item.category || 'SPECIAL EDITION')}
+                        </p>
+                        <Link to={`/products/${item.slug}`}>
+                          <h3 className="font-heading font-bold text-[#0a2540] dark:text-white text-xs sm:text-sm leading-snug line-clamp-2 group-hover/card:text-[#0266C8] dark:group-hover/card:text-sky-300 transition-colors">
+                            {item.name}
+                          </h3>
+                        </Link>
+                      </div>
+
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-sky-500/15 flex items-end justify-between gap-1.5">
+                        <div>
+                          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Flash Price</span>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-heading font-black text-[#0266C8] dark:text-sky-400 text-base sm:text-lg">
+                              ₹{finalPrice.toLocaleString('en-IN')}
+                            </span>
+                            {hasDiscount && (
+                              <span className="text-[11px] text-slate-400 line-through font-body">
+                                ₹{item.price.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setQuickViewProduct(item)}
+                          className="px-2.5 py-1.5 rounded-none bg-[#0266C8] hover:bg-[#0054A6] text-white font-heading font-bold text-[10px] uppercase tracking-wider transition-all border border-[#0266C8] shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
+                        >
+                          <Eye size={12} />
+                          <span>Quick View</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </motion.section>
 
       {/* ── 5. Trending Products Grid ─────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Chip variant="primary">
-              <TrendingUp size={12} className="inline mr-1" /> Trending
-            </Chip>
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mt-1">Trending Products</h2>
-          </div>
-          <Link to="/shop" className="text-primary text-sm font-semibold font-body flex items-center gap-1 hover:text-primary/80">
-            See all <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        {loading ? (
-          <ProductSkeleton count={4} />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {mixedTrendingProducts.map((product) => (
-              <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
-            ))}
-          </div>
-        )}
-      </motion.section>
-
-      {/* ── 6. Best Sellers Section ───────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-12 bg-secondary/30 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
+      <motion.section {...sectionAnimation} className="py-16 sm:py-24 bg-white dark:bg-[#1d1d1f] border-b border-slate-100 dark:border-white/5 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
             <div>
-              <Chip variant="accent">
-                <Award size={12} className="inline mr-1" /> Best Sellers
-              </Chip>
-              <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mt-1">Best Sellers</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 font-body block mb-2">
+                TRENDING
+              </span>
+              <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0a2540] dark:text-white">
+                Trending Products
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-body mt-2">
+                Explore the tech items everyone is talking about.
+              </p>
             </div>
-            <Link to="/shop" className="text-primary text-sm font-semibold font-body flex items-center gap-1 hover:text-primary/80">
-              See all <ArrowRight size={14} />
+            <Link to="/shop" className="text-[#0266C8] dark:text-sky-400 text-sm font-semibold font-body inline-flex items-center gap-1 hover:underline">
+              <span>{t('common.viewAll', 'See all')}</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {loading ? (
+            <ProductSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
+              {mixedTrendingProducts.map((product) => (
+                <PremiumProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
+              ))}
+            </div>
+          )}
+        </div>
+      </motion.section>
+
+      {/* ── 6. Best Sellers Section ───────────────────────────────────── */}
+      <motion.section {...sectionAnimation} className="py-16 sm:py-24 bg-[#fafafa] dark:bg-[#161617] border-b border-slate-200/50 dark:border-white/5 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 font-body block mb-2">
+                MOST POPULAR
+              </span>
+              <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0a2540] dark:text-white">
+                Best Sellers
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-body mt-2">
+                Tried, tested, and loved by our community.
+              </p>
+            </div>
+            <Link to="/shop" className="text-[#0266C8] dark:text-sky-400 text-sm font-semibold font-body inline-flex items-center gap-1 hover:underline">
+              <span>{t('common.viewAll', 'See all')}</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
             {(homepage?.bestSellers?.length > 0 ? homepage.bestSellers : homepage?.trending?.slice(0, 4) || []).map((product) => (
-              <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
+              <PremiumProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
             ))}
           </div>
         </div>
       </motion.section>
 
       {/* ── 7. New Arrivals / Recently Added ─────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Chip variant="accent">
-              <Sparkles size={12} className="inline mr-1" /> Just In
-            </Chip>
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mt-1">New Arrivals</h2>
+      <motion.section {...sectionAnimation} className="py-16 sm:py-24 bg-white dark:bg-[#1d1d1f] border-b border-slate-100 dark:border-white/5 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 font-body block mb-2">
+                JUST ARRIVED
+              </span>
+              <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0a2540] dark:text-white">
+                New Arrivals
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-body mt-2">
+                The latest releases and top-tier technological innovations.
+              </p>
+            </div>
+            <Link to="/shop" className="text-[#0266C8] dark:text-sky-400 text-sm font-semibold font-body inline-flex items-center gap-1 hover:underline">
+              <span>{t('common.viewAll', 'See all')}</span>
+              <ArrowRight size={14} />
+            </Link>
           </div>
-          <Link to="/shop" className="text-primary text-sm font-semibold font-body flex items-center gap-1 hover:text-primary/80">
-            See all <ArrowRight size={14} />
-          </Link>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {(homepage?.recentlyAdded?.length > 0 ? homepage.recentlyAdded : homepage?.trending?.slice(0, 4) || []).map((product) => (
-            <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
+            {(homepage?.recentlyAdded?.length > 0 ? homepage.recentlyAdded : homepage?.trending?.slice(0, 4) || []).map((product) => (
+              <PremiumProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
+            ))}
+          </div>
         </div>
       </motion.section>
 
@@ -557,16 +678,10 @@ export const Home = () => {
                         >
                           <div className="flex items-center gap-3.5 min-w-0">
                             <img
-                              src={
-                                linkedProd.image?.url ||
-                                (typeof linkedProd.image === 'string' ? linkedProd.image : '') ||
-                                getProductImageUrl(linkedProd.images || linkedProd.image)
-                              }
+                              src={getProductImageUrl(linkedProd.images || linkedProd.image)}
                               alt={linkedProd.name}
-                              onError={(e) => {
-                                e.target.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200';
-                              }}
-                              className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-white/20 flex-shrink-0 bg-slate-100 dark:bg-slate-900 group-hover/glass:scale-105 transition-transform"
+                              onError={(e) => handleProductImageError(e, getRawProductImageUrl(linkedProd.images || linkedProd.image))}
+                              className="w-12 h-12 rounded-xl object-contain flex-shrink-0 bg-transparent mix-blend-multiply dark:mix-blend-normal group-hover/glass:scale-105 transition-transform"
                             />
                             <div className="min-w-0">
                               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0266C8] dark:text-sky-400 block truncate">
@@ -658,43 +773,72 @@ export const Home = () => {
       </section>
 
       {/* ── 9. AI Recommended For You ───────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-8 max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Chip variant="accent">
-              <Cpu size={12} className="inline mr-1" /> AI Powered
-            </Chip>
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-[#0a2540] dark:text-white mt-1">AI Recommended For You</h2>
-          </div>
-          <Link to="/shop" className="text-[#0266C8] dark:text-sky-400 text-sm font-bold font-body flex items-center gap-1 hover:underline">
-            See all <ArrowRight size={14} />
-          </Link>
-        </div>
+      <motion.section {...sectionAnimation} className="py-16 sm:py-24 bg-[#fafafa] dark:bg-[#161617] border-y border-slate-200/50 dark:border-white/5 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-400 font-body block mb-2">
+                CURATED FOR YOU
+              </span>
+              <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl tracking-tight text-[#0a2540] dark:text-white">
+                AI Recommended For You
+              </h2>
+              <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base font-body mt-2">
+                Tailored suggestions based on your personal taste and browsing.
+              </p>
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {(
-            (isAuthenticated && recommendations?.recommendedForYou?.length > 0
-              ? recommendations.recommendedForYou
-              : homepage?.topRated?.length > 0
-              ? homepage.topRated
-              : homepage?.trending?.slice(0, 4) || []
-            )
-          ).map((product) => (
-            <ProductCard key={product._id} product={product} onQuickView={setQuickViewProduct} />
-          ))}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleAiScroll('left')}
+                className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-xs"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => handleAiScroll('right')}
+                className="w-10 h-10 rounded-full border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-xs"
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={20} />
+              </button>
+              <Link to="/shop" className="text-[#0266C8] dark:text-sky-400 text-sm font-semibold font-body inline-flex items-center gap-1 hover:underline ml-2">
+                <span>{t('common.viewAll', 'See all')}</span>
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          <div
+            ref={aiScrollRef}
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-4 pt-2 scroll-smooth"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {(
+              (isAuthenticated && recommendations?.recommendedForYou?.length > 0
+                ? recommendations.recommendedForYou
+                : homepage?.topRated?.length > 0
+                ? homepage.topRated
+                : homepage?.trending?.slice(0, 8) || []
+              )
+            ).map((product) => (
+              <div key={product._id} className="w-[280px] sm:w-[320px] shrink-0 snap-start">
+                <PremiumProductCard product={product} onQuickView={setQuickViewProduct} />
+              </div>
+            ))}
+          </div>
         </div>
       </motion.section>
 
       {/* ── Recently Viewed Section ───────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4">
-        <RecentlyViewed onQuickView={setQuickViewProduct} />
-      </div>
+      <RecentlyViewed onQuickView={setQuickViewProduct} />
 
       {/* ── 10. Featured Brands Grid ──────────────────────────────────── */}
-      <motion.section {...sectionAnimation} className="py-12 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4">
+      <motion.section {...sectionAnimation} className="brand-showcase py-16 sm:py-20 bg-[#E1F5FE]/60 dark:bg-slate-900/60 border-y border-[#BAE6FD] dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <SectionHead badge="Partners" title="Top Featured Brands" sub="Shop genuine products directly from official brand partners." />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             {(brands.items.length > 0
               ? brands.items
               : ['Apple', 'Samsung', 'Sony', 'Nike', 'Dell', 'Bose'].map((b) => ({ _id: b, name: b }))
@@ -706,13 +850,24 @@ export const Home = () => {
                 <Link
                   key={brand._id || idx}
                   to={brand.slug ? `/shop?brand=${brand.slug}` : '/shop'}
-                  className="bg-white dark:bg-slate-800/90 border border-[#BAE6FD] dark:border-slate-700/80 rounded-xl p-4 flex flex-col items-center justify-center text-center font-heading font-extrabold text-[#0a2540] dark:text-white text-sm hover:border-[#0266C8] hover:shadow-md transition-all gap-2 h-24"
+                  className="brand-showcase__card group relative flex min-h-[132px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-200/80 bg-white px-4 py-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#0266C8]/50 hover:shadow-xl hover:shadow-[#0266C8]/10 dark:border-white/10 dark:bg-slate-900/90"
                 >
+                  <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-[#0266C8]/35 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   {logoUrl ? (
-                    <img src={logoUrl} alt={brand.name} className="h-9 w-auto max-w-[85%] object-contain" />
+                    <img
+                      src={logoUrl}
+                      alt={brand.name}
+                      crossOrigin="anonymous"
+                      onLoad={cleanBrandLogoBackground}
+                      onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                      className="h-14 w-full max-w-[150px] object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
                   ) : (
-                    <span className="text-sm font-extrabold">{brand.name}</span>
+                    <span className="font-heading text-lg font-extrabold text-[#0a2540] dark:text-white">{brand.name}</span>
                   )}
+                  <span className="mt-3 max-w-full truncate font-body text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 transition-colors group-hover:text-[#0266C8] dark:text-slate-400 dark:group-hover:text-sky-400">
+                    {logoUrl ? brand.name : 'Featured Partner'}
+                  </span>
                 </Link>
               );
             })}

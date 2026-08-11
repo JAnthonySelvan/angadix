@@ -20,7 +20,7 @@ import { RecentlyViewed } from '../components/common/RecentlyViewed';
 import { FrequentlyBoughtTogether } from '../components/common/FrequentlyBoughtTogether';
 import { Breadcrumb } from '../components/common/Breadcrumb';
 import { ProductReviews } from '../components/reviews/ProductReviews';
-import { getProductImageUrl } from '../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../utils/orderHelpers';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
 import { Skeleton } from '../components/ui/Skeleton';
 import { PageTransition } from '../components/common/PageTransition';
@@ -159,6 +159,10 @@ export const ProductDetail = () => {
   const displayPrice = Number(rawPrice).toLocaleString('en-IN');
   const originalPrice = discountPrice && price ? Number(price).toLocaleString('en-IN') : null;
 
+  const rawImages = images && images.length > 0
+    ? images.map((img) => getRawProductImageUrl(img)).filter(Boolean)
+    : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800'];
+
   const allImages = images && images.length > 0
     ? images.map((img) => getProductImageUrl(img)).filter(Boolean)
     : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800'];
@@ -251,11 +255,12 @@ export const ProductDetail = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* Gallery */}
           <div className="space-y-4">
-            <div className="w-full h-80 sm:h-96 rounded-2xl bg-slate-50 dark:bg-slate-800/40 p-6 flex items-center justify-center border border-slate-100 dark:border-slate-800">
+            <div className="w-full h-80 sm:h-96 rounded-2xl bg-transparent p-6 flex items-center justify-center border-none">
               <img
                 src={allImages[selectedImage]}
                 alt={name}
-                className="max-h-full max-w-full object-contain drop-shadow-xl"
+                onError={(e) => handleProductImageError(e, rawImages[selectedImage])}
+                className="max-h-full max-w-full object-contain bg-transparent mix-blend-multiply dark:mix-blend-normal"
               />
             </div>
 

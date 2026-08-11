@@ -130,7 +130,7 @@ export const Navbar = () => {
       <div
         className={`w-full transition-all duration-300 ${
           isOverHero
-            ? 'bg-transparent border-b-0 py-3.5'
+            ? 'bg-white/20 dark:bg-slate-900/20 border-b border-white/20 dark:border-slate-800/30 py-3.5 backdrop-blur-md shadow-xs dark:shadow-none'
             : isScrolled
             ? 'glass-header shadow-lg py-2.5'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 py-3.5'
@@ -144,12 +144,12 @@ export const Navbar = () => {
             </div>
             <div className="flex flex-col">
               <span className={`font-extrabold text-xl tracking-tight leading-none transition-colors duration-300 ${
-                isOverHero ? 'text-white' : 'text-slate-900 dark:text-white'
+                isOverHero ? 'text-[#0a2540] dark:text-white' : 'text-slate-900 dark:text-white'
               }`}>
-                ANGADIX<span className={isOverHero ? 'text-sky-300' : 'text-primary-600 dark:text-primary-400'}>.</span>
+                ANGADIX<span className={isOverHero ? 'text-[#0266C8] dark:text-sky-300' : 'text-primary-600 dark:text-primary-400'}>.</span>
               </span>
               <span className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-0.5 transition-colors duration-300 ${
-                isOverHero ? 'text-sky-200' : 'text-primary-600 dark:text-primary-400'
+                isOverHero ? 'text-[#0266C8] dark:text-sky-200' : 'text-primary-600 dark:text-primary-400'
               }`}>
                 PREMIUM STORE
               </span>
@@ -168,14 +168,14 @@ export const Navbar = () => {
                 onFocus={() => setIsSearchFocused(true)}
                 className={`w-full pl-4 pr-10 rtl:pl-10 rtl:pr-4 py-2.5 text-xs font-medium rounded-2xl border transition-all duration-300 ${
                   isOverHero
-                    ? 'bg-white/15 placeholder-white/70 text-white border-white/25 focus:bg-white focus:text-slate-900 focus:placeholder-slate-400'
+                    ? 'bg-white/25 dark:bg-white/10 text-[#0a2540] dark:text-white placeholder-[#0a2540]/70 dark:placeholder-white/70 border-white/30 dark:border-white/20 backdrop-blur-md shadow-xs focus:bg-white/50 dark:focus:bg-white/20 focus:border-[#0266C8] dark:focus:border-sky-400 focus:outline-none'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none'
                 }`}
               />
               <button
                 type="submit"
                 className={`absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-                  isOverHero ? 'text-white/80 hover:text-white' : 'text-slate-400 hover:text-primary-600'
+                  isOverHero ? 'text-[#0266C8] dark:text-white/80 hover:text-[#0054A6] dark:hover:text-white' : 'text-slate-400 hover:text-primary-600'
                 }`}
               >
                 <Search size={16} />
@@ -183,7 +183,7 @@ export const Navbar = () => {
 
               {/* Live Search Preview Dropdown */}
               {isSearchFocused && searchQuery.trim().length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden z-50 p-2">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 dark:border-slate-800 overflow-hidden z-50 p-2">
                   {isSearching ? (
                     <div className="p-4 text-xs text-slate-400 text-center">{t('common.searching', 'Searching...')}</div>
                   ) : searchResults.length > 0 ? (
@@ -231,7 +231,7 @@ export const Navbar = () => {
               to="/wishlist"
               className={`relative p-2.5 rounded-full transition-colors duration-300 ${
                 isOverHero
-                  ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25'
+                  ? 'bg-white/25 dark:bg-white/10 hover:bg-white/45 dark:hover:bg-white/20 text-[#0a2540] dark:text-white border border-white/30 dark:border-white/20 backdrop-blur-md shadow-xs'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
               title={t('nav.wishlist', 'Wishlist')}
@@ -250,7 +250,7 @@ export const Navbar = () => {
               onClick={() => dispatch(toggleCartDrawer())}
               className={`relative p-2.5 rounded-full transition-all duration-300 focus:outline-none ${
                 isOverHero
-                  ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25 shadow-md'
+                  ? 'bg-[#0266C8]/75 dark:bg-white/15 hover:bg-[#0266C8]/90 dark:hover:bg-white/25 text-white border border-white/30 dark:border-white/25 shadow-md backdrop-blur-md'
                   : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30'
               }`}
               title={t('nav.cart', 'Cart')}
@@ -271,7 +271,7 @@ export const Navbar = () => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className={`flex items-center gap-2 p-1.5 pl-3 rtl:pr-3 rtl:pl-1.5 rounded-full border transition-all duration-300 ${
                     isOverHero
-                      ? 'border-white/25 bg-white/15 hover:bg-white/25 text-white'
+                      ? 'border-white/30 dark:border-white/20 bg-white/25 dark:bg-white/10 hover:bg-white/45 dark:hover:bg-white/20 text-[#0a2540] dark:text-white backdrop-blur-md shadow-xs'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -279,11 +279,11 @@ export const Navbar = () => {
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <span className={`text-xs font-bold hidden sm:inline max-w-[100px] truncate ${
-                    isOverHero ? 'text-white' : 'text-slate-800 dark:text-slate-200'
+                    isOverHero ? 'text-[#0a2540] dark:text-white' : 'text-slate-800 dark:text-slate-200'
                   }`}>
                     {user.name}
                   </span>
-                  <ChevronDown size={14} className={isOverHero ? 'text-white/70' : 'text-slate-400'} />
+                  <ChevronDown size={14} className={isOverHero ? 'text-[#0266C8] dark:text-white/70' : 'text-slate-400'} />
                 </button>
 
                 {/* Profile Dropdown */}
@@ -339,7 +339,7 @@ export const Navbar = () => {
                   to="/login"
                   className={`px-3.5 py-2 text-xs font-bold transition-colors duration-300 ${
                     isOverHero
-                      ? 'text-white hover:text-white/80'
+                      ? 'text-[#0a2540] hover:text-[#0266C8] dark:text-white dark:hover:text-white/80'
                       : 'text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
                 >
@@ -349,7 +349,7 @@ export const Navbar = () => {
                   to="/register"
                   className={`px-4 py-2 text-xs font-extrabold rounded-full transition-all hidden sm:inline-block ${
                     isOverHero
-                      ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm'
+                      ? 'bg-[#0266C8]/75 hover:bg-[#0266C8]/90 text-white shadow-md border border-white/30 dark:bg-white/20 dark:hover:bg-white/30 dark:text-white dark:border-white/30 backdrop-blur-md'
                       : 'bg-primary-600 hover:bg-primary-700 text-white shadow-md shadow-primary-600/30'
                   }`}
                 >
@@ -363,7 +363,7 @@ export const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`lg:hidden p-2 rounded-xl transition-colors duration-300 ${
                 isOverHero
-                  ? 'text-white hover:bg-white/25 border border-white/20'
+                  ? 'bg-white/25 dark:bg-white/10 text-[#0a2540] dark:text-white hover:bg-white/45 dark:hover:bg-white/20 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-xs'
                   : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -390,7 +390,7 @@ export const Navbar = () => {
                 to={link.path}
                 className={`text-xs font-bold transition-colors duration-300 tracking-wide ${
                   isOverHero
-                    ? 'text-white/90 hover:text-white'
+                    ? 'text-[#0a2540] hover:text-[#0266C8] dark:text-white/90 dark:hover:text-white font-extrabold'
                     : 'text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400'
                 }`}
               >
@@ -400,7 +400,7 @@ export const Navbar = () => {
           </nav>
 
           <div className={`text-xs font-semibold flex items-center gap-1 transition-colors duration-300 ${
-            isOverHero ? 'text-sky-200' : 'text-primary-600 dark:text-primary-400'
+            isOverHero ? 'text-[#0266C8] dark:text-sky-200' : 'text-primary-600 dark:text-primary-400'
           }`}>
             <Sparkles size={13} />
             <span>{t('home.heroTag', 'Next-Gen Technology')}</span>

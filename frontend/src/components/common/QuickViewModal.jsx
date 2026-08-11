@@ -7,7 +7,7 @@ import { addItemToCart } from '../../features/cart/cartThunks';
 import { addWishlistItem, removeWishlistItem } from '../../features/wishlist/wishlistThunks';
 import { selectIsInWishlist } from '../../features/wishlist/wishlistSlice';
 import { useRequireAuth } from '../../utils/useRequireAuth';
-import { getProductImageUrl } from '../../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
@@ -39,6 +39,10 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
   const currencySymbol = currency === 'INR' ? '₹' : '$';
   const displayPrice = (discountPrice || price).toLocaleString('en-IN');
   const originalPrice = discountPrice ? price.toLocaleString('en-IN') : null;
+
+  const rawImages = images.length > 0
+    ? images.map((img) => getRawProductImageUrl(img)).filter(Boolean)
+    : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop'];
 
   const allImages = images.length > 0
     ? images.map((img) => getProductImageUrl(img)).filter(Boolean)
@@ -104,12 +108,13 @@ export const QuickViewModal = ({ product, isOpen = true, onClose }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2">
             {/* Left: Gallery */}
-            <div className="p-6 bg-slate-50 dark:bg-slate-800/30 flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800">
+            <div className="p-6 bg-transparent flex flex-col items-center justify-between border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800">
               <div className="w-full h-72 sm:h-80 flex items-center justify-center p-4">
                 <img
                   src={allImages[selectedImageIndex]}
                   alt={name}
-                  className="max-h-full max-w-full object-contain drop-shadow-lg"
+                  onError={(e) => handleProductImageError(e, rawImages[selectedImageIndex])}
+                  className="max-h-full max-w-full object-contain bg-transparent mix-blend-multiply dark:mix-blend-normal"
                 />
               </div>
 

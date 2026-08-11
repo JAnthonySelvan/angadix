@@ -31,12 +31,12 @@ export const MegaMenu = ({ variant = 'compact', isOverHero = false }) => {
         className={`flex items-center gap-2 py-2 px-3 font-extrabold text-xs transition-colors focus:outline-none ${
           variant === 'nav'
             ? isOverHero
-              ? 'h-10 -mx-3 rounded-lg text-white hover:text-white/80 hover:bg-white/10'
+              ? 'h-10 -mx-3 rounded-lg text-[#0a2540] dark:text-white hover:text-[#0266C8] dark:hover:text-white/80 hover:bg-[#0266C8]/10 dark:hover:bg-white/10'
               : 'h-10 -mx-3 rounded-lg text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800'
             : 'rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
         }`}
       >
-        <Grid size={15} className={variant === 'nav' && isOverHero ? 'text-white' : 'text-primary-600 dark:text-primary-400'} />
+        <Grid size={15} className={variant === 'nav' && isOverHero ? 'text-[#0266C8] dark:text-white' : 'text-primary-600 dark:text-primary-400'} />
         <span>{t('nav.categories', 'Categories')}</span>
         <ChevronDown
           size={14}

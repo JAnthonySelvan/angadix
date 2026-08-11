@@ -51,21 +51,31 @@
 
 .samsung-home > section:nth-child(3) { padding: 68px 1rem !important; }
 .samsung-home > section:nth-child(3) .grid { gap: 14px !important; }
-.samsung-home > section:nth-child(3) .grid a { background: #f3f8fc !important; border: 0 !important; border-radius: 18px !important; min-height: 132px; justify-content: center; box-shadow: none !important; color: #0a2540 !important; }
-.samsung-home > section:nth-child(3) .grid a:hover { background: #e1f2ff !important; transform: translateY(-3px); }
-.samsung-home > section:nth-child(3) .grid a > div { background: #fff !important; border-radius: 50% !important; }
-.dark .samsung-home > section:nth-child(3) .grid a { background: #0d1826 !important; color: #f8fbff !important; }
-.dark .samsung-home > section:nth-child(3) .grid a:hover { background: #16263b !important; }
-.dark .samsung-home > section:nth-child(3) .grid a > div { background: #142236 !important; }
+/* Category cards are image-led editorial tiles. Keep their overlay layers
+   rectangular—an earlier generic tile rule turned each layer into an oval. */
+.samsung-home > section:nth-child(3) .grid a {
+  min-height: 176px !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  border-radius: 18px !important;
+  background: #0b1d33 !important;
+  box-shadow: 0 10px 24px rgba(3,22,39,.12) !important;
+  color: #fff !important;
+}
+.samsung-home > section:nth-child(3) .grid a:hover {
+  background: #0b1d33 !important;
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px rgba(2,102,200,.24) !important;
+}
+.dark .samsung-home > section:nth-child(3) .grid a {
+  border-color: rgba(255,255,255,.12) !important;
+  background: #071426 !important;
+}
 
 /* Feature bands use generous padding and an understated studio-card feel. */
 .samsung-home > section:nth-child(4) { padding: 0 1rem 72px !important; }
-.samsung-home > section:nth-child(4) > div { border: 0 !important; border-radius: 30px !important; box-shadow: none !important; background: linear-gradient(135deg, #072d59, #0266c8 56%, #1089df) !important; }
-.samsung-home > section:nth-child(4) h2, .samsung-home > section:nth-child(4) p { color: white !important; }
-.samsung-home > section:nth-child(4) .grid > div { border: 0 !important; border-radius: 18px !important; box-shadow: none !important; }
-.samsung-home > section:nth-child(4) .grid > div > div > p { color: #071a33 !important; }
-.dark .samsung-home > section:nth-child(4) .grid > div > div > p { color: #f8fbff !important; }
-.samsung-home > section:nth-child(4) button, .samsung-home > section:nth-child(4) a { border-radius: 999px !important; }
+.samsung-home > section:nth-child(4) > div { border-radius: 0 !important; }
+.samsung-home > section:nth-child(4) .grid > div { border-radius: 0 !important; }
+.samsung-home > section:nth-child(4) button, .samsung-home > section:nth-child(4) a { border-radius: 0 !important; }
 
 .samsung-home > section:nth-child(6), .samsung-home > section:nth-child(10) { background: #f4f8fc !important; border: 0 !important; }
 .dark .samsung-home > section:nth-child(6), .dark .samsung-home > section:nth-child(10) { background: #0d1826 !important; }
@@ -74,7 +84,7 @@
 
 /* Preserve existing product controls while making their presentation airy and premium. */
 .samsung-home .grid > [aria-label^='Product card'] { border-radius: 20px !important; }
-.samsung-home .grid > [aria-label^='Product card'] img { background: #f4f8fc; }
+.samsung-home .grid > [aria-label^='Product card'] img { background: transparent !important; }
 .samsung-home .grid > [aria-label^='Product card'] button { border-radius: 999px; }
 
 .samsung-home > section:nth-child(10) .grid > div { border: 0 !important; border-radius: 14px !important; background: #fff !important; min-height: 86px; box-shadow: none !important; }

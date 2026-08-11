@@ -10,7 +10,7 @@ export const TopAlertBanner = ({ isOverHero = false }) => {
     <div
       className={`text-xs py-2 px-4 border-b hidden sm:block transition-all duration-300 ${
         isOverHero
-          ? 'bg-black/20 backdrop-blur-sm text-white border-white/10'
+          ? 'bg-[#0a2540] dark:bg-black/40 backdrop-blur-sm text-white border-b border-[#0266C8]/20 dark:border-white/10'
           : 'bg-primary-900 text-white border-primary-800/60'
       }`}
     >

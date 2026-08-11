@@ -6,7 +6,7 @@ import { updateCartItem, removeCartItem } from '../../features/cart/cartThunks';
 import { addWishlistItem } from '../../features/wishlist/wishlistThunks';
 import { selectIsInWishlist } from '../../features/wishlist/wishlistSlice';
 import { moveCartItemToSaved } from '../../features/savedForLater/savedForLaterThunks';
-import { getProductImageUrl } from '../../utils/orderHelpers';
+import { getProductImageUrl, getRawProductImageUrl, handleProductImageError } from '../../utils/orderHelpers';
 import toast from 'react-hot-toast';
 
 export const CartItemRow = ({ item, isCompact = false }) => {
@@ -23,6 +23,7 @@ export const CartItemRow = ({ item, isCompact = false }) => {
   const lineTotal = itemPrice * quantity;
 
   const primaryImage = getProductImageUrl(product.images);
+  const rawImage = getRawProductImageUrl(product.images);
 
   const handleQuantityIncrease = () => {
     if (product.stock && quantity >= product.stock) {
@@ -67,7 +68,8 @@ export const CartItemRow = ({ item, isCompact = false }) => {
           <img
             src={primaryImage}
             alt={product.name}
-            className="w-16 h-16 rounded-xl object-contain bg-slate-50 dark:bg-slate-900 p-1.5 border border-slate-100 dark:border-slate-800"
+            onError={(e) => handleProductImageError(e, rawImage)}
+            className="w-16 h-16 rounded-xl object-contain bg-transparent p-1 border-none mix-blend-multiply dark:mix-blend-normal"
           />
           {isOutOfStock && (
             <div className="absolute inset-0 bg-slate-900/60 rounded-xl flex items-center justify-center text-white">
@@ -155,14 +157,15 @@ export const CartItemRow = ({ item, isCompact = false }) => {
 
   // Full Row Variant (for Cart Page / Desktop review)
   return (
-    <div className="neu-card p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-slate-200 dark:hover:border-slate-700">
+    <div className="neu-card p-4 sm:p-5 bg-gradient-to-b from-white to-[#f0f8ff] dark:from-[#111927] dark:to-[#0b101d] border border-[#0266C8]/15 dark:border-sky-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-[#0266C8]/40 dark:hover:border-sky-400/40">
       {/* Thumbnail + Name */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <Link to={`/products/${product.slug}`} className="flex-shrink-0 relative group">
           <img
             src={primaryImage}
             alt={product.name}
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-contain bg-slate-50 dark:bg-slate-800/50 p-2 border border-slate-100 dark:border-slate-800"
+            onError={(e) => handleProductImageError(e, rawImage)}
+            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-contain bg-transparent p-2 border-none mix-blend-multiply dark:mix-blend-normal"
           />
           {isOutOfStock && (
             <div className="absolute inset-0 bg-slate-900/60 rounded-2xl flex items-center justify-center text-white">

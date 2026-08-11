@@ -58,7 +58,7 @@ export const NotificationBell = ({ isOverHero = false }) => {
         onClick={() => setIsOpen(!isOpen)}
         className={`relative p-2.5 rounded-full transition-colors focus:outline-none ${
           isOverHero
-            ? 'bg-white/15 hover:bg-white/25 text-white border border-white/25'
+            ? 'bg-white/25 dark:bg-white/10 hover:bg-white/45 dark:hover:bg-white/20 text-[#0a2540] dark:text-white border border-white/30 dark:border-white/20 backdrop-blur-md shadow-xs'
             : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
         }`}
         aria-label={t('nav.notifications', 'Notifications')}

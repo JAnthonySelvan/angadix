@@ -92,7 +92,7 @@ export const FrequentlyBoughtTogether = ({ mainProduct = null }) => {
                   <img
                     src={img}
                     alt={prod.name}
-                    className="w-14 h-14 rounded-xl object-contain bg-slate-50 dark:bg-slate-900 p-1 border border-slate-100 dark:border-slate-800 flex-shrink-0"
+                    className="w-14 h-14 rounded-xl object-contain bg-transparent p-1 border-none flex-shrink-0 mix-blend-multiply dark:mix-blend-normal"
                   />
                   <div className="min-w-0">
                     <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-1">

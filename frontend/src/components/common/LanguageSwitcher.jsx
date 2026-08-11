@@ -43,18 +43,18 @@ export const LanguageSwitcher = ({ className = '', isOverHero = false }) => {
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-primary-500/50 ${
           isOverHero
-            ? 'bg-white/15 text-white hover:bg-white/25 border border-white/25'
+            ? 'bg-white/25 dark:bg-white/10 text-[#0a2540] dark:text-white hover:bg-white/45 dark:hover:bg-white/20 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-xs'
             : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
         }`}
         aria-expanded={isOpen}
         aria-haspopup="true"
         title="Select Language"
       >
-        <Globe size={15} className={isOverHero ? 'text-white' : 'text-primary-600 dark:text-primary-400'} />
+        <Globe size={15} className={isOverHero ? 'text-[#0266C8] dark:text-white' : 'text-primary-600 dark:text-primary-400'} />
         <span className="uppercase tracking-wider">{currentLang.code}</span>
         <ChevronDown
           size={14}
-          className={`${isOverHero ? 'text-white/70' : 'text-slate-400'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`${isOverHero ? 'text-[#0266C8] dark:text-white/70' : 'text-slate-400'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 

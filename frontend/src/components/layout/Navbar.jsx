@@ -368,7 +368,101 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* 3. Navigation Sub-bar */}
+      {/* 2b. Mobile Live Search Input Bar */}
+      <div className="lg:hidden px-4 py-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+        <form onSubmit={handleSearchSubmit} className="relative">
+          <input
+            type="text"
+            placeholder={t('common.searchPlaceholder', 'Search products, brands, categories...')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            className="w-full pl-3.5 pr-10 rtl:pl-10 rtl:pr-3.5 py-2 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-xl border border-transparent focus:border-primary-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600"
+          >
+            <Search size={16} />
+          </button>
+
+          {/* Mobile Live Search Preview Dropdown */}
+          {isSearchFocused && searchQuery.trim().length >= 2 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 p-2">
+              {isSearching ? (
+                <div className="p-4 text-xs text-slate-400 text-center">{t('common.searching', 'Searching...')}</div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {t('common.suggestions', 'Suggestions')} ({searchResults.length})
+                  </p>
+                  {searchResults.map((item, idx) => (
+                    <Link
+                      key={item.slug || idx}
+                      to={`/products/${item.slug}`}
+                      onClick={() => setIsSearchFocused(false)}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <Search size={14} className="text-primary-500 flex-shrink-0" />
+                      <div className="flex-1 truncate">
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                          {item.name}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-xs text-slate-500 text-center">{t('common.noSuggestions', 'No suggestions found')}</div>
+              )}
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* 2c. Mobile Quick Navigation Pills */}
+      <div className="lg:hidden bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/80 px-4 py-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-2 whitespace-nowrap text-xs font-bold">
+          <Link
+            to="/shop"
+            className="px-3 py-1.5 rounded-full bg-primary-600 text-white shadow-xs hover:bg-primary-700 transition-all flex items-center gap-1"
+          >
+            <span>{t('nav.shop', 'Shop')}</span>
+          </Link>
+
+          <Link
+            to="/browse"
+            className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-primary-500 transition-all flex items-center gap-1"
+          >
+            <Grid size={13} className="text-primary-500" />
+            <span>{t('nav.categories', 'Categories')}</span>
+          </Link>
+
+          <Link
+            to="/brands"
+            className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-primary-500 transition-all flex items-center gap-1"
+          >
+            <span>{t('home.shopByBrand', 'Shop By Brand')}</span>
+          </Link>
+
+          <Link
+            to="/best-sellers"
+            className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-primary-500 transition-all flex items-center gap-1"
+          >
+            <Sparkles size={13} className="text-amber-500" />
+            <span>{t('home.bestSellers', 'Best Sellers')}</span>
+          </Link>
+
+          <Link
+            to="/flash-sale"
+            className="px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-100 transition-all flex items-center gap-1"
+          >
+            <span>🔥 {t('home.flashSale', 'Flash Sale')}</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 3. Navigation Sub-bar (Desktop) */}
       <div
         className={`border-b hidden lg:block transition-all duration-300 ${
           isOverHero
@@ -410,40 +504,85 @@ export const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-4"
+            className="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-5 space-y-4 max-h-[80vh] overflow-y-auto"
           >
-            {/* Mobile Search */}
-            <form onSubmit={handleSearchSubmit} className="mb-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2 text-xs bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-800 dark:text-slate-100"
-                />
-                <button type="submit" className="absolute right-3 top-2.5 text-slate-400">
-                  <Search size={16} />
-                </button>
-              </div>
-            </form>
+            <div className="space-y-1">
+              <p className="px-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                {t('nav.menu', 'Navigation Menu')}
+              </p>
 
-            <div className="flex flex-col gap-2">
               <Link
-                to="/categories"
-                className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-primary-600 py-2 border-b border-slate-100 dark:border-slate-800"
+                to="/shop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
               >
-                {t('nav.categories', 'Categories')}
+                <span>{t('nav.shop', 'Shop All Products')}</span>
+                <ChevronDown size={16} className="-rotate-90 text-slate-400" />
               </Link>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className="text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-primary-600 py-2 border-b border-slate-100 dark:border-slate-800"
-                >
-                  {link.name}
-                </Link>
-              ))}
+
+              <Link
+                to="/browse"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Grid size={16} className="text-primary-600" />
+                  <span>{t('nav.categories', 'Browse Categories')}</span>
+                </div>
+                <ChevronDown size={16} className="-rotate-90 text-slate-400" />
+              </Link>
+
+              <Link
+                to="/brands"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <span>{t('home.shopByBrand', 'Shop By Brand')}</span>
+                <ChevronDown size={16} className="-rotate-90 text-slate-400" />
+              </Link>
+
+              <Link
+                to="/best-sellers"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-amber-500" />
+                  <span>{t('home.bestSellers', 'Best Sellers')}</span>
+                </div>
+                <ChevronDown size={16} className="-rotate-90 text-slate-400" />
+              </Link>
+
+              <Link
+                to="/flash-sale"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+              >
+                <span>🔥 {t('home.flashSale', 'Flash Sale')}</span>
+                <ChevronDown size={16} className="-rotate-90 text-rose-400" />
+              </Link>
+            </div>
+
+            {/* Quick Account Actions */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              {!isAuthenticated && (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    {t('nav.login', 'Sign In')}
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2.5 text-center text-xs font-bold rounded-xl bg-primary-600 text-white shadow-sm hover:bg-primary-700"
+                  >
+                    {t('nav.register', 'Create Account')}
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

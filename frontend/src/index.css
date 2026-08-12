@@ -35,16 +35,19 @@
     --border-color: rgba(255, 255, 255, 0.08);
   }
 
+  html,
+  body,
+  #root {
+    max-width: 100vw;
+    overflow-x: hidden !important;
+  }
+
   html {
     font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
     scroll-behavior: smooth;
     color: var(--text-main);
     background-color: var(--bg-main);
     transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  body {
-    overflow-x: hidden;
   }
 
   /* Custom Smooth Scrollbar */

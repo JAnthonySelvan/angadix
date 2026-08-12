@@ -11,10 +11,10 @@ export const AuthLayout = () => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-sky-400/20 dark:bg-[#0266C8]/15 blur-[130px] pointer-events-none" />
 
       {/* Main Split-Screen Luxury Card Container */}
-      <div className="w-full max-w-5xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px] relative z-10">
+      <div className="w-full max-w-5xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-0 lg:min-h-[640px] relative z-10">
         
-        {/* Left Side: Luxury Brand Showcase Panel (Desktop) */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#0a2540] via-[#0266C8] to-[#003c78] text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden">
+        {/* Left Side: Luxury Brand Showcase Panel (Desktop only) */}
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#0a2540] via-[#0266C8] to-[#003c78] text-white p-8 lg:p-12 flex-col justify-between relative overflow-hidden">
           {/* Subtle background glow elements */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-sky-400/20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#0a2540]/80 rounded-full blur-3xl" />
@@ -76,10 +76,26 @@ export const AuthLayout = () => {
         </div>
 
         {/* Right Side: Auth Form Panel */}
-        <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white dark:bg-slate-900 relative transition-colors duration-300">
+        <div className="col-span-1 lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white dark:bg-slate-900 relative transition-colors duration-300 w-full overflow-hidden">
+          {/* Mobile Header Logo */}
+          <div className="lg:hidden flex justify-center mb-6">
+            <Link to="/">
+              <img
+                src="/logo.png"
+                alt="Angadix Logo"
+                className="h-10 w-auto object-contain dark:hidden"
+              />
+              <img
+                src="/logo-dark.png"
+                alt="Angadix Dark Logo"
+                className="h-10 w-auto object-contain hidden dark:block"
+              />
+            </Link>
+          </div>
+
           <motion.div
-            initial={{ opacity: 0, x: 15 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             className="w-full max-w-md mx-auto"
           >

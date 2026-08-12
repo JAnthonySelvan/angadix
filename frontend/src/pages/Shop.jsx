@@ -1,6 +1,17 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SlidersHorizontal, RefreshCcw, Star, Check, ChevronDown, X } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  RefreshCcw,
+  Star,
+  Check,
+  ChevronDown,
+  X,
+  PackageSearch,
+  Sparkles,
+  Filter,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
@@ -16,10 +27,34 @@ import { QuickViewModal } from '../components/common/QuickViewModal';
 import { Breadcrumb } from '../components/common/Breadcrumb';
 import { PageTransition } from '../components/common/PageTransition';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
+import { MobileFilterDrawer } from '../components/shop/MobileFilterDrawer';
 
 const parseParamArray = (paramVal) => {
   if (!paramVal) return [];
   return paramVal.split(',').map((item) => item.trim()).filter(Boolean);
+};
+
+// Framer Motion staggered variants for product grid
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const gridItemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.25, 0.1, 0.25, 1.0],
+    },
+  },
 };
 
 export const Shop = () => {
@@ -34,6 +69,7 @@ export const Shop = () => {
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
 
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Local Filter States initialized from URL params
   const [selectedCategories, setSelectedCategories] = useState(
@@ -324,330 +360,463 @@ export const Shop = () => {
   const isLoading = currentProductState.loading;
   const pagination = currentProductState.pagination || {};
 
+  // Active filter count for badges
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCategories.length > 0) count += selectedCategories.length;
+    if (selectedBrands.length > 0) count += selectedBrands.length;
+    if (searchQuery) count += 1;
+    if (minPrice || maxPrice) count += 1;
+    if (minRating) count += 1;
+    if (inStockOnly) count += 1;
+    if (isFeaturedOnly) count += 1;
+    return count;
+  }, [
+    selectedCategories,
+    selectedBrands,
+    searchQuery,
+    minPrice,
+    maxPrice,
+    minRating,
+    inStockOnly,
+    isFeaturedOnly,
+  ]);
+
+  // Render Sidebar & Drawer Controls (shared component logic)
+  const renderFilterControls = () => (
+    <div className="space-y-6">
+      {/* Reset Filter Button Header (For Desktop view card) */}
+      <div className="hidden lg:flex items-center justify-between pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
+        <div className="flex items-center gap-2 font-extrabold font-heading text-sm text-[#0a2540] dark:text-white group">
+          <SlidersHorizontal size={18} className="text-[#0266C8] dark:text-sky-400 group-hover:scale-110 transition-transform duration-200" />
+          <span>{t('shop.filterTitle', 'Filter Products')}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleResetFilters}
+          className="text-xs font-bold text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-400 flex items-center gap-1 transition-colors"
+        >
+          <RefreshCcw size={12} />
+          <span>{t('shop.clearFilters', 'Reset')}</span>
+        </button>
+      </div>
+
+      {/* In-Stock Filter Toggle */}
+      <div className="pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
+        <label className="flex items-center justify-between cursor-pointer group">
+          <span className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider group-hover:text-[#0266C8] dark:group-hover:text-sky-400 transition-colors">
+            {t('shop.inStockOnly', 'In-Stock Only')}
+            {facets.data?.inStock !== undefined && (
+              <span className="text-[10px] font-normal text-slate-400 ml-1">
+                ({facets.data.inStock})
+              </span>
+            )}
+          </span>
+          <input
+            type="checkbox"
+            checked={inStockOnly}
+            onChange={(e) => {
+              setInStockOnly(e.target.checked);
+              updateUrlParams({ inStock: e.target.checked ? 'true' : null });
+            }}
+            className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] transition-colors cursor-pointer"
+          />
+        </label>
+      </div>
+
+      {/* Categories (Hierarchical Multi-Select with Framer Motion Collapsible Tree) */}
+      <div className="space-y-2">
+        <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading flex items-center justify-between">
+          <span>{t('shop.categoryFilter', 'Categories')}</span>
+          {categories.items.length > 0 && (
+            <span className="text-[10px] font-semibold text-slate-400">
+              ({categories.items.length})
+            </span>
+          )}
+        </h4>
+        <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1 custom-scrollbar">
+          {parentCategories.map((parent) => {
+            const parentKey = String(parent._id);
+            const subCats = subCategoriesMap[parentKey] || [];
+            const hasSubCats = subCats.length > 0;
+            const isParentChecked = selectedCategories.includes(parent.slug);
+            const isExpanded = !!expandedParents[parentKey] || isParentChecked;
+            const count = getCategoryCount(parent, subCats);
+
+            return (
+              <div key={parent._id} className="space-y-1">
+                {/* Parent Category Row */}
+                <div
+                  className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-200 ${
+                    isParentChecked
+                      ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/80 dark:border-sky-800/40 shadow-xs'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-[#F0F8FF] dark:hover:bg-slate-800/80 hover:translate-x-0.5'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={isParentChecked}
+                      onChange={() => {
+                        handleCategoryToggle(parent.slug);
+                        if (!isExpanded && hasSubCats) {
+                          setExpandedParents((prev) => ({ ...prev, [parentKey]: true }));
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] cursor-pointer"
+                    />
+                    <span
+                      className="truncate flex-1"
+                      onClick={() => {
+                        if (hasSubCats) {
+                          setExpandedParents((prev) => ({ ...prev, [parentKey]: !isExpanded }));
+                        } else {
+                          handleCategoryToggle(parent.slug);
+                        }
+                      }}
+                    >
+                      {parent.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 ml-1">
+                    {count > 0 && (
+                      <span className="text-[10px] font-bold text-slate-400">({count})</span>
+                    )}
+                    {hasSubCats && (
+                      <button
+                        type="button"
+                        onClick={(e) => toggleParentExpand(parentKey, e)}
+                        className="p-1 text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-300 transition-colors"
+                        aria-label="Toggle subcategories"
+                      >
+                        <motion.div
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        >
+                          <ChevronDown
+                            size={14}
+                            className={isExpanded ? 'text-[#0266C8] dark:text-sky-300' : ''}
+                          />
+                        </motion.div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subcategories (Animated Height Expand/Collapse) */}
+                <AnimatePresence initial={false}>
+                  {hasSubCats && isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden ml-3.5 pl-2.5 border-l-2 border-[#BAE6FD] dark:border-slate-800 space-y-1 py-1"
+                    >
+                      {subCats.map((sub) => {
+                        const isSubChecked = selectedCategories.includes(sub.slug);
+                        const subCount =
+                          facetCategoryCounts[sub.slug] ?? facetCategoryCounts[sub._id];
+
+                        return (
+                          <label
+                            key={sub._id}
+                            className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition-all duration-150 ${
+                              isSubChecked
+                                ? 'bg-[#E1F5FE]/80 dark:bg-sky-950/50 text-[#0266C8] dark:text-sky-300 font-bold'
+                                : isParentChecked
+                                ? 'text-[#0266C8]/80 dark:text-sky-400/80 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
+                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <input
+                                type="checkbox"
+                                checked={isSubChecked}
+                                onChange={() => handleCategoryToggle(sub.slug)}
+                                className="w-3 h-3 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] cursor-pointer"
+                              />
+                              <span className="truncate">{sub.name}</span>
+                            </div>
+                            {subCount !== undefined && (
+                              <span className="text-[10px] text-slate-400">({subCount})</span>
+                            )}
+                          </label>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Brands (Multi-Select) */}
+      <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+        <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
+          {t('shop.brandFilter', 'Brands')}
+        </h4>
+        <div className="space-y-1 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+          {brands.items.map((b) => {
+            const isChecked = selectedBrands.includes(b.slug);
+            const count = facetBrandCounts[b.slug] ?? facetBrandCounts[b._id];
+            return (
+              <label
+                key={b._id}
+                className={`flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-150 ${
+                  isChecked
+                    ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/80 dark:border-sky-800/40 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleBrandToggle(b.slug)}
+                    className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] cursor-pointer"
+                  />
+                  <span>{b.name}</span>
+                </div>
+                {count !== undefined && (
+                  <span className="text-[10px] font-bold text-slate-400">({count})</span>
+                )}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Customer Rating Filter */}
+      <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+        <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
+          {t('shop.ratingFilter', 'Minimum Rating')}
+        </h4>
+        <div className="space-y-1">
+          {[
+            { label: 'All Ratings', value: '' },
+            { label: '4★ & up', value: '4' },
+            { label: '3★ & up', value: '3' },
+            { label: '2★ & up', value: '2' },
+          ].map((ratingOption) => (
+            <label
+              key={ratingOption.value}
+              className={`flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-150 ${
+                minRating === ratingOption.value
+                  ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/80 dark:border-sky-800/40 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="minRating"
+                  checked={minRating === ratingOption.value}
+                  onChange={() => {
+                    setMinRating(ratingOption.value);
+                    updateUrlParams({ minRating: ratingOption.value || null });
+                  }}
+                  className="w-3.5 h-3.5 text-[#0266C8] focus:ring-[#0266C8] cursor-pointer"
+                />
+                <span>{ratingOption.label}</span>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Range */}
+      <div className="space-y-3 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
+        <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
+          {t('shop.priceRange', 'Price Range')} (₹)
+        </h4>
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            type="number"
+            placeholder={t('shop.minPrice', 'Min')}
+            value={minPrice}
+            onChange={(e) => {
+              setMinPrice(e.target.value);
+              updateUrlParams({ minPrice: e.target.value || null });
+            }}
+            className="w-full px-3 py-2 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-xl text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8] transition-all"
+          />
+          <input
+            type="number"
+            placeholder={t('shop.maxPrice', 'Max')}
+            value={maxPrice}
+            onChange={(e) => {
+              setMaxPrice(e.target.value);
+              updateUrlParams({ maxPrice: e.target.value || null });
+            }}
+            className="w-full px-3 py-2 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-xl text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8] transition-all"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Breadcrumb */}
       <Breadcrumb items={[{ label: t('nav.shop', 'Shop Catalog') }]} />
 
-      {/* Header Banner */}
-      <div className="rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-[#BAE6FD] dark:border-slate-800 bg-gradient-to-r from-[#0266C8] via-[#0054A6] to-[#0a2540] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
-        <h1 className="text-2xl sm:text-4xl font-extrabold font-heading mb-2 tracking-tight">
-          {isWishlistOnly
-            ? t('wishlist.title', 'My Wishlist Collection')
-            : isOnlySearchActive
-            ? `${t('common.suggestions', 'Search Results')} "${searchQuery}"`
-            : t('shop.title', 'Shop Product Catalog')}
-        </h1>
-        <p className="text-xs sm:text-sm text-sky-100 dark:text-slate-300 font-body max-w-xl leading-relaxed">
-          {isWishlistOnly
-            ? t('wishlist.subtitle', 'Your saved items for future purchases')
-            : t('shop.subtitle', 'Browse top-quality electronics, smartphones, laptops, and lifestyle items with authentic warranty.')}
-        </p>
+      {/* Editorial Hero Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-12 text-white shadow-xl border border-[#BAE6FD] dark:border-slate-800/80 bg-gradient-to-r from-[#0266C8] via-[#0054A6] to-[#0a2540] dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 transition-all duration-300">
+        {/* Soft Radial Glow Accents */}
+        <div className="absolute -top-16 -left-16 w-72 h-72 bg-sky-400/20 dark:bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-72 h-72 bg-[#0266C8]/30 dark:bg-sky-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3 max-w-3xl">
+          {/* Live Result Count Pill */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-white/10 dark:bg-slate-800/40 backdrop-blur-md border border-white/20 dark:border-slate-700 text-sky-100 dark:text-slate-300">
+            <Sparkles size={14} className="text-amber-300" />
+            <span>
+              {displayedProducts.length > 0
+                ? `${displayedProducts.length} ${
+                    displayedProducts.length === 1 ? 'Product Available' : 'Products Available'
+                  }`
+                : 'Boutique Collection'}
+            </span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl font-extrabold font-heading tracking-tight leading-tight">
+            {isWishlistOnly
+              ? t('wishlist.title', 'My Wishlist Collection')
+              : isOnlySearchActive
+              ? `${t('common.suggestions', 'Search Results')} "${searchQuery}"`
+              : t('shop.title', 'Shop Product Catalog')}
+          </h1>
+
+          <p className="text-sm sm:text-base text-sky-100/90 dark:text-slate-300 font-body leading-relaxed max-w-2xl">
+            {isWishlistOnly
+              ? t('wishlist.subtitle', 'Your saved items for future purchases')
+              : t('shop.subtitle', 'Browse top-quality electronics, smartphones, laptops, and lifestyle items with authentic warranty.')}
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Sidebar Filters */}
-        <aside className="space-y-6 lg:col-span-1">
-          <div className="p-6 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-sm space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
-              <div className="flex items-center gap-2 font-extrabold font-heading text-sm text-[#0a2540] dark:text-white">
-                <SlidersHorizontal size={18} className="text-[#0266C8] dark:text-sky-400" />
-                <span>{t('shop.filterTitle', 'Filter Products')}</span>
-              </div>
-              <button
-                onClick={handleResetFilters}
-                className="text-xs font-bold text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-400 flex items-center gap-1 transition-colors"
-              >
-                <RefreshCcw size={12} />
-                <span>{t('shop.clearFilters', 'Reset')}</span>
-              </button>
-            </div>
-
-            {/* In-Stock Filter Toggle */}
-            <div className="pb-4 border-b border-[#BAE6FD]/60 dark:border-slate-800">
-              <label className="flex items-center justify-between cursor-pointer group">
-                <span className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider">
-                  {t('shop.inStockOnly', 'In-Stock Only')}
-                  {facets.data?.inStock !== undefined && (
-                    <span className="text-[10px] font-normal text-slate-400 ml-1">
-                      ({facets.data.inStock})
-                    </span>
-                  )}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={inStockOnly}
-                  onChange={(e) => {
-                    setInStockOnly(e.target.checked);
-                    updateUrlParams({ inStock: e.target.checked ? 'true' : null });
-                  }}
-                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] transition-colors"
-                />
-              </label>
-            </div>
-
-            {/* Categories (Hierarchical Multi-Select) */}
-            <div className="space-y-2">
-              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading flex items-center justify-between">
-                <span>{t('shop.categoryFilter', 'Categories')}</span>
-                {categories.items.length > 0 && (
-                  <span className="text-[10px] font-semibold text-slate-400">
-                    ({categories.items.length})
-                  </span>
-                )}
-              </h4>
-              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                {parentCategories.map((parent) => {
-                  const parentKey = String(parent._id);
-                  const subCats = subCategoriesMap[parentKey] || [];
-                  const hasSubCats = subCats.length > 0;
-                  const isParentChecked = selectedCategories.includes(parent.slug);
-                  const isExpanded = !!expandedParents[parentKey] || isParentChecked;
-                  const count = getCategoryCount(parent, subCats);
-
-                  return (
-                    <div key={parent._id} className="space-y-1">
-                      {/* Parent Category Row */}
-                      <div
-                        className={`group flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                          isParentChecked
-                            ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isParentChecked}
-                            onChange={() => {
-                              handleCategoryToggle(parent.slug);
-                              if (!isExpanded && hasSubCats) {
-                                setExpandedParents((prev) => ({ ...prev, [parentKey]: true }));
-                              }
-                            }}
-                            className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
-                          />
-                          <span
-                            className="truncate flex-1"
-                            onClick={() => {
-                              if (hasSubCats) {
-                                setExpandedParents((prev) => ({ ...prev, [parentKey]: !isExpanded }));
-                              } else {
-                                handleCategoryToggle(parent.slug);
-                              }
-                            }}
-                          >
-                            {parent.name}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 ml-1">
-                          {count > 0 && (
-                            <span className="text-[10px] font-bold text-slate-400">({count})</span>
-                          )}
-                          {hasSubCats && (
-                            <button
-                              type="button"
-                              onClick={(e) => toggleParentExpand(parentKey, e)}
-                              className="p-1 text-slate-400 hover:text-[#0266C8] dark:hover:text-sky-300 transition-transform"
-                              aria-label="Toggle subcategories"
-                            >
-                              <ChevronDown
-                                size={14}
-                                className={`transition-transform duration-200 ${
-                                  isExpanded ? 'rotate-180 text-[#0266C8] dark:text-sky-300' : ''
-                                }`}
-                              />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Subcategories (Indented Tree View) */}
-                      {hasSubCats && isExpanded && (
-                        <div className="ml-4 pl-2 border-l-2 border-[#BAE6FD] dark:border-slate-800 space-y-1 py-0.5">
-                          {subCats.map((sub) => {
-                            const isSubChecked = selectedCategories.includes(sub.slug);
-                            const subCount =
-                              facetCategoryCounts[sub.slug] ?? facetCategoryCounts[sub._id];
-
-                            return (
-                              <label
-                                key={sub._id}
-                                className={`flex items-center justify-between px-2.5 py-1 rounded-md text-[11px] font-medium cursor-pointer transition-colors ${
-                                  isSubChecked
-                                    ? 'bg-[#E1F5FE]/80 dark:bg-sky-950/50 text-[#0266C8] dark:text-sky-300 font-bold'
-                                    : isParentChecked
-                                    ? 'text-[#0266C8]/80 dark:text-sky-400/80 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <input
-                                    type="checkbox"
-                                    checked={isSubChecked}
-                                    onChange={() => handleCategoryToggle(sub.slug)}
-                                    className="w-3 h-3 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
-                                  />
-                                  <span className="truncate">{sub.name}</span>
-                                </div>
-                                {subCount !== undefined && (
-                                  <span className="text-[10px] text-slate-400">({subCount})</span>
-                                )}
-                              </label>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Brands (Multi-Select) */}
-            <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                {t('shop.brandFilter', 'Brands')}
-              </h4>
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {brands.items.map((b) => {
-                  const isChecked = selectedBrands.includes(b.slug);
-                  const count = facetBrandCounts[b.slug] ?? facetBrandCounts[b._id];
-                  return (
-                    <label
-                      key={b._id}
-                      className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                        isChecked
-                          ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleBrandToggle(b.slug)}
-                          className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
-                        />
-                        <span>{b.name}</span>
-                      </div>
-                      {count !== undefined && (
-                        <span className="text-[10px] font-bold text-slate-400">({count})</span>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Customer Rating Filter */}
-            <div className="space-y-2 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                {t('shop.ratingFilter', 'Minimum Rating')}
-              </h4>
-              <div className="space-y-1">
-                {[
-                  { label: 'All Ratings', value: '' },
-                  { label: '4★ & up', value: '4' },
-                  { label: '3★ & up', value: '3' },
-                  { label: '2★ & up', value: '2' },
-                ].map((ratingOption) => (
-                  <label
-                    key={ratingOption.value}
-                    className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                      minRating === ratingOption.value
-                        ? 'bg-[#E1F5FE] dark:bg-sky-950/60 text-[#0266C8] dark:text-sky-300 font-bold border border-[#BAE6FD]/60 dark:border-sky-800/40'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-[#F0F8FF] dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="minRating"
-                        checked={minRating === ratingOption.value}
-                        onChange={() => {
-                          setMinRating(ratingOption.value);
-                          updateUrlParams({ minRating: ratingOption.value || null });
-                        }}
-                        className="w-3.5 h-3.5 text-[#0266C8] focus:ring-[#0266C8]"
-                      />
-                      <span>{ratingOption.label}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Price Range */}
-            <div className="space-y-3 pt-4 border-t border-[#BAE6FD]/60 dark:border-slate-800">
-              <h4 className="font-extrabold text-xs text-[#0a2540] dark:text-white uppercase tracking-wider font-heading">
-                {t('shop.priceRange', 'Price Range')} (₹)
-              </h4>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  placeholder={t('shop.minPrice', 'Min')}
-                  value={minPrice}
-                  onChange={(e) => {
-                    setMinPrice(e.target.value);
-                    updateUrlParams({ minPrice: e.target.value || null });
-                  }}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-lg text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
-                />
-                <input
-                  type="number"
-                  placeholder={t('shop.maxPrice', 'Max')}
-                  value={maxPrice}
-                  onChange={(e) => {
-                    setMaxPrice(e.target.value);
-                    updateUrlParams({ maxPrice: e.target.value || null });
-                  }}
-                  className="w-full px-3 py-1.5 text-xs bg-[#F0F8FF] dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-lg text-[#0a2540] dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
-                />
-              </div>
-            </div>
+        {/* Left Sidebar Filters (Desktop Floating Card) */}
+        <aside className="hidden lg:block space-y-6 lg:col-span-1">
+          <div className="p-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-[#BAE6FD]/80 dark:border-slate-800/80 rounded-3xl shadow-[0_8px_32px_rgba(2,102,200,0.08)] space-y-6 sticky top-24">
+            {renderFilterControls()}
           </div>
         </aside>
 
-        {/* Right Main Grid */}
+        {/* Mobile Filter Drawer Subcomponent (<lg screens) */}
+        <MobileFilterDrawer
+          isOpen={isMobileFilterOpen}
+          onClose={() => setIsMobileFilterOpen(false)}
+          t={t}
+          activeFilterCount={activeFilterCount}
+          handleResetFilters={handleResetFilters}
+        >
+          {renderFilterControls()}
+        </MobileFilterDrawer>
+
+        {/* Right Main Grid Area */}
         <main className="space-y-6 lg:col-span-3">
-          {/* Active Filter Badges Bar */}
-          {(searchQuery || selectedCategories.length > 0 || selectedBrands.length > 0) && (
-            <div className="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs">
-              <span className="text-xs font-bold text-slate-400">Active Filters:</span>
-              {searchQuery && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
-                  Search: "{searchQuery}"
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      updateUrlParams({ search: null });
-                    }}
-                    className="hover:text-rose-500 transition-colors ml-0.5"
-                    aria-label="Remove search keyword filter"
+          {/* Active Filter Chips Row with AnimatePresence */}
+          {(searchQuery || selectedCategories.length > 0 || selectedBrands.length > 0 || minPrice || maxPrice || minRating || inStockOnly) && (
+            <div className="flex flex-wrap items-center gap-2 p-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs">
+              <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
+                <Filter size={13} className="text-[#0266C8] dark:text-sky-400" />
+                Active Filters:
+              </span>
+
+              <AnimatePresence>
+                {searchQuery && (
+                  <motion.span
+                    key="search-chip"
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.85, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800 shadow-2xs"
                   >
-                    <X size={13} />
-                  </button>
-                </span>
-              )}
-              {selectedCategories.map((slug) => (
-                <span key={slug} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
-                  Category: {slug}
-                  <button type="button" onClick={() => handleCategoryToggle(slug)} className="hover:text-rose-500 transition-colors ml-0.5">
-                    <X size={13} />
-                  </button>
-                </span>
-              ))}
-              {selectedBrands.map((slug) => (
-                <span key={slug} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800">
-                  Brand: {slug}
-                  <button type="button" onClick={() => handleBrandToggle(slug)} className="hover:text-rose-500 transition-colors ml-0.5">
-                    <X size={13} />
-                  </button>
-                </span>
-              ))}
+                    Search: "{searchQuery}"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        updateUrlParams({ search: null });
+                      }}
+                      className="hover:text-rose-500 transition-colors ml-0.5"
+                      aria-label="Remove search keyword filter"
+                    >
+                      <X size={13} />
+                    </button>
+                  </motion.span>
+                )}
+
+                {selectedCategories.map((slug) => (
+                  <motion.span
+                    key={`cat-${slug}`}
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.85, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800 shadow-2xs"
+                  >
+                    Category: {slug}
+                    <button
+                      type="button"
+                      onClick={() => handleCategoryToggle(slug)}
+                      className="hover:text-rose-500 transition-colors ml-0.5"
+                    >
+                      <X size={13} />
+                    </button>
+                  </motion.span>
+                ))}
+
+                {selectedBrands.map((slug) => (
+                  <motion.span
+                    key={`brand-${slug}`}
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.85, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800 shadow-2xs"
+                  >
+                    Brand: {slug}
+                    <button
+                      type="button"
+                      onClick={() => handleBrandToggle(slug)}
+                      className="hover:text-rose-500 transition-colors ml-0.5"
+                    >
+                      <X size={13} />
+                    </button>
+                  </motion.span>
+                ))}
+
+                {inStockOnly && (
+                  <motion.span
+                    key="instock-chip"
+                    initial={{ scale: 0.85, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.85, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-[#E1F5FE] text-[#0266C8] dark:bg-sky-950 dark:text-sky-300 border border-[#BAE6FD] dark:border-sky-800 shadow-2xs"
+                  >
+                    In Stock Only
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInStockOnly(false);
+                        updateUrlParams({ inStock: null });
+                      }}
+                      className="hover:text-rose-500 transition-colors ml-0.5"
+                    >
+                      <X size={13} />
+                    </button>
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
               <button
                 type="button"
                 onClick={handleResetFilters}
@@ -658,21 +827,52 @@ export const Shop = () => {
             </div>
           )}
 
-          {/* Top Sort & Search Toolbar */}
-          <div className="p-4 bg-white dark:bg-slate-900 border border-[#BAE6FD]/80 dark:border-slate-800 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              {t('shop.showingResults', { count: displayedProducts.length })}
+          {/* Slim Glass Toolbar (Sort & Mobile Filter Trigger) */}
+          <div className="p-4 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-[#BAE6FD]/80 dark:border-slate-800/80 rounded-2xl shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {/* Mobile Filter Button (visible < lg) */}
+              <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="lg:hidden inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#0a2540] dark:text-white bg-white dark:bg-slate-800 border border-[#BAE6FD] dark:border-slate-700 rounded-xl shadow-2xs hover:bg-[#E1F5FE] dark:hover:bg-slate-700 transition-all cursor-pointer"
+              >
+                <SlidersHorizontal size={15} className="text-[#0266C8] dark:text-sky-400" />
+                <span>{t('shop.filterTitle', 'Filters')}</span>
+                {activeFilterCount > 0 && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-[#0266C8] text-white rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              <div className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                <span>{t('shop.showingResults', { count: displayedProducts.length })}:</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={displayedProducts.length}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: 0.15 }}
+                    className="tabular-nums font-extrabold text-[#0266C8] dark:text-sky-400 text-sm"
+                  >
+                    {displayedProducts.length}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">{t('shop.sortBy', 'Sort By:')}</span>
+            <div className="flex items-center gap-3 w-full sm:w-auto ml-auto sm:ml-0">
+              <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                {t('shop.sortBy', 'Sort By:')}
+              </span>
               <select
                 value={sortOption}
                 onChange={(e) => {
                   setSortOption(e.target.value);
                   updateUrlParams({ sort: e.target.value });
                 }}
-                className="px-3.5 py-2 text-xs font-bold bg-[#F0F8FF] dark:bg-slate-800 text-[#0a2540] dark:text-slate-100 rounded-xl border border-[#BAE6FD] dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0266C8]"
+                className="px-3.5 py-2 text-xs font-bold bg-[#F0F8FF] dark:bg-slate-800 text-[#0a2540] dark:text-slate-100 rounded-xl border border-[#BAE6FD] dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0266C8] transition-all cursor-pointer"
               >
                 <option value="newest">{t('shop.sortNewest', 'Newest Arrivals')}</option>
                 <option value="price_asc">{t('shop.sortPriceLowHigh', 'Price: Low to High')}</option>
@@ -682,67 +882,89 @@ export const Shop = () => {
             </div>
           </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {isLoading ? (
+          {/* Products Grid with Framer Motion Stagger Entrance */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <ProductSkeleton count={6} />
-            ) : displayedProducts.length > 0 ? (
-              displayedProducts.map((prod) => (
-                <ProductCard
-                  key={prod._id}
-                  product={prod}
-                  onQuickView={(p) => setQuickViewProduct(p)}
-                />
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center text-slate-500 text-sm space-y-4">
-                <p className="font-semibold text-slate-700 dark:text-slate-200">
+            </div>
+          ) : displayedProducts.length > 0 ? (
+            <motion.div
+              key={displayedProducts.map((p) => p._id).join(',')}
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+            >
+              {displayedProducts.map((prod) => (
+                <motion.div key={prod._id} variants={gridItemVariants}>
+                  <ProductCard
+                    product={prod}
+                    onQuickView={(p) => setQuickViewProduct(p)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            /* Premium Illustration Empty State */
+            <div className="py-20 px-6 text-center bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-[#BAE6FD]/80 dark:border-slate-800 rounded-3xl space-y-5 flex flex-col items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-sky-100 to-sky-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center border border-sky-200/60 dark:border-slate-700 shadow-inner">
+                <PackageSearch size={36} className="text-[#0266C8] dark:text-sky-400" />
+              </div>
+              <div className="space-y-1.5 max-w-md">
+                <h3 className="text-lg font-bold font-heading text-[#0a2540] dark:text-white">
+                  No Matching Products
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-body">
                   {searchQuery
-                    ? `No products found matching search "${searchQuery}"`
+                    ? `We couldn't find any results matching "${searchQuery}". Try searching with different keywords or clearing active filters.`
                     : t('shop.noProductsFound', 'No products found matching your active filters.')}
                 </p>
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#0266C8] hover:bg-[#0054A6] rounded-xl shadow-md transition-all"
-                >
-                  <RefreshCcw size={14} />
-                  <span>{t('shop.clearFilters', 'Reset Search & Clear Filters')}</span>
-                </button>
               </div>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-2 px-6 py-3 text-xs font-bold text-white bg-[#0266C8] hover:bg-[#0054A6] rounded-xl shadow-md hover:shadow-lg transition-all"
+              >
+                <RefreshCcw size={14} />
+                <span>{t('shop.clearFilters', 'Reset Search & Clear Filters')}</span>
+              </button>
+            </div>
+          )}
 
-          {/* Pagination Controls */}
+          {/* Pill-Style Pagination Controls */}
           {!isWishlistOnly && pagination.totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 pt-6">
-              <button
+              <motion.button
+                whileHover={pagination.hasPrevPage ? { scale: 1.03 } : {}}
+                whileTap={pagination.hasPrevPage ? { scale: 0.97 } : {}}
                 disabled={!pagination.hasPrevPage}
                 onClick={() => {
                   const prevPage = Math.max(1, currentPage - 1);
                   setCurrentPage(prevPage);
                   updateUrlParams({ page: prevPage > 1 ? prevPage : null });
                 }}
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-[#BAE6FD] dark:border-slate-800 rounded-xl text-xs font-bold text-[#0a2540] dark:text-slate-300 hover:bg-[#E1F5FE] dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-[#BAE6FD] dark:border-slate-800 rounded-xl text-xs font-bold text-[#0a2540] dark:text-slate-300 hover:bg-[#E1F5FE] dark:hover:bg-slate-800 transition-colors disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
               >
                 Previous
-              </button>
+              </motion.button>
 
-              <span className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+              <span className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 tabular-nums">
                 Page {pagination.page || currentPage} of {pagination.totalPages}
               </span>
 
-              <button
+              <motion.button
+                whileHover={pagination.hasNextPage ? { scale: 1.03 } : {}}
+                whileTap={pagination.hasNextPage ? { scale: 0.97 } : {}}
                 disabled={!pagination.hasNextPage}
                 onClick={() => {
                   const nextPage = currentPage + 1;
                   setCurrentPage(nextPage);
                   updateUrlParams({ page: nextPage });
                 }}
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-[#BAE6FD] dark:border-slate-800 rounded-xl text-xs font-bold text-[#0a2540] dark:text-slate-300 hover:bg-[#E1F5FE] dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
+                className="px-4 py-2 bg-[#0266C8] hover:bg-[#0054A6] text-white rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500"
               >
                 Next
-              </button>
+              </motion.button>
             </div>
           )}
         </main>

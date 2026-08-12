@@ -73,10 +73,12 @@ app.use(compression({ threshold: 0 }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || env.clientUrls.includes(origin)) {
+      const normalizedOrigin = origin ? origin.replace(/\/$/, '') : null;
+      const allowedOrigins = env.clientUrls.map((u) => u.replace(/\/$/, ''));
+      if (!origin || allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes('*')) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new Error(`Not allowed by CORS: ${origin}`));
       }
     },
     credentials: true, // Allow cookies to be sent across origins

@@ -2,8 +2,8 @@ import { env } from '../config/env.js';
 
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: env.isProd,
-  sameSite: env.isProd ? 'strict' : 'lax',
+  secure: env.isProd || process.env.COOKIE_SECURE === 'true',
+  sameSite: process.env.COOKIE_SAME_SITE || (env.isProd ? 'none' : 'lax'),
   path: '/',
 };
 

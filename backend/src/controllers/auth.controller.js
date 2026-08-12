@@ -104,6 +104,7 @@ export const login = asyncHandler(async (req, res) => {
       {
         user: sanitizeUser(user),
         accessToken,
+        refreshToken,
       },
       'Login successful.'
     )
@@ -169,7 +170,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
   return res.status(200).json(
     new ApiResponse(
       200,
-      { accessToken: newAccessToken },
+      { accessToken: newAccessToken, refreshToken: newRefreshToken },
       'Token refreshed successfully.'
     )
   );
@@ -433,6 +434,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
       {
         user: sanitizeUser(user),
         accessToken,
+        refreshToken,
       },
       'Google authentication successful.'
     )

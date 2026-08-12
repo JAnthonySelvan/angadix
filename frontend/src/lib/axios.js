@@ -31,6 +31,18 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Request Interceptor: Attach Bearer Access Token if stored in localStorage
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response Interceptor for 401 Silent Refresh and Error Normalization
 api.interceptors.response.use(
   (response) => response,
@@ -59,7 +71,12 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(() => api(originalRequest))
+          .then((token) => {
+            if (token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
           .catch((err) => Promise.reject(err));
       }
 
@@ -67,10 +84,27 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post('/auth/refresh-token');
-        processQueue(null);
+        const storedRefreshToken = localStorage.getItem('refreshToken');
+        const refreshResponse = await api.post('/auth/refresh-token', {
+          refreshToken: storedRefreshToken,
+        });
+
+        const newAccessToken = refreshResponse.data?.data?.accessToken;
+        const newRefreshToken = refreshResponse.data?.data?.refreshToken;
+
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        }
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
+
+        processQueue(null, newAccessToken);
         return api(originalRequest);
       } catch (refreshError) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         processQueue(refreshError, null);
         return Promise.reject(refreshError);
       } finally {

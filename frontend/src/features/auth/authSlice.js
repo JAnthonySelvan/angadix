@@ -43,6 +43,8 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.isInitialized = true;
         state.error = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
 
       // Login User
@@ -55,6 +57,12 @@ const authSlice = createSlice({
         state.user = action.payload.data.user;
         state.isAuthenticated = true;
         state.error = null;
+        if (action.payload.data?.accessToken) {
+          localStorage.setItem('accessToken', action.payload.data.accessToken);
+        }
+        if (action.payload.data?.refreshToken) {
+          localStorage.setItem('refreshToken', action.payload.data.refreshToken);
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
@@ -71,6 +79,12 @@ const authSlice = createSlice({
         state.user = action.payload.data.user;
         state.isAuthenticated = true;
         state.error = null;
+        if (action.payload.data?.accessToken) {
+          localStorage.setItem('accessToken', action.payload.data.accessToken);
+        }
+        if (action.payload.data?.refreshToken) {
+          localStorage.setItem('refreshToken', action.payload.data.refreshToken);
+        }
       })
       .addCase(googleLogin.rejected, (state, action) => {
         state.status = 'failed';
@@ -97,11 +111,15 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.status = 'idle';
         state.error = null;
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
       .addCase(logoutUser.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;
         state.status = 'idle';
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
 
       // Update Profile

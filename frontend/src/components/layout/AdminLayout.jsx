@@ -71,22 +71,14 @@ export const AdminLayout = () => {
 
           {/* Logo & Admin Badge */}
           <Link to="/admin" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-700 via-primary-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-primary-600/30 group-hover:scale-105 transition-transform">
-              <Shield size={18} className="stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white leading-none font-outfit">
-                  ANGADIX
-                </span>
-                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-950/80 text-primary-700 dark:text-primary-300 border border-primary-200/60 dark:border-primary-800/60 leading-none">
-                  ADMIN
-                </span>
-              </div>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 leading-none mt-0.5">
-                CONTROL CENTER
-              </span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Angadix Admin Logo"
+              className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-950/80 text-primary-700 dark:text-primary-300 border border-primary-200/60 dark:border-primary-800/60 leading-none">
+              ADMIN
+            </span>
           </Link>
         </div>
 

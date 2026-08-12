@@ -139,21 +139,11 @@ export const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-700 via-primary-600 to-primary-500 flex items-center justify-center text-white shadow-md shadow-primary-600/30 group-hover:scale-105 transition-transform">
-              <ShoppingBag size={20} className="stroke-[2.5]" />
-            </div>
-            <div className="flex flex-col">
-              <span className={`font-extrabold text-xl tracking-tight leading-none transition-colors duration-300 ${
-                isOverHero ? 'text-[#0a2540] dark:text-white' : 'text-slate-900 dark:text-white'
-              }`}>
-                ANGADIX<span className={isOverHero ? 'text-[#0266C8] dark:text-sky-300' : 'text-primary-600 dark:text-primary-400'}>.</span>
-              </span>
-              <span className={`text-[9px] font-bold uppercase tracking-widest leading-none mt-0.5 transition-colors duration-300 ${
-                isOverHero ? 'text-[#0266C8] dark:text-sky-200' : 'text-primary-600 dark:text-primary-400'
-              }`}>
-                PREMIUM STORE
-              </span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="Angadix Logo"
+              className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            />
           </Link>
 
           {/* Search Bar */}

@@ -22,12 +22,11 @@ export const AuthLayout = () => {
           {/* Header Brand */}
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-105 transition-transform">
-                <ShoppingBag size={20} className="text-white stroke-[2.5]" />
-              </div>
-              <span className="font-extrabold text-2xl tracking-tight text-white">
-                ANGADIX<span className="text-primary-300">.</span>
-              </span>
+              <img
+                src="/logo.png"
+                alt="Angadix Logo"
+                className="h-11 w-auto object-contain bg-white/90 p-1.5 rounded-xl border border-white/20 shadow-md group-hover:scale-105 transition-transform"
+              />
             </Link>
           </div>
 

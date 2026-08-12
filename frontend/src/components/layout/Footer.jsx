@@ -14,12 +14,11 @@ export const Footer = () => {
           {/* Column 1: About ANGADIX */}
           <div className="space-y-4 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white font-black">
-                <ShoppingBag size={18} />
-              </div>
-              <span className="font-extrabold text-xl tracking-tight text-white">
-                ANGADIX<span className="text-primary-500">.</span>
-              </span>
+              <img
+                src="/logo.png"
+                alt="Angadix Logo"
+                className="h-10 w-auto object-contain bg-white/90 p-1.5 rounded-xl border border-white/20 shadow-md"
+              />
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed">
               {t('footer.aboutDesc', 'Your premier destination for high-performance electronics, gaming gear, and modern smart technology.')}

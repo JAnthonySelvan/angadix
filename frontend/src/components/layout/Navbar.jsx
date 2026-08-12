@@ -439,7 +439,7 @@ export const Navbar = () => {
           </Link>
 
           <Link
-            to="/browse"
+            to="/categories"
             className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-primary-500 transition-all flex items-center gap-1"
           >
             <Grid size={13} className="text-primary-500" />
@@ -528,17 +528,57 @@ export const Navbar = () => {
                 <ChevronDown size={16} className="-rotate-90 text-slate-400" />
               </Link>
 
-              <Link
-                to="/browse"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Grid size={16} className="text-primary-600" />
-                  <span>{t('nav.categories', 'Browse Categories')}</span>
-                </div>
-                <ChevronDown size={16} className="-rotate-90 text-slate-400" />
-              </Link>
+              {/* Expandable Categories Accordion Dropdown */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-primary-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Grid size={16} className="text-primary-600 dark:text-sky-400" />
+                    <span>{t('nav.categories', 'Browse Categories')}</span>
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`text-slate-400 transition-transform duration-200 ${isCategoryMenuOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {isCategoryMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pl-4 pr-2 py-2 space-y-1 overflow-hidden border-l-2 border-primary-200 dark:border-slate-700 ml-4 my-1"
+                    >
+                      <Link
+                        to="/categories"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="block p-2 rounded-lg text-xs font-black text-primary-600 dark:text-sky-400 hover:underline"
+                      >
+                        → {t('nav.allCategories', 'View All Categories')}
+                      </Link>
+                      {categories && categories.length > 0 ? (
+                        categories.map((cat) => (
+                          <Link
+                            key={cat._id}
+                            to={`/shop?category=${cat.slug}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-2 p-2 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
+                            <span className="truncate">{cat.name}</span>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="p-2 text-xs text-slate-400">Loading categories...</div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <Link
                 to="/brands"

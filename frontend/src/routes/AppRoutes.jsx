@@ -114,6 +114,7 @@ export const AppRoutes = () => {
         <Route path="/" element={<Home />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/categories" element={<BrowseCollection type="categories" />} />
+        <Route path="/browse" element={<BrowseCollection type="categories" />} />
         <Route path="/brands" element={<BrowseCollection type="brands" />} />
         <Route path="/best-sellers" element={<BrowseCollection type="bestSellers" />} />
         <Route path="/flash-sale" element={<BrowseCollection type="flashSale" />} />

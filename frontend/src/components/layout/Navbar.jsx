@@ -264,13 +264,14 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className={`flex items-center gap-2 p-1.5 pl-3 rtl:pr-3 rtl:pl-1.5 rounded-full border transition-all duration-300 ${
+                  className={`flex items-center gap-2 p-1.5 pl-2.5 sm:pl-3 rtl:pr-2.5 rtl:pl-1.5 rounded-full border transition-all duration-300 ${
                     isOverHero
                       ? 'border-white/30 dark:border-white/20 bg-white/25 dark:bg-white/10 hover:bg-white/45 dark:hover:bg-white/20 text-[#0a2540] dark:text-white backdrop-blur-md shadow-xs'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}
+                  title={user.name || 'User Profile'}
                 >
-                  <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs">
+                  <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <span className={`text-xs font-bold hidden sm:inline max-w-[100px] truncate ${
@@ -301,6 +302,7 @@ export const Navbar = () => {
 
                       <Link
                         to="/orders"
+                        onClick={() => setIsProfileOpen(false)}
                         className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                       >
                         <Package size={14} />
@@ -310,6 +312,7 @@ export const Navbar = () => {
                       {user.role === 'admin' && (
                         <Link
                           to="/admin"
+                          onClick={() => setIsProfileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-xl my-1 transition-colors"
                         >
                           <Sparkles size={14} />
@@ -318,7 +321,10 @@ export const Navbar = () => {
                       )}
 
                       <button
-                        onClick={handleLogout}
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          handleLogout();
+                        }}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors text-left rtl:text-right"
                       >
                         <LogOut size={14} />
@@ -329,16 +335,18 @@ export const Navbar = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Link
                   to="/login"
-                  className={`px-3.5 py-2 text-xs font-bold transition-colors duration-300 ${
+                  className={`px-2.5 sm:px-3.5 py-2 text-xs font-bold rounded-xl transition-colors duration-300 flex items-center gap-1.5 ${
                     isOverHero
                       ? 'text-[#0a2540] hover:text-[#0266C8] dark:text-white dark:hover:text-white/80'
                       : 'text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
+                  title={t('nav.login', 'Sign In')}
                 >
-                  {t('nav.login', 'Sign In')}
+                  <UserIcon size={16} className="text-primary-600 dark:text-sky-400" />
+                  <span>{t('nav.login', 'Sign In')}</span>
                 </Link>
                 <Link
                   to="/register"
@@ -563,25 +571,91 @@ export const Navbar = () => {
               </Link>
             </div>
 
-            {/* Quick Account Actions */}
+            {/* Account & Profile Section in Mobile Drawer */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-              {!isAuthenticated && (
-                <div className="grid grid-cols-2 gap-2 pt-1">
+              {isAuthenticated && user ? (
+                <>
+                  <p className="px-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    {t('nav.account', 'My Account')}
+                  </p>
+
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                    <div className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="flex-1 truncate">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {user.name}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
                   <Link
-                    to="/login"
+                    to="/orders"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   >
-                    {t('nav.login', 'Sign In')}
+                    <Package size={16} className="text-primary-600" />
+                    <span>{t('nav.orders', 'My Orders')}</span>
                   </Link>
+
                   <Link
-                    to="/register"
+                    to="/wishlist"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2.5 text-center text-xs font-bold rounded-xl bg-primary-600 text-white shadow-sm hover:bg-primary-700"
+                    className="flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   >
-                    {t('nav.register', 'Create Account')}
+                    <Heart size={16} className="text-rose-500" />
+                    <span>{t('nav.wishlist', 'My Wishlist')} ({wishlistItems.length})</span>
                   </Link>
-                </div>
+
+                  {user.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors"
+                    >
+                      <Sparkles size={16} />
+                      <span>{t('nav.adminDashboard', 'Admin Dashboard')}</span>
+                    </Link>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left rtl:text-right"
+                  >
+                    <LogOut size={16} />
+                    <span>{t('nav.logout', 'Sign Out')}</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="px-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    {t('nav.account', 'Account Access')}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 text-center text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <UserIcon size={14} className="text-primary-600 dark:text-sky-400" />
+                      <span>{t('nav.login', 'Sign In')}</span>
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 text-center text-xs font-bold rounded-xl bg-primary-600 text-white shadow-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <span>{t('nav.register', 'Create Account')}</span>
+                    </Link>
+                  </div>
+                </>
               )}
             </div>
           </motion.div>

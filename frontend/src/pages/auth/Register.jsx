@@ -108,11 +108,11 @@ export const Register = () => {
   return (
     <div className="w-full flex flex-col gap-5">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+      <div className="space-y-1.5 text-center sm:text-left">
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-outfit">
           Create an Angadix account
         </h2>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium font-body">
           Join Angadix today to unlock curated releases & seamless checkout.
         </p>
       </div>
@@ -122,20 +122,20 @@ export const Register = () => {
 
       {/* Or Divider */}
       <div className="relative flex items-center justify-center my-1">
-        <div className="border-t border-slate-200/80 w-full" />
-        <span className="bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">
+        <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
+        <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0 font-outfit">
           or sign up with email
         </span>
-        <div className="border-t border-slate-200/80 w-full" />
+        <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
         <Input
           label="Full Name"
           type="text"
           placeholder="Jane Doe"
-          leftIcon={<User size={18} />}
+          leftIcon={<User size={18} className="text-[#0266C8] dark:text-sky-400" />}
           error={errors.name?.message}
           {...register('name')}
         />
@@ -144,7 +144,7 @@ export const Register = () => {
           label="Email Address"
           type="email"
           placeholder="name@example.com"
-          leftIcon={<Mail size={18} />}
+          leftIcon={<Mail size={18} className="text-[#0266C8] dark:text-sky-400" />}
           error={errors.email?.message}
           {...register('email')}
         />
@@ -154,7 +154,7 @@ export const Register = () => {
             label="Password"
             type="password"
             placeholder="••••••••"
-            leftIcon={<Lock size={18} />}
+            leftIcon={<Lock size={18} className="text-[#0266C8] dark:text-sky-400" />}
             error={errors.password?.message}
             {...register('password')}
           />
@@ -163,10 +163,10 @@ export const Register = () => {
           {watchPassword && (
             <div className="mt-1.5 flex flex-col gap-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Password Strength:</span>
-                <span className={`font-bold ${strength.textColor}`}>{strength.text}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Password Strength:</span>
+                <span className={`font-extrabold ${strength.textColor}`}>{strength.text}</span>
               </div>
-              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex gap-1">
+              <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex gap-1">
                 <div
                   className={`h-full transition-all duration-300 ${strength.color}`}
                   style={{ width: `${(strengthScore / 5) * 100}%` }}
@@ -180,7 +180,7 @@ export const Register = () => {
           label="Confirm Password"
           type="password"
           placeholder="••••••••"
-          leftIcon={<CheckCircle size={18} />}
+          leftIcon={<CheckCircle size={18} className="text-[#0266C8] dark:text-sky-400" />}
           error={errors.confirmPassword?.message}
           {...register('confirmPassword')}
         />
@@ -190,23 +190,23 @@ export const Register = () => {
           <label className="flex items-start gap-2.5 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-primary-800 focus:ring-primary-600 shrink-0"
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8] shrink-0"
               {...register('acceptTerms')}
             />
-            <span className="text-xs text-slate-600 leading-normal">
+            <span className="text-xs text-slate-600 dark:text-slate-300 leading-normal font-medium">
               I agree to the{' '}
-              <a href="#terms" className="text-primary-800 font-semibold underline">
+              <a href="#terms" className="text-[#0266C8] dark:text-sky-400 font-bold hover:underline">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="#privacy" className="text-primary-800 font-semibold underline">
+              <a href="#privacy" className="text-[#0266C8] dark:text-sky-400 font-bold hover:underline">
                 Privacy Policy
               </a>
               .
             </span>
           </label>
           {errors.acceptTerms && (
-            <p className="text-xs text-semantic-error mt-1">• {errors.acceptTerms.message}</p>
+            <p className="text-xs text-rose-500 font-bold mt-1">• {errors.acceptTerms.message}</p>
           )}
         </div>
 
@@ -217,7 +217,7 @@ export const Register = () => {
           size="lg"
           isLoading={isSubmitting}
           isDisabled={isSubmitting}
-          className="w-full mt-1"
+          className="w-full mt-2 bg-gradient-to-r from-[#0266C8] to-[#0054A6] hover:from-[#0054A6] hover:to-[#003C78] text-white shadow-lg shadow-[#0266C8]/25 rounded-2xl h-12 font-extrabold text-sm tracking-wide transition-all transform active:scale-[0.99]"
         >
           <span>Create Account</span>
           {!isSubmitting && <ArrowRight size={18} className="ml-2" />}
@@ -225,11 +225,11 @@ export const Register = () => {
       </form>
 
       {/* Switch */}
-      <p className="text-center text-sm text-slate-500 pt-2 border-t border-slate-100">
+      <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
         Already have an account?{' '}
         <Link
           to="/login"
-          className="font-bold text-primary-800 hover:text-primary-900 hover:underline"
+          className="font-extrabold text-[#0266C8] dark:text-sky-400 hover:underline"
         >
           Sign in instead
         </Link>

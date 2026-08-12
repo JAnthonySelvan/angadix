@@ -74,7 +74,12 @@ export const AdminLayout = () => {
             <img
               src="/logo.png"
               alt="Angadix Admin Logo"
-              className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform"
+              className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform dark:hidden"
+            />
+            <img
+              src="/logo-dark.png"
+              alt="Angadix Admin Dark Logo"
+              className="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform hidden dark:block"
             />
             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-950/80 text-primary-700 dark:text-primary-300 border border-primary-200/60 dark:border-primary-800/60 leading-none">
               ADMIN

@@ -142,7 +142,12 @@ export const Navbar = () => {
             <img
               src="/logo.png"
               alt="Angadix Logo"
-              className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+              className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
+            />
+            <img
+              src="/logo-dark.png"
+              alt="Angadix Dark Logo"
+              className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-105 hidden dark:block"
             />
           </Link>
 

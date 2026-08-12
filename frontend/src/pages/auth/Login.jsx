@@ -103,39 +103,39 @@ export const Login = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-1 text-center sm:text-left">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight font-heading">
+      <div className="space-y-1.5 text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-outfit">
           {t('auth.loginTitle', 'Welcome Back')}
         </h1>
-        <p className="text-sm text-slate-500 font-body">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium font-body">
           {t('auth.loginSub', 'Sign in to access your account, wishlist, and orders')}
         </p>
       </div>
 
       {/* Unverified Email Warning Alert Banner */}
       {unverifiedEmail && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-3">
+        <div className="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 space-y-3">
           <div className="flex items-start gap-3">
-            <AlertCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+            <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider font-heading">
+              <h4 className="text-xs font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider font-outfit">
                 Email Verification Required
               </h4>
-              <p className="text-xs text-amber-800 leading-relaxed font-body">
+              <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed font-body">
                 An account with <strong>{unverifiedEmail}</strong> exists, but the email address has not been verified yet.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-amber-200/60">
-            <span className="text-[11px] text-amber-700 font-semibold">Didn't receive an email?</span>
+          <div className="flex items-center justify-between pt-2 border-t border-amber-200/60 dark:border-amber-900/40">
+            <span className="text-[11px] text-amber-700 dark:text-amber-300 font-semibold">Didn't receive an email?</span>
             <Button
               variant="secondary"
               size="sm"
               isLoading={isResending}
               isDisabled={isResending}
               onClick={handleResend}
-              className="bg-white border border-amber-300 text-amber-900 hover:bg-amber-100"
+              className="bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 hover:bg-amber-100 rounded-xl"
             >
               <RefreshCw size={14} className="mr-1.5" />
               <span>Resend Verification Email</span>
@@ -143,7 +143,7 @@ export const Login = () => {
           </div>
 
           {resendSuccessMsg && (
-            <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-900/50">
               ✓ {resendSuccessMsg}
             </p>
           )}
@@ -154,12 +154,12 @@ export const Login = () => {
       <GoogleAuthButton text={t('auth.googleSignIn', 'Continue with Google')} redirectTo={from} />
 
       {/* Or Divider */}
-      <div className="relative flex items-center justify-center my-1">
-        <div className="border-t border-slate-200/80 w-full" />
-        <span className="bg-white px-3 text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">
-          {t('common.or', 'or')}
+      <div className="relative flex items-center justify-center my-2">
+        <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
+        <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0 font-outfit">
+          {t('common.or', 'or sign in with email')}
         </span>
-        <div className="border-t border-slate-200/80 w-full" />
+        <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
       </div>
 
       {/* Login Form */}
@@ -168,7 +168,7 @@ export const Login = () => {
           label={t('auth.emailLabel', 'Email Address')}
           type="email"
           placeholder="name@example.com"
-          leftIcon={<Mail size={18} />}
+          leftIcon={<Mail size={18} className="text-[#0266C8] dark:text-sky-400" />}
           error={errors.email?.message}
           {...register('email')}
         />
@@ -177,24 +177,24 @@ export const Login = () => {
           label={t('auth.passwordLabel', 'Password')}
           type="password"
           placeholder="••••••••"
-          leftIcon={<Lock size={18} />}
+          leftIcon={<Lock size={18} className="text-[#0266C8] dark:text-sky-400" />}
           error={errors.password?.message}
           {...register('password')}
         />
 
         {/* Remember Me & Forgot Password Row */}
         <div className="flex items-center justify-between text-xs pt-1">
-          <label className="flex items-center gap-2 text-slate-600 font-medium cursor-pointer">
+          <label className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-semibold cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-slate-300 text-primary-800 focus:ring-primary-600"
+              className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-[#0266C8] focus:ring-[#0266C8]"
             />
             <span>{t('auth.rememberMe', 'Remember me')}</span>
           </label>
 
           <Link
             to="/forgot-password"
-            className="font-bold text-primary-800 hover:text-primary-900 hover:underline transition-all"
+            className="font-extrabold text-[#0266C8] dark:text-sky-400 hover:underline transition-all"
           >
             {t('auth.forgotPasswordLink', 'Forgot password?')}
           </Link>
@@ -207,7 +207,7 @@ export const Login = () => {
           size="lg"
           isLoading={isSubmitting}
           isDisabled={isSubmitting}
-          className="w-full mt-1"
+          className="w-full mt-2 bg-gradient-to-r from-[#0266C8] to-[#0054A6] hover:from-[#0054A6] hover:to-[#003C78] text-white shadow-lg shadow-[#0266C8]/25 rounded-2xl h-12 font-extrabold text-sm tracking-wide transition-all transform active:scale-[0.99]"
         >
           <span>{isSubmitting ? t('auth.sendingBtn', 'Signing In...') : t('auth.signInBtn', 'Sign In')}</span>
           {!isSubmitting && <ArrowRight size={18} className="ml-2" />}
@@ -215,11 +215,11 @@ export const Login = () => {
       </form>
 
       {/* Footer Switch */}
-      <p className="text-center text-sm text-slate-500 pt-2 border-t border-slate-100">
+      <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
         {t('auth.dontHaveAccount', "Don't have an account?")}{' '}
         <Link
           to="/register"
-          className="font-bold text-primary-800 hover:text-primary-900 hover:underline"
+          className="font-extrabold text-[#0266C8] dark:text-sky-400 hover:underline"
         >
           {t('auth.signUpBtn', 'Create Account')}
         </Link>

@@ -15,9 +15,9 @@ export const Footer = () => {
           <div className="space-y-4 lg:col-span-1">
             <Link to="/" className="flex items-center gap-2">
               <img
-                src="/logo.png"
+                src="/logo-dark.png"
                 alt="Angadix Logo"
-                className="h-10 w-auto object-contain bg-white/90 p-1.5 rounded-xl border border-white/20 shadow-md"
+                className="h-10 w-auto object-contain drop-shadow-md"
               />
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed">

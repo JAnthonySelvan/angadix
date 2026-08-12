@@ -25,10 +25,10 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
 
       {/* Selected Address Snapshot Summary */}
       {address && (
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-start justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 flex items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                 {t('order.shippingAddress', 'Delivering To')}:
               </span>
               <Badge variant="slate" size="sm">
@@ -36,10 +36,10 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
               </Badge>
             </div>
             <p className="text-sm font-extrabold text-slate-900 dark:text-white">
-              {address.fullName} • <span className="text-slate-500 font-normal">+91 {address.phone}</span>
+              {address.fullName} • <span className="text-slate-600 dark:text-slate-200 font-semibold">+91 {address.phone}</span>
             </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-              <MapPin size={13} className="text-slate-400 shrink-0" />
+            <p className="text-xs text-slate-700 dark:text-slate-100 font-medium flex items-center gap-1.5">
+              <MapPin size={13} className="text-primary-600 dark:text-sky-400 shrink-0" />
               <span>
                 {address.addressLine1}
                 {address.addressLine2 ? `, ${address.addressLine2}` : ''}, {address.city},{' '}
@@ -50,7 +50,7 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
 
           <button
             onClick={onBack}
-            className="text-xs font-extrabold text-primary-600 dark:text-primary-400 hover:underline shrink-0"
+            className="text-xs font-extrabold text-primary-600 dark:text-sky-300 hover:underline shrink-0"
           >
             {t('common.edit', 'Change Address')}
           </button>
@@ -59,11 +59,11 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
 
       {/* Delivery Method Option Card */}
       <div className="space-y-3">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
           {t('checkout.stepDelivery', 'Shipping Tier')}
         </label>
 
-        <div className="p-5 rounded-2xl border-2 border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 flex items-center justify-between gap-4 shadow-lg shadow-primary-600/10">
+        <div className="p-5 rounded-2xl border-2 border-primary-600 dark:border-sky-400 bg-primary-50/70 dark:bg-slate-800/90 flex items-center justify-between gap-4 shadow-lg shadow-primary-600/10 dark:shadow-sky-500/10">
           <div className="flex items-start gap-3.5">
             <div className="p-3 rounded-xl bg-primary-600 text-white shadow-md shadow-primary-600/30">
               <Truck size={22} />
@@ -79,19 +79,19 @@ export const DeliveryStep = ({ selectedAddressId, onBack, onNext }) => {
                 </Badge>
               </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
-                <Clock size={13} className="text-slate-400" />
+              <p className="text-xs text-slate-700 dark:text-slate-100 font-medium flex items-center gap-1.5">
+                <Clock size={13} className="text-primary-600 dark:text-sky-400" />
                 <span>{t('checkout.standardShippingDesc', 'Estimated Delivery: 3 to 5 Business Days')}</span>
               </p>
 
-              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 pt-1">
+              <p className="text-[11px] text-emerald-600 dark:text-emerald-300 font-bold flex items-center gap-1 pt-1">
                 <ShieldCheck size={13} />
                 <span>{t('home.features.authentic', 'Insured & Tracked Express Parcel')}</span>
               </p>
             </div>
           </div>
 
-          <CheckCircle2 size={22} className="fill-primary-600 text-white shrink-0" />
+          <CheckCircle2 size={22} className="fill-primary-600 dark:fill-sky-400 text-white dark:text-slate-950 shrink-0" />
         </div>
       </div>
 

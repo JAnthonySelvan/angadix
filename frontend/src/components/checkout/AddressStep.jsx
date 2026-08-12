@@ -166,14 +166,14 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                 onClick={() => onSelectAddress(addr._id)}
                 className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${
                   isSelected
-                    ? 'border-primary-600 bg-primary-50/60 dark:bg-primary-950/40 shadow-lg shadow-primary-600/10'
+                    ? 'border-primary-600 dark:border-sky-400 bg-primary-50/70 dark:bg-slate-800/90 shadow-lg shadow-primary-600/10 dark:shadow-sky-500/10'
                     : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <div className="absolute top-4 right-4 text-primary-600 dark:text-primary-400">
-                    <CheckCircle2 size={20} className="fill-primary-600 text-white" />
+                  <div className="absolute top-4 right-4 text-primary-600 dark:text-sky-400">
+                    <CheckCircle2 size={20} className="fill-primary-600 dark:fill-sky-400 text-white dark:text-slate-950" />
                   </div>
                 )}
 
@@ -195,14 +195,14 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                   <span>{addr.fullName}</span>
                 </h3>
 
-                <p className="text-xs text-slate-500 font-semibold flex items-center gap-1.5 mt-1">
-                  <Phone size={13} className="text-slate-400" />
+                <p className="text-xs text-slate-600 dark:text-slate-200 font-semibold flex items-center gap-1.5 mt-1">
+                  <Phone size={13} className="text-primary-600 dark:text-sky-400" />
                   <span>+91 {addr.phone}</span>
                 </p>
 
                 {/* Formatted Address */}
-                <div className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-2 leading-relaxed flex items-start gap-1.5">
-                  <MapPin size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-slate-700 dark:text-slate-100 font-medium mt-2 leading-relaxed flex items-start gap-1.5">
+                  <MapPin size={14} className="text-primary-600 dark:text-sky-400 mt-0.5 flex-shrink-0" />
                   <span>
                     {addr.addressLine1}
                     {addr.addressLine2 ? `, ${addr.addressLine2}` : ''}, {addr.city},{' '}

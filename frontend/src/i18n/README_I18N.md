@@ -64,7 +64,7 @@ export const MyComponent = () => {
 
   return (
     <div>
-      <h1>{t('home.heroTag', 'Next-Gen Technology')}</h1>
+      <h1>{t('home.heroTag', 'Premium Technology')}</h1>
       <button>{t('common.addToCart', 'Add to Cart')}</button>
     </div>
   );

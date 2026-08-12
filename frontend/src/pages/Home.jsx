@@ -138,7 +138,7 @@ export const Home = () => {
 
   const HERO_SLIDES = activeHeroBanners.length > 0
     ? activeHeroBanners.map((b) => ({
-        tag: b.subtitle || t('home.heroTag', 'Next-Gen Technology'),
+        tag: b.subtitle || t('home.heroTag', 'Premium Technology'),
         title: b.title,
         sub: b.subtitle || t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
         cta1: b.ctaText || t('common.shopNow', 'Shop Now'),
@@ -148,7 +148,7 @@ export const Home = () => {
       }))
     : [
         {
-          tag: t('home.heroTag', 'Next-Gen Technology'),
+          tag: t('home.heroTag', 'Premium Technology'),
           title: `${t('home.heroTitle1', 'Ultimate Audio &')} ${t('home.heroTitle2', 'Smart Wearables')}`,
           sub: t('home.heroSubtitle', 'Experience studio-grade acoustics and high-precision sensors engineered for perfection.'),
           cta1: t('common.shopNow', 'Shop Now'),

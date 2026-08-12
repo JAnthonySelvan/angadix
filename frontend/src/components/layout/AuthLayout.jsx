@@ -2,8 +2,11 @@ import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingBag, ShieldCheck, Sparkles, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const AuthLayout = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen w-full bg-[#f0f8ff] dark:bg-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden transition-colors duration-300">
       {/* Decorative Ambient Lighting Orbs */}
@@ -34,15 +37,15 @@ export const AuthLayout = () => {
           <div className="my-8 relative z-10 space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sky-200 text-xs font-bold tracking-wide shadow-sm">
               <Sparkles size={14} className="text-amber-300" />
-              <span>Next-Gen Premium Store</span>
+              <span>{t('auth.premiumStore', 'Premium Store')}</span>
             </div>
 
             <h1 className="text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight font-outfit">
-              Elevate Your Everyday Shopping Standard.
+              {t('auth.heroTitle', 'Elevate Your Everyday Shopping Standard.')}
             </h1>
 
             <p className="text-xs lg:text-sm text-sky-100/90 leading-relaxed font-body">
-              Join thousands of discerning customers enjoying curated luxury electronics, instant checkout, and bank-grade security.
+              {t('auth.heroSub', 'Join thousands of discerning customers enjoying curated luxury electronics, instant checkout, and bank-grade security.')}
             </p>
 
             {/* Testimonial & Rating Badge */}
@@ -62,7 +65,7 @@ export const AuthLayout = () => {
                   ))}
                 </div>
                 <p className="text-xs text-white font-bold mt-0.5">
-                  Rated 4.9/5 by 10,000+ happy shoppers
+                  {t('auth.ratedBadge', 'Rated 4.9/5 by 10,000+ happy shoppers')}
                 </p>
               </div>
             </div>
@@ -71,7 +74,7 @@ export const AuthLayout = () => {
           {/* Footer Security Note */}
           <div className="relative z-10 flex items-center gap-2 text-xs text-sky-200/90 pt-4 border-t border-white/15">
             <ShieldCheck size={16} className="text-sky-300 shrink-0" />
-            <span className="font-semibold">256-bit SSL Encrypted Bank-Grade Security</span>
+            <span className="font-semibold">{t('auth.sslEncrypted', '256-bit SSL Encrypted Bank-Grade Security')}</span>
           </div>
         </div>
 

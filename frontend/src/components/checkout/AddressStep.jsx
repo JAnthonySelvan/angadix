@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Edit2, Trash2, CheckCircle2, MapPin, Phone, Home, Briefcase, Tag, AlertTriangle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   fetchAddresses,
@@ -20,6 +21,7 @@ import { AddressForm } from './AddressForm';
 import toast from 'react-hot-toast';
 
 export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const addresses = useAppSelector(selectAddresses);
   const status = useAppSelector(selectAddressStatus);
@@ -69,13 +71,13 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
           const result = await dispatch(
             updateAddress({ id: editingAddress._id, data: formData })
           ).unwrap();
-          toast.success('Address updated successfully.');
+          toast.success(t('toasts.addressUpdated', 'Address updated successfully.'));
           if (result?._id) {
             onSelectAddress(result._id);
           }
         } else {
           const result = await dispatch(createAddress(formData)).unwrap();
-          toast.success('Address added successfully.');
+          toast.success(t('toasts.addressAdded', 'Address added successfully.'));
           if (result?._id) {
             onSelectAddress(result._id);
           }
@@ -83,12 +85,12 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
         setIsModalOpen(false);
         setEditingAddress(null);
       } catch (err) {
-        toast.error(err || 'Failed to save address.');
+        toast.error(err || t('common.error', 'Failed to save address.'));
       } finally {
         setIsSubmitting(false);
       }
     },
-    [dispatch, editingAddress, isSubmitting, onSelectAddress]
+    [dispatch, editingAddress, isSubmitting, onSelectAddress, t]
   );
 
   const handleDelete = useCallback(
@@ -96,18 +98,18 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
       if (e && e.stopPropagation) e.stopPropagation();
       try {
         await dispatch(deleteAddress(id)).unwrap();
-        toast.success('Address deleted.');
+        toast.success(t('toasts.addressDeleted', 'Address deleted.'));
         if (selectedAddressId === id) {
           const remaining = addresses.filter((a) => a._id !== id);
           onSelectAddress(remaining.length > 0 ? remaining[0]._id : null);
         }
       } catch (err) {
-        toast.error(err || 'Failed to delete address.');
+        toast.error(err || t('common.error', 'Failed to delete address.'));
       } finally {
         setDeletingId(null);
       }
     },
-    [dispatch, addresses, selectedAddressId, onSelectAddress]
+    [dispatch, addresses, selectedAddressId, onSelectAddress, t]
   );
 
   const getTypeIcon = (type) => {
@@ -127,10 +129,10 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white">
-            Select Shipping Address
+            {t('checkout.selectShippingAddress', 'Select Shipping Address')}
           </h2>
           <p className="text-xs text-slate-500 font-semibold mt-0.5">
-            Choose where you want your Angadix order delivered
+            {t('checkout.selectShippingAddressSub', 'Choose where you want your Angadix order delivered')}
           </p>
         </div>
 
@@ -141,7 +143,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
           className="inline-flex items-center gap-1.5 rounded-xl font-bold"
         >
           <Plus size={16} />
-          <span>Add New Address</span>
+          <span>{t('checkout.addNewAddress', 'Add New Address')}</span>
         </Button>
       </div>
 
@@ -185,7 +187,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                   </Badge>
                   {addr.isDefault && (
                     <Badge variant="success" size="sm">
-                      Default
+                      {t('checkout.default', 'Default')}
                     </Badge>
                   )}
                 </div>
@@ -219,18 +221,18 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                     title="Edit address"
                   >
                     <Edit2 size={13} />
-                    <span>Edit</span>
+                    <span>{t('common.edit', 'Edit')}</span>
                   </button>
 
                   {deletingId === addr._id ? (
                     <div className="flex items-center gap-1 bg-rose-50 dark:bg-rose-950/40 p-1 rounded-lg">
-                      <span className="text-[10px] font-bold text-rose-600">Confirm?</span>
+                      <span className="text-[10px] font-bold text-rose-600">{t('checkout.confirm', 'Confirm?')}</span>
                       <button
                         type="button"
                         onClick={(e) => handleDelete(addr._id, e)}
                         className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold"
                       >
-                        Yes
+                        {t('checkout.yes', 'Yes')}
                       </button>
                       <button
                         type="button"
@@ -240,7 +242,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                         }}
                         className="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold"
                       >
-                        No
+                        {t('checkout.no', 'No')}
                       </button>
                     </div>
                   ) : (
@@ -254,7 +256,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
                       title="Delete address"
                     >
                       <Trash2 size={13} />
-                      <span>Delete</span>
+                      <span>{t('common.delete', 'Delete')}</span>
                     </button>
                   )}
                 </div>
@@ -269,13 +271,13 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
         <div className="neu-card p-8 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 text-center space-y-3">
           <AlertTriangle size={32} className="text-amber-500 mx-auto" />
           <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-            No Shipping Address Found
+            {t('checkout.noAddressFound', 'No Shipping Address Found')}
           </h3>
           <p className="text-xs text-slate-500">
-            Please add a delivery address to proceed with your order checkout.
+            {t('checkout.noAddressSub', 'Please add a delivery address to proceed with your order checkout.')}
           </p>
           <Button onClick={handleOpenAddModal} variant="primary" size="sm">
-            Add Address Now
+            {t('checkout.addAddressNow', 'Add Address Now')}
           </Button>
         </div>
       )}
@@ -284,7 +286,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingAddress ? 'Edit Shipping Address' : 'Add New Shipping Address'}
+        title={editingAddress ? t('address.editAddress', 'Edit Shipping Address') : t('checkout.addNewAddress', 'Add New Shipping Address')}
         maxWidth="max-w-lg"
       >
         <AddressForm
@@ -305,7 +307,7 @@ export const AddressStep = ({ selectedAddressId, onSelectAddress, onNext }) => {
           isDisabled={!selectedAddressId}
           className="rounded-2xl font-black px-8"
         >
-          <span>Continue to Delivery</span>
+          <span>{t('checkout.continueToDelivery', 'Continue to Delivery')}</span>
         </Button>
       </div>
     </div>

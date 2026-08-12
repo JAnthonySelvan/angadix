@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Mail, Lock, CheckCircle, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../app/hooks';
 import { registerUser } from '../../features/auth/authThunks';
 import { Button } from '../../components/ui/Button';
@@ -33,6 +34,7 @@ const registerSchema = z
   });
 
 export const Register = () => {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -69,9 +71,9 @@ export const Register = () => {
   const strengthScore = getPasswordStrength(watchPassword);
 
   const getStrengthLabel = () => {
-    if (strengthScore <= 2) return { text: 'Weak', color: 'bg-rose-500', textColor: 'text-rose-600' };
-    if (strengthScore <= 4) return { text: 'Medium', color: 'bg-amber-500', textColor: 'text-amber-600' };
-    return { text: 'Strong', color: 'bg-emerald-500', textColor: 'text-emerald-600' };
+    if (strengthScore <= 2) return { text: t('auth.weak', 'Weak'), color: 'bg-rose-500', textColor: 'text-rose-600' };
+    if (strengthScore <= 4) return { text: t('auth.medium', 'Medium'), color: 'bg-amber-500', textColor: 'text-amber-600' };
+    return { text: t('auth.strong', 'Strong'), color: 'bg-emerald-500', textColor: 'text-emerald-600' };
   };
 
   const strength = getStrengthLabel();
@@ -91,15 +93,15 @@ export const Register = () => {
       if (registerUser.fulfilled.match(resultAction)) {
         toast.success(
           resultAction.payload?.message ||
-            'Registration successful! Please check your email to verify your account.'
+            t('toasts.verifyEmailSent', 'Registration successful! Please check your email to verify your account.')
         );
         navigate('/login');
       } else {
-        const errorMsg = resultAction.payload?.message || 'Registration failed.';
+        const errorMsg = resultAction.payload?.message || t('common.error', 'Registration failed.');
         toast.error(errorMsg);
       }
     } catch (error) {
-      toast.error(error?.message || 'An unexpected error occurred during registration.');
+      toast.error(error?.message || t('common.error', 'An unexpected error occurred during registration.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -110,21 +112,21 @@ export const Register = () => {
       {/* Header */}
       <div className="space-y-1.5 text-center sm:text-left">
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-outfit">
-          Create an Angadix account
+          {t('auth.createAccountTitle', 'Create an Angadix account')}
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium font-body">
-          Join Angadix today to unlock curated releases & seamless checkout.
+          {t('auth.createAccountSub', 'Join Angadix today to unlock curated releases & seamless checkout.')}
         </p>
       </div>
 
       {/* Google OAuth Register Button */}
-      <GoogleAuthButton text="Sign up with Google" redirectTo="/" />
+      <GoogleAuthButton text={t('auth.signUpWithGoogle', 'Sign up with Google')} redirectTo="/" />
 
       {/* Or Divider */}
       <div className="relative flex items-center justify-center my-1">
         <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
         <span className="bg-white dark:bg-slate-900 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0 font-outfit">
-          or sign up with email
+          {t('auth.orSignUpWithEmail', 'or sign up with email')}
         </span>
         <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
       </div>
@@ -132,7 +134,7 @@ export const Register = () => {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
         <Input
-          label="Full Name"
+          label={t('auth.fullNameLabel', 'Full Name')}
           type="text"
           placeholder="Jane Doe"
           leftIcon={<User size={18} className="text-[#0266C8] dark:text-sky-400" />}
@@ -141,7 +143,7 @@ export const Register = () => {
         />
 
         <Input
-          label="Email Address"
+          label={t('auth.emailLabel', 'Email Address')}
           type="email"
           placeholder="name@example.com"
           leftIcon={<Mail size={18} className="text-[#0266C8] dark:text-sky-400" />}
@@ -151,7 +153,7 @@ export const Register = () => {
 
         <div>
           <Input
-            label="Password"
+            label={t('auth.passwordLabel', 'Password')}
             type="password"
             placeholder="••••••••"
             leftIcon={<Lock size={18} className="text-[#0266C8] dark:text-sky-400" />}
@@ -163,7 +165,7 @@ export const Register = () => {
           {watchPassword && (
             <div className="mt-1.5 flex flex-col gap-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">Password Strength:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">{t('auth.passwordStrength', 'Password Strength:')}</span>
                 <span className={`font-extrabold ${strength.textColor}`}>{strength.text}</span>
               </div>
               <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex gap-1">
@@ -177,7 +179,7 @@ export const Register = () => {
         </div>
 
         <Input
-          label="Confirm Password"
+          label={t('auth.confirmPasswordLabel', 'Confirm Password')}
           type="password"
           placeholder="••••••••"
           leftIcon={<CheckCircle size={18} className="text-[#0266C8] dark:text-sky-400" />}
@@ -194,13 +196,13 @@ export const Register = () => {
               {...register('acceptTerms')}
             />
             <span className="text-xs text-slate-600 dark:text-slate-300 leading-normal font-medium">
-              I agree to the{' '}
+              {t('auth.agreeTerms', 'I agree to the')}{' '}
               <a href="#terms" className="text-[#0266C8] dark:text-sky-400 font-bold hover:underline">
-                Terms of Service
+                {t('footer.termsOfService', 'Terms of Service')}
               </a>{' '}
-              and{' '}
+              {t('common.and', 'and')}{' '}
               <a href="#privacy" className="text-[#0266C8] dark:text-sky-400 font-bold hover:underline">
-                Privacy Policy
+                {t('footer.privacyPolicy', 'Privacy Policy')}
               </a>
               .
             </span>
@@ -219,19 +221,19 @@ export const Register = () => {
           isDisabled={isSubmitting}
           className="w-full mt-2 bg-gradient-to-r from-[#0266C8] to-[#0054A6] hover:from-[#0054A6] hover:to-[#003C78] text-white shadow-lg shadow-[#0266C8]/25 rounded-2xl h-12 font-extrabold text-sm tracking-wide transition-all transform active:scale-[0.99]"
         >
-          <span>Create Account</span>
+          <span>{t('auth.signUpBtn', 'Create Account')}</span>
           {!isSubmitting && <ArrowRight size={18} className="ml-2" />}
         </Button>
       </form>
 
       {/* Switch */}
       <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
-        Already have an account?{' '}
+        {t('auth.alreadyHaveAccount', 'Already have an account?')}{' '}
         <Link
           to="/login"
           className="font-extrabold text-[#0266C8] dark:text-sky-400 hover:underline"
         >
-          Sign in instead
+          {t('auth.signInInstead', 'Sign in instead')}
         </Link>
       </p>
     </div>

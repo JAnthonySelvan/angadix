@@ -357,7 +357,7 @@ export const FeaturedShowcaseManagement = () => {
                     type="text"
                     required
                     maxLength={150}
-                    placeholder="e.g. Next-Gen Studio Headphones"
+                    placeholder="e.g. Premium Studio Headphones"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full px-4 py-2.5 text-xs bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-900 dark:text-white border border-transparent focus:border-primary-500 focus:outline-none"

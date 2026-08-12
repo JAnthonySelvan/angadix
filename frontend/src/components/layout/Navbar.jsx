@@ -398,7 +398,7 @@ export const Navbar = () => {
             isOverHero ? 'text-[#0266C8] dark:text-sky-200' : 'text-primary-600 dark:text-primary-400'
           }`}>
             <Sparkles size={13} />
-            <span>{t('home.heroTag', 'Next-Gen Technology')}</span>
+            <span>{t('home.heroTag', 'Premium Technology')}</span>
           </div>
         </div>
       </div>

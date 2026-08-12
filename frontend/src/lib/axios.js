@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+const formatBaseURL = (rawUrl) => {
+  if (!rawUrl) return '/api/v1';
+  const cleanUrl = rawUrl.trim().replace(/\/+$/, '');
+  if (!cleanUrl.endsWith('/api/v1')) {
+    return `${cleanUrl}/api/v1`;
+  }
+  return cleanUrl;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: formatBaseURL(import.meta.env.VITE_API_URL),
   withCredentials: true, // Send httpOnly cookies with requests
   headers: {
     'Content-Type': 'application/json',
